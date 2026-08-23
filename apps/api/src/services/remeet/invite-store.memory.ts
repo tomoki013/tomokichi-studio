@@ -32,6 +32,11 @@ export class InMemoryInviteStore implements InviteStore {
     return null;
   }
 
+  async markConsumed(id: string, consumedAt: string, attemptID: string | null): Promise<void> {
+    const record = this.records.get(id);
+    if (record) this.records.set(id, { ...record, consumedAt, consumedByAttempt: attemptID });
+  }
+
   async revoke(id: string, revokedAt: string): Promise<void> {
     const record = this.records.get(id);
     if (record) this.records.set(id, { ...record, status: "revoked", revokedAt });

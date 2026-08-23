@@ -1,0 +1,24 @@
+-- One invitation, one joiner.
+--
+-- Until now `resolveInvite` handed out the CKShare URL to anybody presenting a
+-- live token, as often as they asked, until the seven-day expiry or until the
+-- owner's device happened to open the app and revoke it. A forwarded message
+-- therefore let a third party fetch the same URL and join a reunion meant for
+-- two people. See docs/moderation-plan.md §0 in the Remeet repository.
+--
+-- Making the token single-use on its own would break the ordinary case: joining
+-- is not one request. A dropped connection, a relaunch, or somebody tapping the
+-- link again because nothing seemed to happen all mean asking twice.
+--
+-- A plain time window does not tell those apart from the forwarded case — the
+-- server has no idea who is asking — so the client mints a random
+-- `resolveAttemptID` for its attempt and sends it with every resolve. The first
+-- successful resolve records which attempt consumed the invitation:
+--
+--   * the same attempt id, within CONSUMPTION_GRACE, gets the same answer;
+--   * any other attempt id is refused, immediately and for good.
+--
+-- Nullable because every invitation minted before this exists has neither
+-- column, and an older build of the app sends no attempt id at all.
+ALTER TABLE invites ADD COLUMN consumed_at TEXT;
+ALTER TABLE invites ADD COLUMN consumed_by_attempt TEXT;

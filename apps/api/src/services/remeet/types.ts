@@ -9,6 +9,9 @@
 export interface D1Result<T = unknown> {
   results?: T[];
   success: boolean;
+  /** D1 reports how many rows a statement touched. Used to tell "revoked it"
+   *  from "there was nothing to revoke" without a second query. */
+  meta?: { changes?: number };
 }
 
 export interface D1PreparedStatement {

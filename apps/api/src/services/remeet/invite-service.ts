@@ -172,6 +172,7 @@ export async function resolveInvite(
   const token = readToken(body);
   const code = normalizeInviteCode((body as { code?: unknown } | null)?.code);
   if (!token && !code) return fail("INVALID_REQUEST");
+  const attemptID = readAttemptID(body);
 
   const now = (context.now ?? (() => new Date()))();
   const record = token
@@ -184,8 +185,22 @@ export async function resolveInvite(
     return fail("INVITE_UNAVAILABLE");
   }
 
+  // Deliberately the same failure as unknown/expired/revoked. Somebody holding
+  // a forwarded link learns that it does not work, and nothing about why —
+  // "already used" would tell them there is a real reunion behind it and that
+  // they were a moment too late.
+  if (!mayResolve(record, attemptID, now)) {
+    await context.record?.("resolve_unavailable");
+    return fail("INVITE_UNAVAILABLE");
+  }
+
   try {
     const ckShareUrl = await decryptSecret(context.keys, record.id, record.encryptedShareURL);
+    // Marked after the URL is in hand, so a decryption failure does not burn
+    // the invitation on somebody who never received anything.
+    if (!record.consumedAt) {
+      await context.store.markConsumed(record.id, now.toISOString(), attemptID);
+    }
     await context.record?.("resolved");
     return succeed({ ckShareUrl, expiresAt: record.expiresAt });
   } catch {
@@ -364,4 +379,41 @@ function readManagementToken(body: unknown): string | null {
 
 function isUsable(record: InviteRecord | null, now: Date): record is InviteRecord {
   return !!record && record.status === "active" && new Date(record.expiresAt) > now;
+}
+
+/**
+ * How long after the first successful resolve the *same* attempt may ask again.
+ *
+ * Long enough to cover a dropped connection, a relaunch and somebody tapping
+ * the link twice because nothing appeared to happen; short enough that a
+ * consumed invitation is not sitting there answering questions all afternoon.
+ */
+const CONSUMPTION_GRACE_MS = 10 * 60 * 1000;
+
+/**
+ * Whether this attempt may have the share URL.
+ *
+ * The rule that matters is the second one: a *different* attempt id is refused
+ * outright. That is the whole point — a plain time window would hand the URL to
+ * whoever asked next, which on a forwarded invitation is exactly the person it
+ * must not go to.
+ *
+ * An invitation consumed by an attempt this request cannot name is refused even
+ * inside the grace period, and a request with no attempt id at all cannot
+ * consume anything a second time. An older build of the app sends none; it gets
+ * one resolve, which is what it needed anyway.
+ */
+function mayResolve(record: InviteRecord, attemptID: string | null, now: Date): boolean {
+  if (!record.consumedAt) return true;
+  if (!attemptID || record.consumedByAttempt !== attemptID) return false;
+  return now.getTime() - new Date(record.consumedAt).getTime() <= CONSUMPTION_GRACE_MS;
+}
+
+function readAttemptID(body: unknown): string | null {
+  const value = (body as { resolveAttemptId?: unknown } | null)?.resolveAttemptId;
+  if (typeof value !== "string") return null;
+  // A UUID's worth and no more. This is only ever compared for equality, so
+  // there is nothing to gain by accepting anything longer.
+  if (value.length < 8 || value.length > 64) return null;
+  return /^[A-Za-z0-9-]+$/.test(value) ? value : null;
 }
