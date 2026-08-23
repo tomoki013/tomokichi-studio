@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "wrangler deploy",
+    "moderation": "node --experimental-strip-types scripts/moderation.ts",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings --strict-vars=false"
   },
   "dependencies": {

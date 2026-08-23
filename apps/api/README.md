@@ -159,3 +159,104 @@ curl -s -X POST https://api.tmkch.io/remeet/v1/invites \
 
 Without the header the same call answers `403`, which is the quickest way to
 confirm the filter is on.
+
+## Remeet moderation
+
+Operator removal of shared Remeet content — the thing Guideline 1.2 asks for and
+Remeet could not do until now, because everybody's data lives in their own
+iCloud and Tomokichi Studio has no access to it.
+
+The design is written up in `docs/moderation.md` and `docs/moderation-plan.md`
+in the Remeet repository. What matters here:
+
+- **The public manifest is one cached file, identical for everybody.**
+  `GET /remeet/v1/moderation/manifest.json` takes no parameters, reads no header
+  about the caller and sets no cookie. Each app downloads the whole list and
+  matches it locally. The alternative — apps asking "what applies to my
+  reunions?" — would have taught this server which accounts hold which reunions
+  and when each person opens Remeet, which is the thing the feature exists to
+  protect.
+- **Each entry is `{ id, target }` and nothing else.** `target` is a SHA-256
+  digest that only somebody already holding the content can match. The reason,
+  the reunion, the reporter and the content type stay in D1.
+- **This Worker cannot mint a manifest.** It is signed with an Ed25519 key that
+  lives in the operator's login Keychain — not in this repository, not in a
+  Worker secret, not in D1 or R2. Losing the admin token lets an attacker serve
+  a file; every Remeet install rejects it, because it will not verify.
+
+### Secrets
+
+```bash
+wrangler secret put REMEET_MODERATION_ADMIN_TOKEN   # bearer token for the operator routes
+wrangler secret put REMEET_MODERATION_KEY_ID        # e.g. remeet-moderation-2026-08
+```
+
+Unset means the operator routes answer 403. That default is the opposite of
+`REMEET_INVITE_CLIENT_KEY`'s, deliberately: an unset client key lets traffic
+through so the key can be rotated, and an unset admin token must not.
+
+### The operator tool
+
+Runs on the Mac, never in CI.
+
+```bash
+# Once. Prints the public key to paste into Remeet's project.yml.
+pnpm moderation keygen --key-id remeet-moderation-2026-08
+
+export REMEET_MODERATION_TOKEN=…      # the admin bearer token
+export REMEET_MODERATION_KEY_ID=remeet-moderation-2026-08
+export REMEET_OPERATOR="tomokichi"
+
+# A report came in, the content was read, and it breaks the rules.
+pnpm moderation add --kind wish --id <content-uuid> --reason harassment --report-id <report-uuid>
+
+# A reunion name rather than a piece of content. The value is part of the
+# target, so correcting the name lifts the action by itself and re-entering the
+# same one brings it back.
+pnpm moderation add --kind reunionField --reunion <uuid> \
+    --field sharedGroupDisplayName --value "…" --reason harassment
+
+# Misjudged. Note that content already deleted does not come back — Remeet
+# holds no copy of it, which is why revocation belongs before deletion.
+pnpm moderation revoke --action-id <uuid> --note "misjudged"
+
+# Nothing above reaches anybody until this: it signs the list and publishes it.
+pnpm moderation publish
+```
+
+### The one operational trap
+
+Signing is manual, so nothing renews the manifest on its own — and an expired
+manifest is **refused outright** by every install. Content already hidden stays
+hidden, but no new moderation reaches anybody, and there is no error on the
+operator's side to notice.
+
+The nightly cron therefore mails a warning once the manifest is within thirty
+days of expiry, and keeps mailing until somebody runs `moderation publish`. If
+that mail arrives, re-sign; it takes one command.
+
+### Deploying it for the first time
+
+Order matters — the invite change in the same release adds columns that the
+running Worker's SQL needs:
+
+```bash
+wrangler d1 migrations apply remeet-invites --remote   # 0006, 0007, 0008
+wrangler deploy
+pnpm moderation keygen --key-id remeet-moderation-2026-08
+# paste the printed public key into Remeet's project.yml (Release config)
+wrangler secret put REMEET_MODERATION_ADMIN_TOKEN
+wrangler secret put REMEET_MODERATION_KEY_ID
+pnpm moderation publish     # publishes an empty, signed manifest at revision 1
+
+# Optional, and useful: rehearse the whole thing on the dev channel first. It
+# signs with the dev key and lands at dev-manifest.json, which only Debug builds
+# read — a shipped build neither trusts that key nor fetches that path.
+REMEET_MODERATION_ENV=dev REMEET_MODERATION_KEY_ID=remeet-moderation-dev-2026-08 \
+  pnpm moderation publish
+```
+
+Publishing the empty manifest before shipping the app build is worth doing: it
+means no install ever meets a 404 on its first fetch. A 404 is handled — it
+changes nothing and keeps every tombstone — but there is no reason to rely on
+that when one command avoids it.
