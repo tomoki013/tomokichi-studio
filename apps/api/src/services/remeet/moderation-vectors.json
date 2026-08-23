@@ -1,0 +1,158 @@
+{
+  "_readme": [
+    "Cross-language fixtures for the moderation digest.",
+    "Read by RemeetTests/ModerationTargetTests.swift and by",
+    "apps/api/src/services/remeet/moderation-digest.test.ts.",
+    "Expected values come from a third, independent implementation, so a shared",
+    "mistake in Swift and TypeScript cannot make both suites pass.",
+    "If the two shipping implementations ever disagree, the manifest silently",
+    "matches nothing and no error is raised anywhere. That is why this exists."
+  ],
+  "namespace": "remeet.moderation.v1",
+  "normalization": [
+    {
+      "name": "nfkc-fullwidth",
+      "input": "Ｈｅｌｌｏ　Ｗｏｒｌｄ",
+      "expected": "hello world"
+    },
+    {
+      "name": "nfkc-halfwidth-kana",
+      "input": "ﾄｳｷﾗｳ",
+      "expected": "トウキラウ"
+    },
+    {
+      "name": "nfkc-combining-dakuten",
+      "input": "がわ",
+      "expected": "がわ"
+    },
+    {
+      "name": "case",
+      "input": "ToKyO Trip",
+      "expected": "tokyo trip"
+    },
+    {
+      "name": "surrounding-whitespace",
+      "input": "   東京   ",
+      "expected": "東京"
+    },
+    {
+      "name": "newlines",
+      "input": "東\n京\r\n旅行",
+      "expected": "東 京 旅行"
+    },
+    {
+      "name": "zero-width",
+      "input": "to​kyo‌tri﻿p",
+      "expected": "tokyotrip"
+    },
+    {
+      "name": "soft-hyphen",
+      "input": "re­meet",
+      "expected": "remeet"
+    },
+    {
+      "name": "variation-selector",
+      "input": "❤️ and ❤",
+      "expected": "❤ and ❤"
+    },
+    {
+      "name": "zwj-emoji-preserved",
+      "input": "👨‍👩‍👧",
+      "expected": "👨‍👩‍👧"
+    },
+    {
+      "name": "repeated-spaces",
+      "input": "東京    旅行",
+      "expected": "東京 旅行"
+    },
+    {
+      "name": "ideographic-space",
+      "input": "東京　旅行",
+      "expected": "東京 旅行"
+    },
+    {
+      "name": "nbsp",
+      "input": "Paris Trip",
+      "expected": "paris trip"
+    },
+    {
+      "name": "japanese-plain",
+      "input": "来月の再会がたのしみ",
+      "expected": "来月の再会がたのしみ"
+    },
+    {
+      "name": "emoji-plain",
+      "input": "再会まであと3日 🌍✈️",
+      "expected": "再会まであと3日 🌍✈"
+    },
+    {
+      "name": "mixed",
+      "input": "  Ｔｏｋｙｏ​　ＴＲＩＰ  ",
+      "expected": "tokyo trip"
+    },
+    {
+      "name": "empty",
+      "input": "   ",
+      "expected": ""
+    }
+  ],
+  "childDigests": [
+    {
+      "kind": "wish",
+      "id": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "expected": "3u_hkg0MR52LbaQ0cD0he6G7jzAgCPvQZSJoVSTdMS8"
+    },
+    {
+      "kind": "wish",
+      "id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF",
+      "expected": "3u_hkg0MR52LbaQ0cD0he6G7jzAgCPvQZSJoVSTdMS8"
+    },
+    {
+      "kind": "waitingMemory",
+      "id": "00000000-0000-0000-0000-000000000000",
+      "expected": "qNVtvsduXMw4CYXcHT27DkhiGLN3HbDKV3XmajQZ9OI"
+    },
+    {
+      "kind": "anniversaryCard",
+      "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+      "expected": "I9tHzP_D83G4nNaHK0-FXcPBtK8_sSyieXWR-Fu8APg"
+    },
+    {
+      "kind": "statusNote",
+      "id": "1b4e28ba-2fa1-11d2-883f-0016d3cca427",
+      "expected": "ZyFZGWtTSOl98plPkrsnRtwvvTTMwquIDNmyFNkhAX4"
+    }
+  ],
+  "rootFieldDigests": [
+    {
+      "reunionID": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "field": "sharedGroupDisplayName",
+      "value": "違反表現",
+      "expected": "u2QqsTTWuxbcogmYq7GzcBDCACEogS5I35yh5DhALvg"
+    },
+    {
+      "reunionID": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "field": "sharedGroupDisplayName",
+      "value": "東京旅行",
+      "expected": "8dvGPOKWNz5SWVgEeBFXaoHuJHXI0kACz5t76vJjKC4"
+    },
+    {
+      "reunionID": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "field": "ownerDisplayName",
+      "value": "  Ｍａｙｕ  ",
+      "expected": "lu1EgcFJ9Ql0M6nZVNflZA3HwgnhSr2Mbhf76GzLD_0"
+    },
+    {
+      "reunionID": "6f9619ff-8b86-d011-b42d-00cf4fc964ff",
+      "field": "partnerDisplayName",
+      "value": "Ken​",
+      "expected": "4eb7FPYzisE-gWwqBZqAC5IeQGA-t55qfkY0YotQYhE"
+    },
+    {
+      "reunionID": "1b4e28ba-2fa1-11d2-883f-0016d3cca427",
+      "field": "initialMemo",
+      "value": "会える日を数えてる ❤️",
+      "expected": "cd3IFUUJRX6r3HB-Mav9BCixf29T5Ql1fdo5VHU-gOg"
+    }
+  ]
+}
