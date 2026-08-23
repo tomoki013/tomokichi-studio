@@ -81,6 +81,11 @@
         "period": 60
       }
     }
+    // No limiter for the moderation manifest. It is a single cached public file
+    // with no caller identity attached, served from the edge — rate limiting it
+    // per IP would cost a KV write per request to protect a cache hit, and
+    // would be the only part of this feature that looked at who was asking.
+    // The operator routes are protected by a bearer token instead.
   ],
   "r2_buckets": [
     {

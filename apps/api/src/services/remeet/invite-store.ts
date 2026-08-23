@@ -14,6 +14,10 @@ export interface InviteRecord {
   createdAt: string;
   expiresAt: string;
   revokedAt: string | null;
+  /** When the invitation was first successfully resolved. See migration 0006. */
+  consumedAt?: string | null;
+  /** Which client attempt consumed it, so a retry can be told from a stranger. */
+  consumedByAttempt?: string | null;
 }
 
 /**
@@ -28,6 +32,14 @@ export interface InviteStore {
   revoke(id: string, revokedAt: string): Promise<void>;
   /** Used when a fresh invitation supersedes the invitations before it. */
   revokeActiveForShare(shareURLHash: string, revokedAt: string): Promise<void>;
+  /**
+   * Records that this invitation has been used, and by which attempt.
+   *
+   * Not `revoke`: a consumed invitation is not revoked. The attempt that
+   * consumed it may still need to ask again after a dropped connection, and
+   * only that attempt may.
+   */
+  markConsumed(id: string, consumedAt: string, attemptID: string | null): Promise<void>;
   /**
    * Drops invitations that are long past their expiry.
    *
@@ -53,6 +65,8 @@ interface InviteRow {
   created_at: string;
   expires_at: string;
   revoked_at: string | null;
+  consumed_at: string | null;
+  consumed_by_attempt: string | null;
 }
 
 export class D1InviteStore implements InviteStore {
@@ -106,6 +120,13 @@ export class D1InviteStore implements InviteStore {
       .run();
   }
 
+  async markConsumed(id: string, consumedAt: string, attemptID: string | null): Promise<void> {
+    await this.database
+      .prepare("UPDATE invites SET consumed_at = ?, consumed_by_attempt = ? WHERE id = ?")
+      .bind(consumedAt, attemptID, id)
+      .run();
+  }
+
   async revokeActiveForShare(shareURLHash: string, revokedAt: string): Promise<void> {
     await this.database
       .prepare(
@@ -144,5 +165,7 @@ function toRecord(row: InviteRow): InviteRecord {
     createdAt: row.created_at,
     expiresAt: row.expires_at,
     revokedAt: row.revoked_at,
+    consumedAt: row.consumed_at,
+    consumedByAttempt: row.consumed_by_attempt,
   };
 }

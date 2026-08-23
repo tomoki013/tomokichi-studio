@@ -154,8 +154,13 @@ describe("rotating the keys", () => {
       },
     };
 
-    const byLink = await resolveInvite(rotated, { token: tokenOf(invite.inviteUrl) });
-    const byCode = await resolveInvite(rotated, { code: invite.inviteCode });
+    // One attempt id for both, because this is one person joining: they tried
+    // the link, then typed the code. Since 0006 an invitation is consumed by
+    // the first successful resolve and only the attempt that consumed it may
+    // ask again — see invite-consumption.test.ts.
+    const attempt = { resolveAttemptId: "attempt-rotation" };
+    const byLink = await resolveInvite(rotated, { token: tokenOf(invite.inviteUrl), ...attempt });
+    const byCode = await resolveInvite(rotated, { code: invite.inviteCode, ...attempt });
     expect(byLink.ok && byLink.value.ckShareUrl).toBe(CK_SHARE_URL);
     expect(byCode.ok && byCode.value.ckShareUrl).toBe(CK_SHARE_URL);
 
@@ -190,8 +195,11 @@ describe("resolving an invitation", () => {
     const context = makeContext();
     const invite = await mint(context);
 
-    const byLink = await resolveInvite(context, { token: tokenOf(invite.inviteUrl) });
-    const byCode = await resolveInvite(context, { code: invite.inviteCode });
+    // Both routes, one joiner: the same attempt id, because this is somebody
+    // trying the link and then the code, not two different people.
+    const attempt = { resolveAttemptId: "attempt-both-routes" };
+    const byLink = await resolveInvite(context, { token: tokenOf(invite.inviteUrl), ...attempt });
+    const byCode = await resolveInvite(context, { code: invite.inviteCode, ...attempt });
     expect(byLink.ok && byLink.value.ckShareUrl).toBe(CK_SHARE_URL);
     expect(byCode.ok && byCode.value.ckShareUrl).toBe(CK_SHARE_URL);
   });
