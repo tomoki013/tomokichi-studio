@@ -475,7 +475,7 @@ export function faqs(ja: boolean) {
           "What devices are supported?",
           "iPhone on iOS 17 or later. Built with SwiftUI and SwiftData.",
         ],
-        ["base", "Which languages are supported?", languagesEn + "."],
+        ["base", "Which languages are supported?", `${languagesEn}.`],
         [
           "write",
           "Where is the draft saved?",

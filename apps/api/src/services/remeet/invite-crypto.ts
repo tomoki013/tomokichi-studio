@@ -72,7 +72,11 @@ export function hashesMatch(left: string, right: string): boolean {
  * prefix is what lets the format itself change later without a migration that
  * has to read every row.
  */
-export async function encryptSecret(keyMaterial: string, id: string, plaintext: string): Promise<string> {
+export async function encryptSecret(
+  keyMaterial: string,
+  id: string,
+  plaintext: string,
+): Promise<string> {
   const key = await importEncryptionKey(keyMaterial, ["encrypt"]);
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
@@ -80,7 +84,9 @@ export async function encryptSecret(keyMaterial: string, id: string, plaintext: 
     key,
     new TextEncoder().encode(plaintext),
   );
-  return [CURRENT_VERSION, base64URLEncode(iv), base64URLEncode(new Uint8Array(ciphertext))].join(".");
+  return [CURRENT_VERSION, base64URLEncode(iv), base64URLEncode(new Uint8Array(ciphertext))].join(
+    ".",
+  );
 }
 
 /**

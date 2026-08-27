@@ -1,4 +1,4 @@
-import assetCacheWorker from "@tomokichi/app-site/asset-cache-worker";
+import assetCacheWorker, { errorPage } from "@tomokichi/app-site/asset-cache-worker";
 
 import { appleAppSiteAssociation } from "./apple-app-site-association";
 import type { WorkerEnv } from "./env";
@@ -27,15 +27,36 @@ import { fetchInvitePreview, isWellFormedToken } from "./invite/preview";
  */
 export default {
   async fetch(request: Request, env: WorkerEnv): Promise<Response> {
+    try {
+      return await handle(request, env);
+    } catch {
+      // The invitation routes reach the API and rasterise a PNG; either can
+      // fail. A blank Cloudflare error is the worst thing to hand someone who
+      // was just sent a link, so a failed picture falls back to the static
+      // one and everything else gets the site's own error page.
+      const url = new URL(request.url);
+      if (/^\/i\/[^/]+\/og\.png$/.test(url.pathname)) {
+        return Response.redirect(`${url.origin}/assets/invite-preview.png?v=2`, 302);
+      }
+      return errorPage(request, env, 500);
+    }
+  },
+};
+
+async function handle(request: Request, env: WorkerEnv): Promise<Response> {
+  {
     const url = new URL(request.url);
 
     if (url.pathname === "/.well-known/apple-app-site-association") {
-      return new Response(appleAppSiteAssociation(env.APPLE_APP_ID ?? "7GU925RQ99.io.tmkch.remeet"), {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=3600",
+      return new Response(
+        appleAppSiteAssociation(env.APPLE_APP_ID ?? "7GU925RQ99.io.tmkch.remeet"),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "public, max-age=3600",
+          },
         },
-      });
+      );
     }
 
     // The picture beside the link, drawn per request so its countdown is the
@@ -104,5 +125,5 @@ export default {
     }
 
     return assetCacheWorker.fetch(request, env);
-  },
-};
+  }
+}

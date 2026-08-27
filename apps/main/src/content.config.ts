@@ -21,6 +21,12 @@ const journal = defineCollection({
     category: z.enum(["daily", "living", "city", "travel", "making", "thought", "experiment"]),
     /** One or two lines, used in listings and as the meta description. */
     summary: z.string(),
+    /**
+     * Set only when an entry is genuinely revised after publication. It is
+     * what `dateModified` reports, and what the entry shows above the text —
+     * so an unedited entry must not have one.
+     */
+    updated: z.coerce.date().optional(),
     /** App slugs this entry led to, or is about. */
     products: z.array(z.string()).default([]),
     /** Other journal slugs worth reading next. */

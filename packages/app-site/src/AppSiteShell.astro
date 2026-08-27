@@ -1,13 +1,14 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import AppSiteShellClient from "./AppSiteShellClient.astro";
-import LocaleSwitcher from "./LocaleSwitcher.astro";
 import {
-  defaultShellLabels,
-  localeMeta,
   type AppSiteLocaleLink,
   type AppSiteShellLabels,
+  defaultShellLabels,
+  localeMeta,
 } from "./i18n";
+import LocaleSwitcher from "./LocaleSwitcher.astro";
+import { canonicalUrl } from "./seo";
 import "./app-site-shell.css";
 
 type NavItem = { slug: string; label: string; href: string };
@@ -42,6 +43,7 @@ const {
   ogImage = "",
   pageClass = "",
   jsonLd = "",
+  noindex = false,
   mobileFooterLinks = [] as FooterLink[],
   clientRouter = true,
 } = Astro.props as {
@@ -73,6 +75,8 @@ const {
   ogImage?: string;
   pageClass?: string;
   jsonLd?: string;
+  /** Pages that exist for people but have no place in search results. */
+  noindex?: boolean;
   mobileFooterLinks?: FooterLink[];
   clientRouter?: boolean;
 };
@@ -89,7 +93,7 @@ const labels: AppSiteShellLabels = {
   ...(defaultShellLabels[lang] ?? defaultShellLabels.en),
   ...shellLabels,
 };
-const absolutePageUrl = new URL(currentHref, siteUrl).toString();
+const absolutePageUrl = canonicalUrl(siteUrl, currentHref);
 const absoluteOgImage = ogImage ? new URL(ogImage, siteUrl).toString() : "";
 const mobileNavId = `app-site-mobile-nav-${lang}`;
 const closeLabel = menuCloseLabel ?? (lang === "ja" ? "メニューを閉じる" : "Close menu");
@@ -113,12 +117,13 @@ const ogType = absoluteOgImage.endsWith(".jpg") || absoluteOgImage.endsWith(".jp
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="theme-color" content={themeColor} />
-    <link rel="canonical" href={absolutePageUrl} />
-    {resolvedLocaleLinks.map((locale) => (
-      <link rel="alternate" hreflang={locale.code} href={new URL(locale.href, siteUrl).toString()} />
+    <meta name="robots" content={noindex ? "noindex,follow" : "index,follow"} />
+    {!noindex && <link rel="canonical" href={absolutePageUrl} />}
+    {!noindex && resolvedLocaleLinks.map((locale) => (
+      <link rel="alternate" hreflang={locale.code} href={canonicalUrl(siteUrl, locale.href)} />
     ))}
-    {resolvedLocaleLinks.length > 0 && (
-      <link rel="alternate" hreflang="x-default" href={new URL(defaultHref, siteUrl).toString()} />
+    {!noindex && resolvedLocaleLinks.length > 0 && (
+      <link rel="alternate" hreflang="x-default" href={canonicalUrl(siteUrl, defaultHref)} />
     )}
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={brand} />

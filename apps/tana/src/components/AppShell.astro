@@ -3,13 +3,14 @@ import AppSiteShell from "@tomokichi/app-site/AppSiteShell.astro";
 import { appSiteUrl, mainSiteUrl, supportUrl } from "@tomokichi/app-site/urls";
 
 type Locale = "ja" | "en";
-const { lang, title, page = "", routePath = page, description, jsonLd = "" } = Astro.props as {
+const { lang, title, page = "", routePath = page, description, jsonLd = "", noindex = false } = Astro.props as {
   lang: Locale;
   title: string;
   page?: string;
   routePath?: string;
   description?: string;
   jsonLd?: string;
+  noindex?: boolean;
 };
 const ja = lang === "ja";
 const base = ja ? "/ja" : "";
@@ -83,6 +84,7 @@ const metaDescription =
   page={page}
   brand="Tana"
   tagline={ja ? "本棚にある本を、静かに整理する。" : "Quietly organise the books on your shelf."}
+  ogImage="/assets/hero-shelf.jpg"
   siteUrl={appSiteUrl("tana")}
   homeHref={ja ? "/ja" : "/"}
   jaPageHref={jaPageHref}
@@ -98,6 +100,7 @@ const metaDescription =
   themeColor="#f7f1e8"
   pageClass="tana-page"
   jsonLd={jsonLd}
+  noindex={noindex}
 >
   <slot />
 </AppSiteShell>

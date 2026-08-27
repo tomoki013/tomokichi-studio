@@ -3,12 +3,13 @@ import AppSiteShell from "@tomokichi/app-site/AppSiteShell.astro";
 import { appSiteUrl, mainSiteUrl, supportUrl } from "@tomokichi/app-site/urls";
 
 type Locale = "ja" | "en";
-const { lang, title, page = "", description, jsonLd = "" } = Astro.props as {
+const { lang, title, page = "", description, jsonLd = "", noindex = false } = Astro.props as {
   lang: Locale;
   title: string;
   page?: string;
   description?: string;
   jsonLd?: string;
+  noindex?: boolean;
 };
 const ja = lang === "ja";
 const base = ja ? "/ja" : "";
@@ -116,6 +117,7 @@ const metaDescription =
   page={page}
   brand="Doodle Series"
   tagline={ja ? "書いて、使って、遊ぶ。" : "Draw it. Use it. Play."}
+  ogImage="/assets/blog-hero.jpg"
   siteUrl={appSiteUrl("doodle")}
   homeHref={ja ? "/ja" : "/"}
   jaPageHref={jaPageHref}
@@ -131,6 +133,7 @@ const metaDescription =
   themeColor="#f6f1e7"
   pageClass="doodle-page"
   jsonLd={jsonLd}
+  noindex={noindex}
 >
   <slot />
 </AppSiteShell>

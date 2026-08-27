@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   cleanUpExpiredInvites,
   createInvite,
+  type InviteServiceContext,
   previewInvite,
   resolveInvite,
   revokeInvite,
-  type InviteServiceContext,
 } from "./invite-service";
 import { InMemoryInviteStore } from "./invite-store.memory";
 
@@ -221,10 +221,16 @@ describe("resolving an invitation", () => {
     expect(unknown).toEqual({ ok: false, error: "INVITE_UNAVAILABLE" });
 
     const later = { ...context, now: () => new Date("2026-09-19T00:00:00Z") };
-    expect(await resolveInvite(later, { token })).toEqual({ ok: false, error: "INVITE_UNAVAILABLE" });
+    expect(await resolveInvite(later, { token })).toEqual({
+      ok: false,
+      error: "INVITE_UNAVAILABLE",
+    });
 
     await revokeInvite(context, { token, managementToken: invite.managementToken });
-    expect(await resolveInvite(context, { token })).toEqual({ ok: false, error: "INVITE_UNAVAILABLE" });
+    expect(await resolveInvite(context, { token })).toEqual({
+      ok: false,
+      error: "INVITE_UNAVAILABLE",
+    });
     expect(await resolveInvite(context, { code: invite.inviteCode })).toEqual({
       ok: false,
       error: "INVITE_UNAVAILABLE",
@@ -272,7 +278,10 @@ describe("what the landing page may ask", () => {
     const token = tokenOf(invite.inviteUrl);
     await revokeInvite(context, { token, managementToken: invite.managementToken });
 
-    expect(await previewInvite(context, { token })).toEqual({ ok: false, error: "INVITE_UNAVAILABLE" });
+    expect(await previewInvite(context, { token })).toEqual({
+      ok: false,
+      error: "INVITE_UNAVAILABLE",
+    });
   });
 
   /// The preview endpoint takes a token, so it cannot be used to check codes.

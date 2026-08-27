@@ -210,8 +210,8 @@ export const about = {
       en: "Turning what I notice\ninto something.",
     } as L,
     body: {
-      ja: "Tomokichi App Studioは、暮らしや旅、人との関わりの中で\n感じたことから、アプリやWebサイト、小さな企画をつくる個人スタジオです。\n\nアプリを作ること自体が目的ではありません。\nまず日常を観察し、そこで見つけた問いに向き合い、\n必要な形を考える。その手段の一つがアプリです。",
-      en: "Tomokichi App Studio is a one-person studio that makes\napps, websites and small projects out of what it notices\nin living, travelling and being around people.\n\nMaking apps is not the point. I watch ordinary life first,\nsit with the question I find there, and work out what form\nit needs. An app is one of those forms.",
+      ja: "Tomokichi Studioは、暮らしや旅、人との関わりの中で\n感じたことから、アプリやWebサイト、小さな企画をつくる個人スタジオです。\n\nアプリを作ること自体が目的ではありません。\nまず日常を観察し、そこで見つけた問いに向き合い、\n必要な形を考える。その手段の一つがアプリです。",
+      en: "Tomokichi Studio is a one-person studio that makes\napps, websites and small projects out of what it notices\nin living, travelling and being around people.\n\nMaking apps is not the point. I watch ordinary life first,\nsit with the question I find there, and work out what form\nit needs. An app is one of those forms.",
     } as L,
   },
   concept: {

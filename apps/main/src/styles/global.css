@@ -2009,6 +2009,13 @@ a.app-card:hover,
     color 0.2s ease,
     opacity 0.2s ease;
 }
+/* Turnstile. With "interaction-only" the widget stays empty and collapsed for
+   almost everyone, and only takes up room on the rare occasion it has
+   something to ask. */
+.support-turnstile:not(:empty) {
+  margin: 20px 0 4px;
+}
+
 .support-submit {
   width: 100%;
   color: var(--surface);
@@ -2430,4 +2437,71 @@ a.app-card:hover,
     opacity: 1;
     transform: none;
   }
+}
+
+/* 404 and error pages ------------------------------------------------------ */
+
+.error-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: clamp(72px, 14vh, 160px) 0 clamp(80px, 16vh, 180px);
+  text-align: center;
+}
+
+.error-code {
+  margin: 0;
+  font-size: clamp(56px, 12vw, 96px);
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  opacity: 0.16;
+}
+
+.error-page h1 {
+  margin: clamp(16px, 3vh, 28px) 0 0;
+  font-size: clamp(22px, 3.4vw, 30px);
+  line-height: 1.45;
+}
+
+.error-page h1 span {
+  display: block;
+}
+
+.error-page h1 span + span {
+  margin-top: 4px;
+  font-size: 0.78em;
+  opacity: 0.6;
+}
+
+.error-body {
+  margin: 18px 0 0;
+  line-height: 1.85;
+  opacity: 0.72;
+}
+
+.error-body + .error-body {
+  margin-top: 6px;
+  font-size: 0.94em;
+  opacity: 0.55;
+}
+
+.error-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px 22px;
+  margin-top: clamp(30px, 5vh, 44px);
+  font-weight: 600;
+}
+
+.error-links a {
+  text-decoration: none;
+  border-bottom: 1px solid currentcolor;
+  padding-bottom: 2px;
+  opacity: 0.85;
+}
+
+.error-links a:hover,
+.error-links a:focus-visible {
+  opacity: 1;
 }

@@ -1,18 +1,14 @@
 import type { Context, Hono } from "hono";
-
-import type { SupportBindings } from "../../support/types";
-import type { RemeetInviteBindings } from "../../services/remeet/types";
 import {
   addAction,
   buildManifestPayload,
+  type ModerationContext,
   publishManifest,
   revokeAction,
-  type ModerationContext,
 } from "../../services/remeet/moderation-service";
-import {
-  D1ModerationStore,
-  type ModerationChannel,
-} from "../../services/remeet/moderation-store";
+import { D1ModerationStore, type ModerationChannel } from "../../services/remeet/moderation-store";
+import type { RemeetInviteBindings } from "../../services/remeet/types";
+import type { SupportBindings } from "../../support/types";
 
 /**
  * Remeet moderation: one public route and three the operator uses.

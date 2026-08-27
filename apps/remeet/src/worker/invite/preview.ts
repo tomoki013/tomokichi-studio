@@ -44,7 +44,8 @@ export async function fetchInvitePreview(
     });
     if (!response.ok) return null;
     const payload = (await response.json()) as Partial<InvitePreview>;
-    if (typeof payload.inviteCode !== "string" || typeof payload.expiresAt !== "string") return null;
+    if (typeof payload.inviteCode !== "string" || typeof payload.expiresAt !== "string")
+      return null;
     return {
       inviteCode: payload.inviteCode,
       expiresAt: payload.expiresAt,

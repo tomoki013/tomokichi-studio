@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-
-import vectors from "./moderation-vectors.json";
 import {
   canonicalUUID,
   childDigest,
-  normalize,
-  rootFieldDigest,
   type ModerationRootField,
   type ModerationTargetKind,
+  normalize,
+  rootFieldDigest,
 } from "./moderation-digest";
+import vectors from "./moderation-vectors.json";
 
 /**
  * The other half of the cross-language contract.
@@ -80,10 +79,9 @@ describe("moderation digest", () => {
     const reunion = "6f9619ff-8b86-d011-b42d-00cf4fc964ff";
     const plain = await rootFieldDigest(reunion, "sharedGroupDisplayName", "BadName");
     for (const variant of ["badname", "  BadName  ", "Ｂａｄｎａｍｅ", "Bad​Name", "BAD﻿NAME"]) {
-      expect(
-        await rootFieldDigest(reunion, "sharedGroupDisplayName", variant),
-        variant,
-      ).toBe(plain);
+      expect(await rootFieldDigest(reunion, "sharedGroupDisplayName", variant), variant).toBe(
+        plain,
+      );
     }
   });
 

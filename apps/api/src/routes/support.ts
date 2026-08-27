@@ -2,6 +2,7 @@ import type { Context, Hono } from "hono";
 
 import { sendSupportEmail } from "../support/email";
 import { createSupportEmail } from "../support/template";
+import { verifyTurnstileToken } from "../support/turnstile";
 import type { EmailDeliveryResult, SupportBindings, SupportEmail } from "../support/types";
 import { validateSupportRequest } from "../support/validation";
 
@@ -15,13 +16,43 @@ type SupportContext = Context<{ Bindings: SupportBindings }>;
 export interface SupportDependencies {
   deliver?: (email: SupportEmail, env: SupportBindings) => Promise<EmailDeliveryResult>;
   rateLimit?: (clientId: string, env: SupportBindings) => Promise<boolean>;
+  verifyTurnstile?: typeof verifyTurnstileToken;
 }
 
 const errorMessages = {
   INVALID_JSON: "リクエストを読み取れませんでした。",
   RATE_LIMITED: "短時間に送信できる回数を超えました。しばらくしてからお試しください。",
   DELIVERY_FAILED: "お問い合わせを送信できませんでした。時間をおいて再度お試しください。",
+  TURNSTILE_FAILED: "確認を完了できませんでした。ページを再読み込みして、もう一度お試しください。",
+  CLIENT_NOT_ALLOWED: "この経路からのお問い合わせは受け付けていません。",
 } as const;
+
+/**
+ * App sources have no browser to solve a Turnstile challenge in, so they carry
+ * a key instead — the same arrangement, and the same honest limits, as
+ * `REMEET_INVITE_CLIENT_KEY` on the invite routes. It ships inside the app, so
+ * it is a filter rather than a credential: it stops a bare `curl` and anything
+ * that simply claims `source: "remeet-ios"` to skip the web check, not somebody
+ * who has opened the binary.
+ *
+ * Unset means unenforced, so the key can be rotated without locking out builds
+ * already in people's hands: add the new value to the apps first, then here.
+ */
+function fromKnownClient(c: SupportContext, source: string): boolean {
+  const expected = c.env.SUPPORT_CLIENT_KEY;
+  if (!expected || source === "main-web") return true;
+  const presented = c.req.header("X-Support-Client");
+  return !!presented && constantTimeEquals(presented, expected);
+}
+
+function constantTimeEquals(left: string, right: string): boolean {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return difference === 0;
+}
 
 function allowedOrigins(env: SupportBindings): Set<string> {
   return new Set([env.MAIN_SITE_ORIGIN, env.MAIN_SITE_WORKERS_ORIGIN, LOCAL_ORIGIN]);
@@ -39,6 +70,8 @@ function logResult(
   status: number,
   startedAt: number,
   emailId?: string,
+  /** Why a request was turned away, when the status alone does not say. */
+  reason?: string,
 ): void {
   console.log(
     JSON.stringify({
@@ -48,6 +81,7 @@ function logResult(
       category: request?.category,
       status,
       emailId,
+      reason,
       durationMs: Date.now() - startedAt,
     }),
   );
@@ -148,9 +182,13 @@ export function registerSupportRoute(
       return c.json({ ok: true, requestId: request.requestId }, 200, corsHeaders(c));
     }
 
+    // Keyed on the caller's IP, not on `clientId`: the client generates that
+    // UUID itself, so a sender who wanted around the limit only had to send a
+    // new one. The invite and report routes already limit this way.
+    const rateLimitKey = c.req.header("CF-Connecting-IP") ?? request.clientId;
     const withinLimit = dependencies.rateLimit
-      ? await dependencies.rateLimit(request.clientId, c.env)
-      : (await c.env.SUPPORT_RATE_LIMITER.limit({ key: request.clientId })).success;
+      ? await dependencies.rateLimit(rateLimitKey, c.env)
+      : (await c.env.SUPPORT_RATE_LIMITER.limit({ key: rateLimitKey })).success;
     if (!withinLimit) {
       logResult(request, 429, startedAt);
       return c.json(
@@ -158,6 +196,39 @@ export function registerSupportRoute(
         429,
         corsHeaders(c),
       );
+    }
+
+    if (!fromKnownClient(c, request.source)) {
+      logResult(request, 403, startedAt, undefined, "client-key");
+      return c.json(
+        { ok: false, code: "CLIENT_NOT_ALLOWED", message: errorMessages.CLIENT_NOT_ALLOWED },
+        403,
+        corsHeaders(c),
+      );
+    }
+
+    // Turnstile, for the web form only: the Remeet and Colorvia apps post here
+    // too and have no browser to solve a challenge in. With no secret set,
+    // nothing is verified and the form behaves exactly as it did before.
+    if (c.env.TURNSTILE_SECRET_KEY && request.source === "main-web") {
+      const verification = await (dependencies.verifyTurnstile ?? verifyTurnstileToken)(
+        request.turnstileToken ?? "",
+        c.env.TURNSTILE_SECRET_KEY,
+        {
+          remoteIp: c.req.header("CF-Connecting-IP"),
+          idempotencyKey: request.requestId,
+        },
+      );
+      if (!verification.ok) {
+        // The sender is told to try again, not why they failed; the codes go
+        // to the log, for whoever is looking at abuse.
+        logResult(request, 403, startedAt, undefined, verification.errorCodes?.join(","));
+        return c.json(
+          { ok: false, code: "TURNSTILE_FAILED", message: errorMessages.TURNSTILE_FAILED },
+          403,
+          corsHeaders(c),
+        );
+      }
     }
 
     try {

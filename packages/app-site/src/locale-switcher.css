@@ -41,10 +41,19 @@
   box-shadow: 0 6px 18px rgb(0 0 0 / 10%);
 }
 
-.app-site-language-switcher > summary::-webkit-details-marker { display: none; }
-.app-site-language-switcher > summary::marker { display: none; content: ""; }
-.app-site-language-switcher > summary svg { transition: transform .2s ease; }
-.app-site-language-switcher[open] > summary svg { transform: rotate(180deg); }
+.app-site-language-switcher > summary::-webkit-details-marker {
+  display: none;
+}
+.app-site-language-switcher > summary::marker {
+  display: none;
+  content: "";
+}
+.app-site-language-switcher > summary svg {
+  transition: transform 0.2s ease;
+}
+.app-site-language-switcher[open] > summary svg {
+  transform: rotate(180deg);
+}
 .app-site-language-switcher > summary:focus-visible {
   outline: 2px solid var(--app-site-accent, currentColor);
   outline-offset: 2px;
@@ -84,7 +93,7 @@
   color: inherit;
   font-size: 11.5px;
   text-decoration: none;
-  opacity: .78;
+  opacity: 0.78;
 }
 
 .app-site-language-switcher > nav a:hover,
@@ -94,15 +103,19 @@
   opacity: 1;
 }
 
-.app-site-language-switcher > nav a.active { font-weight: 700; }
+.app-site-language-switcher > nav a.active {
+  font-weight: 700;
+}
 .app-site-language-switcher > nav small {
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .08em;
-  opacity: .58;
+  letter-spacing: 0.08em;
+  opacity: 0.58;
 }
 
-.app-site-language-switcher.is-mobile { width: 100%; }
+.app-site-language-switcher.is-mobile {
+  width: 100%;
+}
 .app-site-language-switcher.is-mobile > summary {
   width: 100%;
   justify-content: space-between;
@@ -131,8 +144,17 @@
 }
 
 @media (max-width: 900px) {
-  .app-site-language-switcher.is-header { display: none; }
-  .app-site-language-switcher.is-footer { width: 100%; }
-  .app-site-language-switcher.is-footer > summary { width: 100%; justify-content: space-between; }
-  .app-site-language-switcher.is-footer > nav { width: 100%; }
+  .app-site-language-switcher.is-header {
+    display: none;
+  }
+  .app-site-language-switcher.is-footer {
+    width: 100%;
+  }
+  .app-site-language-switcher.is-footer > summary {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .app-site-language-switcher.is-footer > nav {
+    width: 100%;
+  }
 }

@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
 import { appSiteUrl } from "@tomokichi/app-site/urls";
 import onboardingCouple from "../assets/screens/onboarding-couple-clean.png";
 import AppScreen from "./AppScreen.astro";
@@ -90,32 +91,17 @@ const steps = ja
       ["4", "Capture the reunion in an album", "Save a photo and reflection from the day you meet."],
     ];
 
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Remeet",
-  applicationCategory: "LifestyleApplication",
-  operatingSystem: "iOS 26 or later",
-  offers: [
-    {
-      "@type": "Offer",
-      name: ja ? "ダウンロードと個人利用" : "Download and personal use",
-      price: "0",
-      priceCurrency: "JPY",
-      availability: "https://schema.org/PreOrder",
-    },
-    {
-      "@type": "Offer",
-      name: ja ? "Share Pass（2つ目以降の再会を共有）" : "Share Pass (share a second or later reunion)",
-      price: "500",
-      priceCurrency: "JPY",
-      availability: "https://schema.org/PreOrder",
-    },
-  ],
-  description: c.description,
-  url: `${appSiteUrl("remeet")}${base || "/"}`.replace(/\/$/, "") || appSiteUrl("remeet"),
-  image: `${appSiteUrl("remeet")}/assets/og.png`,
-});
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("remeet"),
+    name: "Remeet",
+    description: c.description,
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "iOS 26 or later",
+    path: base || "/",
+    image: "/assets/og.png",
+  }),
+);
 ---
 
 <AppShell lang={lang} title={c.title} description={c.description} jsonLd={jsonLd}>

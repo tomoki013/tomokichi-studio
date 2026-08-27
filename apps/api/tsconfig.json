@@ -5,17 +5,10 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
-  "include": [
-    "src",
-    "worker-configuration.d.ts"
-  ],
-  "exclude": [
-    "scripts"
-  ]
+  "include": ["src", "worker-configuration.d.ts"],
+  "exclude": ["scripts"]
 }

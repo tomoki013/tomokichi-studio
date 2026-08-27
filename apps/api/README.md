@@ -57,7 +57,27 @@ Four properties worth knowing before changing anything here:
   value that resolves to one — which is why `routes/remeet/invites.ts` has no
   logging while `routes/support.ts` beside it does.
 
-### Who may call it
+### Who may call the support endpoint
+
+Every source has one gate, and neither is a way past the other:
+
+- `main-web` presents a Turnstile token, checked when `TURNSTILE_SECRET_KEY`
+  is set. See the support section of the workspace README for setup.
+- The iOS apps present `SUPPORT_CLIENT_KEY` as `X-Support-Client`, checked when
+  that secret is set — the same arrangement, and the same honest limits, as
+  `REMEET_INVITE_CLIENT_KEY` below.
+
+Without the second, the first was decorative: anything could send
+`source: "remeet-ios"` and skip the token entirely.
+
+Both are unenforced while unset, so each can be switched on once its other half
+exists, and the client key rotates apps-first the way the invite one does.
+
+Rate limits are per IP. They were keyed on `clientId` until the two gates went
+in, which the client generates itself — a sender who wanted around the limit
+only had to send a new one.
+
+### Who may call the invite routes
 
 `REMEET_INVITE_CLIENT_KEY` is a value the Remeet app and the Remeet site send
 as `X-Remeet-Client`. It ships inside the app, so it is a filter rather than a
@@ -105,12 +125,12 @@ writes always use the current one.
 
 ```bash
 # 1. Move the current values into the PREVIOUS slots.
-pnpm exec wrangler secret put REMEET_INVITE_TOKEN_SECRET_PREVIOUS   # the old value
-pnpm exec wrangler secret put REMEET_INVITE_URL_KEY_PREVIOUS        # the old value
+pnpm -w cf secret put REMEET_INVITE_TOKEN_SECRET_PREVIOUS   # the old value
+pnpm -w cf secret put REMEET_INVITE_URL_KEY_PREVIOUS        # the old value
 
 # 2. Put the new values in place.
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_TOKEN_SECRET
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_URL_KEY
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_TOKEN_SECRET
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_URL_KEY
 
 # 3. After the longest invitation lifetime has passed — eight days, to be
 #    safe — delete the two PREVIOUS secrets.
@@ -134,9 +154,9 @@ pnpm exec wrangler d1 create remeet-invites
 pnpm exec wrangler d1 execute remeet-invites --remote --file migrations/0001_create_invites.sql
 pnpm exec wrangler d1 execute remeet-invites --remote --file migrations/0002_add_invite_code.sql
 
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_TOKEN_SECRET
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_URL_KEY
-openssl rand -hex 24    | pnpm exec wrangler secret put REMEET_INVITE_CLIENT_KEY
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_TOKEN_SECRET
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_URL_KEY
+openssl rand -hex 24    | pnpm -w cf secret put REMEET_INVITE_CLIENT_KEY
 ```
 
 Migrations are applied in order; `0003` adds the audit counters.
@@ -187,8 +207,8 @@ in the Remeet repository. What matters here:
 ### Secrets
 
 ```bash
-wrangler secret put REMEET_MODERATION_ADMIN_TOKEN   # bearer token for the operator routes
-wrangler secret put REMEET_MODERATION_KEY_ID        # e.g. remeet-moderation-2026-08
+pnpm -w cf secret put REMEET_MODERATION_ADMIN_TOKEN   # bearer token for the operator routes
+pnpm -w cf secret put REMEET_MODERATION_KEY_ID        # e.g. remeet-moderation-2026-08
 ```
 
 Unset means the operator routes answer 403. That default is the opposite of
@@ -241,12 +261,12 @@ Order matters — the invite change in the same release adds columns that the
 running Worker's SQL needs:
 
 ```bash
-wrangler d1 migrations apply remeet-invites --remote   # 0006, 0007, 0008
-wrangler deploy
+pnpm -w cf d1 migrations apply remeet-invites --remote   # 0006, 0007, 0008
+pnpm -w cf deploy
 pnpm moderation keygen --key-id remeet-moderation-2026-08
 # paste the printed public key into Remeet's project.yml (Release config)
-wrangler secret put REMEET_MODERATION_ADMIN_TOKEN
-wrangler secret put REMEET_MODERATION_KEY_ID
+pnpm -w cf secret put REMEET_MODERATION_ADMIN_TOKEN
+pnpm -w cf secret put REMEET_MODERATION_KEY_ID
 pnpm moderation publish     # publishes an empty, signed manifest at revision 1
 
 # Optional, and useful: rehearse the whole thing on the dev channel first. It

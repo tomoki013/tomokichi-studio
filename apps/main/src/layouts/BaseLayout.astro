@@ -1,16 +1,51 @@
 ---
+import { canonicalUrl, STUDIO } from "@tomokichi/app-site/seo";
+import { mainSiteUrl } from "@tomokichi/app-site/urls";
+import type { Locale } from "../data/apps";
 import "../styles/global.css";
 
 interface Props {
-  lang: "ja" | "en";
+  lang: Locale;
   title: string;
   description: string;
-  canonical?: string;
-  alternateJa?: string;
-  alternateEn?: string;
+  /**
+   * Route path without the locale prefix — `/`, `/about`, `/journal/<slug>`.
+   * Canonical, hreflang and og:url are all derived from it, so a new page gets
+   * its SEO right by saying where it lives and nothing else.
+   */
+  path: string;
+  /** Locales this same page exists in. Journal entries are not always both. */
+  alternates?: Locale[];
+  ogType?: "website" | "article";
+  /** Site-relative or absolute. Falls back to the studio's shared card. */
+  ogImage?: string;
+  /** For pages that exist for people but have no place in search results. */
+  noindex?: boolean;
+  /** Already-serialised JSON-LD for this page. */
+  jsonLd?: string;
 }
 
-const { lang, title, description, canonical, alternateJa, alternateEn } = Astro.props;
+const {
+  lang,
+  title,
+  description,
+  path,
+  alternates = ["en", "ja"],
+  ogType = "website",
+  ogImage = "/assets/og.jpg",
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const canonical = canonicalUrl(mainSiteUrl(lang, path));
+/** hreflang is only honest where the translated page actually exists. */
+const localeLinks = alternates.map((locale) => ({
+  locale,
+  href: canonicalUrl(mainSiteUrl(locale, path)),
+}));
+const defaultLink = localeLinks.find((link) => link.locale === "en") ?? localeLinks[0];
+const ogImageUrl = new URL(ogImage, STUDIO.url).toString();
+const ogLocale = lang === "ja" ? "ja_JP" : "en_US";
 ---
 
 <!doctype html>
@@ -19,19 +54,33 @@ const { lang, title, description, canonical, alternateJa, alternateEn } = Astro.
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    <meta name="robots" content="index,follow" />
-    <meta property="og:type" content="website" />
+
+    <meta name="robots" content={noindex ? "noindex,follow" : "index,follow"} />
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {!noindex &&
+      localeLinks.map((link) => (
+        <link rel="alternate" hreflang={link.locale} href={link.href} />
+      ))}
+    {!noindex && defaultLink && (
+      <link rel="alternate" hreflang="x-default" href={defaultLink.href} />
+    )}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={STUDIO.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    {canonical && <meta property="og:url" content={canonical} />}
-    {canonical && <link rel="canonical" href={canonical} />}
-    {alternateJa && <link rel="alternate" hreflang="ja" href={alternateJa} />}
-    {alternateEn && <link rel="alternate" hreflang="en" href={alternateEn} />}
-    {alternateJa && <link rel="alternate" hreflang="x-default" href={alternateJa} />}
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <title>{title}</title>
+    {jsonLd && <script is:inline type="application/ld+json" set:html={jsonLd} />}
   </head>
 
   <body>

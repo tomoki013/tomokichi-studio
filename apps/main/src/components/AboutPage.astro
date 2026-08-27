@@ -6,6 +6,7 @@ import type { Locale } from "../data/apps";
 import { orderedApps } from "../data/apps";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { about, principles, principlesHeading } from "../lib/copy";
+import { aboutJsonLd } from "../lib/structured-data";
 import AppIcon from "./AppIcon.astro";
 import ArrowLink from "./ArrowLink.astro";
 import PrincipleItem from "./PrincipleItem.astro";
@@ -23,7 +24,13 @@ const links = {
 };
 ---
 
-<BaseLayout lang={lang} title={about.metaTitle[lang]} description={about.metaDescription[lang]}>
+<BaseLayout
+  lang={lang}
+  title={about.metaTitle[lang]}
+  description={about.metaDescription[lang]}
+  path="/about"
+  jsonLd={aboutJsonLd(lang)}
+>
   <div class="site">
     <SiteHeader lang={lang} path="/about" current="about" />
 

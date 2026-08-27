@@ -77,5 +77,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" v
   <rect x="0" y="544" width="1200" height="3" fill="#fff3dc" opacity="0.5"/>
 </svg>`;
 
-await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile("public/assets/invite-preview.png");
+await sharp(Buffer.from(svg))
+  .png({ compressionLevel: 9 })
+  .toFile("public/assets/invite-preview.png");
 console.log("public/assets/invite-preview.png");

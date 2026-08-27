@@ -1,14 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
-
+import { childDigest, rootFieldDigest } from "./moderation-digest";
 import {
   addAction,
   buildManifestPayload,
   daysUntilManifestExpiry,
+  type ModerationContext,
   publishManifest,
   revokeAction,
-  type ModerationContext,
 } from "./moderation-service";
-import { childDigest, rootFieldDigest } from "./moderation-digest";
 import { InMemoryModerationStore } from "./moderation-store";
 
 const CONTENT_ID = "6f9619ff-8b86-d011-b42d-00cf4fc964ff";
@@ -82,7 +81,10 @@ describe("moderation service", () => {
   });
 
   it("refuses a malformed content id", async () => {
-    expect(await child({ contentId: "not-a-uuid" })).toEqual({ ok: false, error: "INVALID_REQUEST" });
+    expect(await child({ contentId: "not-a-uuid" })).toEqual({
+      ok: false,
+      error: "INVALID_REQUEST",
+    });
   });
 
   it("refuses a root field action with no value", async () => {
@@ -119,7 +121,9 @@ describe("moderation service", () => {
   });
 
   it("reports revoking something that is not there", async () => {
-    expect(await revokeAction(context, "6f9619ff-0000-0000-0000-00cf4fc964ff", "tomokichi")).toEqual({
+    expect(
+      await revokeAction(context, "6f9619ff-0000-0000-0000-00cf4fc964ff", "tomokichi"),
+    ).toEqual({
       ok: false,
       error: "NOT_FOUND",
     });
@@ -222,7 +226,10 @@ describe("moderation service", () => {
   it("warns only about the production manifest expiring", async () => {
     // A lapsed dev manifest inconveniences one developer; a lapsed production
     // one silently stops all moderation.
-    await publish({ ...(await buildManifestPayload(context, "key-dev", "dev")), revision: 1 }, "dev");
+    await publish(
+      { ...(await buildManifestPayload(context, "key-dev", "dev")), revision: 1 },
+      "dev",
+    );
     expect(await daysUntilManifestExpiry(context)).toBeNull();
   });
 
@@ -234,7 +241,10 @@ describe("moderation service", () => {
     });
   }
 
-  async function publish(payload: unknown, channel: "production" | "dev" = "production"): Promise<void> {
+  async function publish(
+    payload: unknown,
+    channel: "production" | "dev" = "production",
+  ): Promise<void> {
     const result = await publishManifest(context, { envelope: envelopeFor(payload), channel });
     if (!result.ok) throw new Error(result.error);
   }

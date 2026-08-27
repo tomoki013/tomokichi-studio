@@ -1,0 +1,64 @@
+---
+/**
+ * The shared 404 and error page — content only, like `NewsFeed`: each site
+ * wraps it in its own `<AppShell>` so the header, footer and brand come along
+ * unchanged.
+ *
+ * Both languages appear on one page on purpose. A missing URL is reached
+ * without a locale as often as with one, and Cloudflare serves a single
+ * `404.html` for `/nope` and `/ja/nope` alike — so guessing the reader's
+ * language here would be wrong half the time.
+ */
+import "./app-error.css";
+
+const {
+  kind = "not-found",
+  homeHref = "/",
+  jaHomeHref = "/ja",
+  links = [],
+} = Astro.props as {
+  kind?: "not-found" | "error";
+  homeHref?: string;
+  jaHomeHref?: string;
+  /** A few places worth trying next, labelled in both languages. */
+  links?: { label: string; jaLabel: string; href: string; jaHref: string }[];
+};
+
+const copy =
+  kind === "error"
+    ? {
+        code: "500",
+        en: "Something went wrong",
+        ja: "問題が発生しました",
+        enBody: "The page could not be loaded. Trying again in a moment usually works.",
+        jaBody: "ページを読み込めませんでした。少し時間をおいて、もう一度お試しください。",
+      }
+    : {
+        code: "404",
+        en: "Page not found",
+        ja: "ページが見つかりません",
+        enBody: "The URL may have changed, or the page may never have existed.",
+        jaBody: "URLが変わったか、そのページが存在しない可能性があります。",
+      };
+---
+
+<section class="app-error">
+  <p class="app-error-code" aria-hidden="true">{copy.code}</p>
+  <h1 class="app-error-title">
+    <span lang="en">{copy.en}</span>
+    <span lang="ja">{copy.ja}</span>
+  </h1>
+  <p class="app-error-body" lang="en">{copy.enBody}</p>
+  <p class="app-error-body" lang="ja">{copy.jaBody}</p>
+
+  <nav class="app-error-links" aria-label="Elsewhere on this site">
+    <a href={homeHref} lang="en">Home</a>
+    <a href={jaHomeHref} lang="ja">ホーム</a>
+    {links.map((link) => (
+      <>
+        <a href={link.href} lang="en">{link.label}</a>
+        <a href={link.jaHref} lang="ja">{link.jaLabel}</a>
+      </>
+    ))}
+  </nav>
+</section>

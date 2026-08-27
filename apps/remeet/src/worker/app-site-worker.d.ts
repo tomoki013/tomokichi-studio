@@ -11,4 +11,11 @@ declare module "@tomokichi/app-site/asset-cache-worker" {
     fetch(request: Request, env: AssetCacheEnv): Promise<Response>;
   };
   export default worker;
+
+  /** The site's own error page, for failures this Worker handles itself. */
+  export function errorPage(
+    request: Request,
+    env: AssetCacheEnv,
+    status: number,
+  ): Promise<Response>;
 }

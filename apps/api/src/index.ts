@@ -1,14 +1,14 @@
 import { type Context, Hono } from "hono";
 
-import { registerRemeetInviteRoutes, type ApiBindings } from "./routes/remeet/invites";
+import { type ApiBindings, registerRemeetInviteRoutes } from "./routes/remeet/invites";
 import { registerRemeetModerationRoutes } from "./routes/remeet/moderation";
 import { registerRemeetReportRoutes } from "./routes/remeet/reports";
+import { registerSupportRoute, type SupportDependencies } from "./routes/support";
 import { cleanUpExpiredInvites } from "./services/remeet/invite-service";
 import { D1InviteStore } from "./services/remeet/invite-store";
 import { daysUntilManifestExpiry } from "./services/remeet/moderation-service";
 import { D1ModerationStore } from "./services/remeet/moderation-store";
 import { sendSupportEmail } from "./support/email";
-import { registerSupportRoute, type SupportDependencies } from "./routes/support";
 
 type ApiContext = Context<{ Bindings: ApiBindings }>;
 

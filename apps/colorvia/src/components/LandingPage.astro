@@ -1,6 +1,7 @@
 ---
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
 import PhoneFrame from "@tomokichi/app-site/PhoneFrame.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
 import { appSiteUrl } from "@tomokichi/app-site/urls";
 import { languagesEn, languagesJa, regions } from "../lib/content";
 import AppShell from "./AppShell.astro";
@@ -60,22 +61,27 @@ const faqs = ja
       ["Can I back up my data?", "Yes. Export JSON from Settings → Data management and import it on another device. There is no automatic iCloud sync."],
     ];
 
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Colorvia",
-  applicationCategory: "TravelApplication",
-  operatingSystem: "iOS 18.0 or later",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "JPY",
-    availability: "https://schema.org/InStock",
-  },
-  description,
-  url: `${appSiteUrl("colorvia")}${base || ""}` || appSiteUrl("colorvia"),
-  image: `${appSiteUrl("colorvia")}/og.png`,
-});
+/**
+ * Two identical copy containers for the region marquee, each owning its own
+ * inter-card gaps AND one trailing gap, so the track's translateX(-50%) lands
+ * exactly one copy-width later. A flat list with a shared flex gap left the
+ * -50% point half a gap (8px) short of the seam, which showed as a one-frame
+ * jump every loop.
+ */
+const slideshowCopies = [0, 1];
+
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("colorvia"),
+    name: "Colorvia",
+    description,
+    applicationCategory: "TravelApplication",
+    operatingSystem: "iOS 18.0 or later",
+    path: base || "/",
+    image: "/og.png",
+    appStoreUrl: "https://apps.apple.com/app/id6798378768",
+  }),
+);
 ---
 
 <AppShell
@@ -209,13 +215,8 @@ const jsonLd = JSON.stringify({
         <div class="region-slideshow" data-reveal data-region-slideshow>
           <div class="region-slideshow-fade region-slideshow-fade-left" aria-hidden="true"></div>
           <div class="region-slideshow-fade region-slideshow-fade-right" aria-hidden="true"></div>
-          {/* Two identical copy containers, each owning its own inter-card
-              gaps AND one trailing gap, so the marquee's translateX(-50%)
-              lands exactly one copy-width later — a flat list with a shared
-              flex gap left the -50% point half a gap (8px) short of the
-              seam, which showed as a one-frame jump every loop. */}
           <div class="region-slideshow-track" data-region-track>
-            {[0, 1].map((copy) => (
+            {slideshowCopies.map((copy) => (
               <div class="region-slideshow-copy" aria-hidden={copy === 1 ? "true" : undefined}>
                 {regions.map((r) => (
                   <a

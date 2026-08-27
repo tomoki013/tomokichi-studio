@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../../index";
 
-const post = (path: string, body: unknown, env: Record<string, unknown> = {}, headers: Record<string, string> = {}) =>
+const post = (
+  path: string,
+  body: unknown,
+  env: Record<string, unknown> = {},
+  headers: Record<string, string> = {},
+) =>
   createApp().request(
     `https://api.tmkch.io${path}`,
     {
@@ -53,7 +58,9 @@ describe("the Remeet invite namespace", () => {
       expect((await post(path, {}, env, { "X-Remeet-Client": "wrong" })).status).toBe(403);
       // The right key gets past the filter and on to the real answer, which
       // here is "not provisioned".
-      expect((await post(path, {}, env, { "X-Remeet-Client": "test-client-key" })).status).toBe(503);
+      expect((await post(path, {}, env, { "X-Remeet-Client": "test-client-key" })).status).toBe(
+        503,
+      );
     }
   });
 

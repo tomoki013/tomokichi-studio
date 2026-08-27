@@ -16,11 +16,17 @@ const { posts, lang = "en", heading = "", basePath } = Astro.props as {
   posts: NewsPost[];
   lang?: "ja" | "en";
   heading?: string;
-  /** Base path each post links to, e.g. "/ja/news" — the post's id is appended. */
-  basePath: string;
+  /**
+   * Base path each post links to — the post's id is appended. Every site keeps
+   * its news at the same two addresses, so this defaults to them rather than
+   * staying required: a caller that forgot it used to render `undefined/<id>`
+   * links, silently, on a page that still looked finished.
+   */
+  basePath?: string;
 };
 
 const ja = lang === "ja";
+const postBasePath = basePath ?? (ja ? "/ja/news" : "/news");
 const count = (kind: "all" | "updates" | "column") =>
   kind === "all"
     ? posts.length
@@ -57,7 +63,7 @@ const filters = [
             <span class="app-news-dot"></span>
             <span class="app-news-stamp"><b>{month}.{day}</b><small>{year}</small></span>
           </div>
-          <a class="app-news-card" href={`${basePath}/${post.id}`}>
+          <a class="app-news-card" href={`${postBasePath}/${post.id}`}>
             <span class="app-news-meta">
               <span class:list={["app-news-badge", post.badgeTone && `is-${post.badgeTone}`]}>{post.badge}</span>
               <time datetime={post.datetime}>{post.date}</time>

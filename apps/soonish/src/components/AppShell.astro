@@ -4,18 +4,21 @@ import { appSiteUrl, mainSiteUrl, supportUrl } from "@tomokichi/app-site/urls";
 import { homeDescription, tagline } from "../lib/content";
 
 type Locale = "ja" | "en";
-const { lang, title, page = "", description, jsonLd = "" } = Astro.props as {
+const { lang, title, page = "", routePath = page, description, jsonLd = "", noindex = false } = Astro.props as {
   lang: Locale;
   title: string;
   page?: string;
+  /** Route used for canonical and hreflang, when it differs from `page`. */
+  routePath?: string;
   description?: string;
   jsonLd?: string;
+  noindex?: boolean;
 };
 const ja = lang === "ja";
 const base = ja ? "/ja" : "";
 const href = (slug: string) => `${base}/${slug}`.replaceAll("//", "/");
-const jaPageHref = (`/ja/${page}`.replace(/\/$/, "")) || "/ja";
-const enPageHref = `/${page}`.replace(/\/$/, "") || "/";
+const jaPageHref = (`/ja/${routePath}`.replace(/\/$/, "")) || "/ja";
+const enPageHref = `/${routePath}`.replace(/\/$/, "") || "/";
 const supportHref = supportUrl("soonish", lang);
 const storeLabel = ja ? "近日公開" : "Coming soon";
 
@@ -114,6 +117,7 @@ const metaDescription = description ?? (ja ? homeDescription[0] : homeDescriptio
   page={page}
   brand="Soonish"
   tagline={ja ? tagline[0] : tagline[1]}
+  ogImage="/assets/scene-travel.jpg"
   siteUrl={appSiteUrl("soonish")}
   homeHref={ja ? "/ja" : "/"}
   jaPageHref={jaPageHref}
@@ -129,6 +133,7 @@ const metaDescription = description ?? (ja ? homeDescription[0] : homeDescriptio
   themeColor="#faf6f8"
   pageClass="soonish-page"
   jsonLd={jsonLd}
+  noindex={noindex}
 >
   <slot />
 </AppSiteShell>

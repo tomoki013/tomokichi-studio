@@ -1,5 +1,6 @@
 ---
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
 import { appSiteUrl } from "@tomokichi/app-site/urls";
 import AppScreen from "./AppScreen.astro";
 import AppShell from "./AppShell.astro";
@@ -15,22 +16,18 @@ const description = ja
   ? "Yohakuは、日々の中に何もしない時間を置き、今日・週・月で静かに振り返るためのiPhoneアプリです。App Storeで配信中。"
   : "Yohaku is an iPhone app for leaving time with nothing planned, then looking back across your day, week and month. Available now on the App Store.";
 
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Yohaku",
-  applicationCategory: "LifestyleApplication",
-  operatingSystem: "iOS 17.0 or later",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "JPY",
-    availability: "https://schema.org/InStock",
-  },
-  description,
-  url: `${appSiteUrl("yohaku")}${base || ""}` || appSiteUrl("yohaku"),
-  image: `${appSiteUrl("yohaku")}/og.jpg`,
-});
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("yohaku"),
+    name: "Yohaku",
+    description,
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "iOS 17.0 or later",
+    path: base || "/",
+    image: "/og.jpg",
+    appStoreUrl: "https://apps.apple.com/app/id6798718923",
+  }),
+);
 ---
 
 <AppShell
@@ -49,6 +46,11 @@ const jsonLd = JSON.stringify({
           {ja
             ? "何もしない時間を、今日に置く。それだけ。"
             : "Leave time with nothing planned. That is enough."}
+        </p>
+        <p class="hero-body">
+          {ja
+            ? "Yohakuは、何もしない時間に名前と開始・終了時刻をつけて置き、今日・週・月で振り返るiPhoneアプリです。"
+            : "Yohaku is an iPhone app for giving unplanned time a name, a start and an end, then looking back across your day, week and month."}
         </p>
         <div class="hero-actions">
           <a class="store-button" href={appStoreHref} target="_blank" rel="noopener noreferrer">

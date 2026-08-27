@@ -1,5 +1,5 @@
-import type { D1Database } from "./types";
 import type { ModerationRootField, ModerationTargetKind } from "./moderation-digest";
+import type { D1Database } from "./types";
 
 /**
  * One decision by the operator to take a piece of shared Remeet content down.
@@ -215,7 +215,7 @@ export class InMemoryModerationStore implements ModerationStore {
 
   async revokeAction(actionId: string, revokedAt: string, revokedBy: string): Promise<boolean> {
     const record = this.actions.get(actionId);
-    if (!record || record.status !== "active") return false;
+    if (record?.status !== "active") return false;
     this.actions.set(actionId, { ...record, status: "revoked", revokedAt, revokedBy });
     return true;
   }

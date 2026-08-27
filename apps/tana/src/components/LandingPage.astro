@@ -1,6 +1,7 @@
 ---
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
 import PhoneFrame from "@tomokichi/app-site/PhoneFrame.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
 import { appSiteUrl } from "@tomokichi/app-site/urls";
 import AppShell from "./AppShell.astro";
 
@@ -47,21 +48,16 @@ const description = ja
   ? "Tanaは、本棚にある本を静かに整理するローカルファーストの読書管理アプリです。進捗・記録・コレクション・所持管理まで。現在App Store公開準備中。"
   : "Tana is a local-first reading and bookshelf app for quietly organising the books you own—progress, logs, collections, and ownership. Currently preparing for the App Store.";
 
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Tana",
-  applicationCategory: "LifestyleApplication",
-  operatingSystem: "iOS 17.0 or later",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "JPY",
-    availability: "https://schema.org/PreOrder",
-  },
-  description,
-  url: `${appSiteUrl("tana")}${base || ""}` || appSiteUrl("tana"),
-});
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("tana"),
+    name: "Tana",
+    description,
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "iOS 17.0 or later",
+    path: base || "/",
+  }),
+);
 ---
 
 <AppShell

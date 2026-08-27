@@ -60,6 +60,8 @@ export const supportCopy = {
       rateLimited: "短時間に送信できる回数を超えました。少し時間をおいてからお試しください。",
       deliveryFailed: "お問い合わせを送信できませんでした。時間をおいて再度お試しください。",
       serverError: "現在お問い合わせを受け付けられません。時間をおいて再度お試しください。",
+      verificationFailed:
+        "確認を完了できませんでした。ページを再読み込みして、もう一度お試しください。",
       network: "インターネット接続を確認してください。",
       timeout: "送信に時間がかかっています。通信環境を確認して、もう一度お試しください。",
     },
@@ -95,7 +97,8 @@ export const supportCopy = {
     optional: "Optional",
     email: "Reply-to email address",
     replyRequested: "I’d like a reply",
-    replyNote: "You can leave this off and still send the form. We only ask for an email address if you want a reply.",
+    replyNote:
+      "You can leave this off and still send the form. We only ask for an email address if you want a reply.",
     message: "Message",
     submit: "Send",
     submitting: "Sending…",
@@ -122,6 +125,7 @@ export const supportCopy = {
       rateLimited: "You’ve sent too many messages in a short time. Please wait and try again.",
       deliveryFailed: "We couldn’t send your message. Please wait and try again.",
       serverError: "Support is currently unavailable. Please wait and try again.",
+      verificationFailed: "We could not complete the check. Please reload the page and try again.",
       network: "Check your internet connection and try again.",
       timeout: "Sending is taking too long. Check your connection and try again.",
     },

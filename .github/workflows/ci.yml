@@ -91,6 +91,7 @@ jobs:
       - run: pnpm --filter @tomokichi/main check
       - run: pnpm --filter @tomokichi/main test
       - run: pnpm --filter @tomokichi/main build
+      - run: node scripts/check-seo.mjs
 
   remeet:
     name: Remeet check
@@ -110,6 +111,7 @@ jobs:
       - run: pnpm --filter @tomokichi/remeet check
       - run: pnpm --filter @tomokichi/remeet test
       - run: pnpm --filter @tomokichi/remeet build
+      - run: node scripts/check-seo.mjs
 
   tripory:
     name: Tripory check
@@ -129,6 +131,7 @@ jobs:
       - run: pnpm --filter @tomokichi/tripory check
       - run: pnpm --filter @tomokichi/tripory test
       - run: pnpm --filter @tomokichi/tripory build
+      - run: node scripts/check-seo.mjs
 
   colorvia:
     name: Colorvia check
@@ -147,6 +150,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/colorvia check
       - run: pnpm --filter @tomokichi/colorvia build
+      - run: node scripts/check-seo.mjs
 
   yohaku:
     name: Yohaku check
@@ -165,6 +169,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/yohaku check
       - run: pnpm --filter @tomokichi/yohaku build
+      - run: node scripts/check-seo.mjs
 
   review:
     name: App Review site check

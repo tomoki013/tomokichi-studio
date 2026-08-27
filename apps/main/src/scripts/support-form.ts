@@ -6,12 +6,12 @@ import {
   initialSelections,
   isValidEmail,
   requiresEmail,
-  showsReplyToggle,
   SUPPORT_API_URL,
   SUPPORT_TIMEOUT_MS,
   type SupportFieldErrors,
   type SupportFormValues,
   SupportRequestCycle,
+  showsReplyToggle,
   statusForApiResponse,
   validateSupportForm,
 } from "../lib/support";
@@ -19,7 +19,40 @@ import { supportCopy } from "../lib/support-copy";
 
 interface ApiResponse {
   requestId?: unknown;
+  code?: unknown;
   fields?: Record<string, unknown>;
+}
+
+/** Turnstile, when the page loaded it. Absent whenever no site key is set. */
+declare global {
+  interface Window {
+    turnstile?: { reset(widget?: string | HTMLElement): void };
+  }
+}
+
+/**
+ * Wait briefly for Turnstile's token.
+ *
+ * The widget solves itself in well under a second, and a person needs longer
+ * than that to write a message — but a slow network could still have someone
+ * pressing submit first, and sending without the token means a rejection they
+ * did nothing to deserve.
+ */
+async function turnstileToken(
+  form: HTMLFormElement,
+  widget: HTMLElement | null,
+): Promise<string | undefined> {
+  if (!widget) return undefined;
+  const read = () => {
+    const field = form.elements.namedItem("turnstileToken");
+    return field instanceof HTMLInputElement ? field.value : "";
+  };
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const token = read();
+    if (token) return token;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  return undefined;
 }
 
 function initializeSupportForm(root: HTMLElement): void {
@@ -51,6 +84,7 @@ function initializeSupportForm(root: HTMLElement): void {
   const replyToggle = root.querySelector<HTMLElement>("[data-reply-toggle]");
   const message = form.elements.namedItem("message") as HTMLTextAreaElement;
   const website = form.elements.namedItem("website") as HTMLInputElement;
+  const turnstileWidget = root.querySelector<HTMLElement>("[data-support-turnstile]");
   const fieldElements = { name, email, message } as const;
   const selections = initialSelections(new URLSearchParams(window.location.search));
   app.value = selections.app;
@@ -73,7 +107,10 @@ function initializeSupportForm(root: HTMLElement): void {
     const toggleVisible = showsReplyToggle(category.value);
     if (replyToggle) replyToggle.hidden = !toggleVisible;
 
-    const wanted = requiresEmail({ category: category.value, replyRequested: replyCheckbox.checked });
+    const wanted = requiresEmail({
+      category: category.value,
+      replyRequested: replyCheckbox.checked,
+    });
     if (emailField) emailField.hidden = !wanted;
     email.required = wanted;
     if (!wanted) {
@@ -151,6 +188,7 @@ function initializeSupportForm(root: HTMLElement): void {
       delivery_failed: copy.errors.deliveryFailed,
       server_error: copy.errors.serverError,
       network_error: copy.errors.network,
+      verification_failed: copy.errors.verificationFailed,
       timeout: copy.errors.timeout,
     };
     return messages[status] ?? "";
@@ -205,10 +243,13 @@ function initializeSupportForm(root: HTMLElement): void {
     const timeout = window.setTimeout(() => controller.abort(), SUPPORT_TIMEOUT_MS);
 
     try {
+      const token = await turnstileToken(form, turnstileWidget);
       const response = await fetch(SUPPORT_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildSupportRequest(input, { requestId, clientId, locale })),
+        body: JSON.stringify(
+          buildSupportRequest(input, { requestId, clientId, locale, turnstileToken: token }),
+        ),
         signal: controller.signal,
       });
       let data: ApiResponse = {};
@@ -218,7 +259,7 @@ function initializeSupportForm(root: HTMLElement): void {
         data = {};
       }
 
-      const status = statusForApiResponse(response.status, data.requestId, requestId);
+      const status = statusForApiResponse(response.status, data.requestId, requestId, data.code);
       if (status === "validation_error" && data.fields && typeof data.fields === "object") {
         const safeErrors: SupportFieldErrors = {};
         for (const field of ["name", "email", "message"] as const) {
@@ -234,11 +275,15 @@ function initializeSupportForm(root: HTMLElement): void {
         receipt.textContent = requestId;
         success.focus();
       } else {
+        // A Turnstile token is spent once it has been checked, so anything
+        // short of success needs a fresh one before the next attempt.
+        window.turnstile?.reset(turnstileWidget ?? undefined);
         setStatus(status, messageForStatus(status));
       }
     } catch (error) {
       const status =
         error instanceof DOMException && error.name === "AbortError" ? "timeout" : "network_error";
+      window.turnstile?.reset(turnstileWidget ?? undefined);
       setStatus(status, messageForStatus(status));
     } finally {
       window.clearTimeout(timeout);
@@ -253,6 +298,7 @@ function initializeSupportForm(root: HTMLElement): void {
     replyCheckbox.checked = false;
     message.value = "";
     website.value = "";
+    window.turnstile?.reset(turnstileWidget ?? undefined);
     clearErrors();
     updateEmailVisibility();
     success.hidden = true;

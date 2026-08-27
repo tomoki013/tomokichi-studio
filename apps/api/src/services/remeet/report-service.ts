@@ -77,11 +77,10 @@ export type ReportFailure =
   | "IMAGE_TOO_LARGE"
   | "UNSUPPORTED_IMAGE_TYPE";
 
-export type ReportResult =
-  | { ok: true; duplicate: boolean }
-  | { ok: false; failure: ReportFailure };
+export type ReportResult = { ok: true; duplicate: boolean } | { ok: false; failure: ReportFailure };
 
-const UUID_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const UUID_PATTERN =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
 /**
  * Validates the metadata part.

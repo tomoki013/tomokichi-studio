@@ -80,6 +80,9 @@ export function validateSupportRequest(input: unknown): ValidationResult {
   const buildNumber = optionalString(raw, "buildNumber", 30, fields);
   const osVersion = optionalString(raw, "osVersion", 100, fields);
   const locale = optionalString(raw, "locale", 30, fields);
+  // Turnstile tokens are opaque and can be long; the cap only stops a body
+  // being padded out through this field.
+  const turnstileToken = optionalString(raw, "turnstileToken", 2048, fields);
 
   if (Object.keys(fields).length > 0) return { ok: false, fields };
 
@@ -100,6 +103,7 @@ export function validateSupportRequest(input: unknown): ValidationResult {
       locale,
       submittedAt: submittedAt as string,
       website,
+      turnstileToken,
     },
   };
 }

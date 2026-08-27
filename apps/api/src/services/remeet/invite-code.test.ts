@@ -21,7 +21,13 @@ describe("invite codes", () => {
   /// what we meant: lower case, spaces, and the letters that look like digits.
   it("accepts what a person actually types", () => {
     const expected = "7KM4PQ2X8N";
-    for (const typed of ["7km4p-q2x8n", "7KM4P Q2X8N", " 7km4pq2x8n ", "7KM4P—Q2X8N", "7KM4P_Q2X8N"]) {
+    for (const typed of [
+      "7km4p-q2x8n",
+      "7KM4P Q2X8N",
+      " 7km4pq2x8n ",
+      "7KM4P—Q2X8N",
+      "7KM4P_Q2X8N",
+    ]) {
       expect(normalizeInviteCode(typed)).toBe(expected);
     }
     expect(normalizeInviteCode("0123456789")).toBe("0123456789");
