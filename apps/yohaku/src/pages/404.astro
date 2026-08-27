@@ -1,22 +1,19 @@
 ---
+import AppErrorPage from "@tomokichi/app-site/AppErrorPage.astro";
 import AppShell from "../components/AppShell.astro";
 import "../styles/global.css";
 ---
 
-<AppShell lang="en" title="Page not found" description="The page you were looking for could not be found." noindex>
-  <section class="content-page">
-    <header class="content-hero">
-      <h1>Page not found / ページが見つかりません</h1>
-      <p style="margin-top:16px;color:#666;font-family:var(--sans);line-height:1.8">
-        The URL may have changed, or the page may not exist.<br />
-        URLが変わったか、ページが存在しない可能性があります。
-      </p>
-      <p style="margin-top:28px;display:flex;flex-wrap:wrap;gap:16px 24px">
-        <a href="/">Home (EN)</a>
-        <a href="/ja">ホーム（日本語）</a>
-        <a href="/faq">FAQ</a>
-        <a href="/ja/faq">よくある質問</a>
-      </p>
-    </header>
-  </section>
+<AppShell
+  lang="en"
+  title="Page not found"
+  description="The page you were looking for could not be found."
+  noindex
+>
+  <AppErrorPage
+    links={[
+      { label: "FAQ", jaLabel: "よくある質問", href: "/faq", jaHref: "/ja/faq" },
+      { label: "Features", jaLabel: "機能", href: "/features", jaHref: "/ja/features" },
+    ]}
+  />
 </AppShell>

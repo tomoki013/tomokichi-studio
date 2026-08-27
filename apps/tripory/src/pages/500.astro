@@ -1,19 +1,19 @@
 ---
 import AppErrorPage from "@tomokichi/app-site/AppErrorPage.astro";
-import AppShell from "../components/AppShell.astro";
+import Shell from "../components/Shell.astro";
 import "../styles/global.css";
 ---
 
-<AppShell
+<Shell
   lang="en"
-  title="Page not found"
-  description="The page you were looking for could not be found."
+  title="Something went wrong"
+  description="This page could not be loaded."
   noindex
 >
-  <AppErrorPage
+  <AppErrorPage kind="error"
     links={[
       { label: "FAQ", jaLabel: "よくある質問", href: "/faq", jaHref: "/ja/faq" },
       { label: "Features", jaLabel: "機能", href: "/features", jaHref: "/ja/features" },
     ]}
   />
-</AppShell>
+</Shell>

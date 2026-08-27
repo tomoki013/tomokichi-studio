@@ -11,6 +11,7 @@
     "./AppSimpleSteps.astro": "./src/AppSimpleSteps.astro",
     "./CommercialTransactionsPage.astro": "./src/CommercialTransactionsPage.astro",
     "./PhoneFrame.astro": "./src/PhoneFrame.astro",
+    "./AppErrorPage.astro": "./src/AppErrorPage.astro",
     "./NewsFeed.astro": "./src/NewsFeed.astro",
     "./NewsArticlePage.astro": "./src/NewsArticlePage.astro",
     "./AppUpdatesPage.astro": "./src/AppUpdatesPage.astro",

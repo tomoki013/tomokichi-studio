@@ -1,0 +1,73 @@
+---
+/**
+ * 404 and error pages for tmkch.io.
+ *
+ * Both languages appear together, because Cloudflare answers `/nope` and
+ * `/ja/nope` with the same file — there is no locale to read off the URL that
+ * failed. The header and footer come along so a wrong turn still lands
+ * somewhere the reader can navigate out of.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteFooter from "./SiteFooter.astro";
+import SiteHeader from "./SiteHeader.astro";
+
+const { kind = "not-found" } = Astro.props as { kind?: "not-found" | "error" };
+
+const copy =
+  kind === "error"
+    ? {
+        code: "500",
+        title: "Something went wrong — Tomokichi",
+        description: "This page could not be loaded.",
+        en: "Something went wrong",
+        ja: "問題が発生しました",
+        enBody: "The page could not be loaded. Trying again in a moment usually works.",
+        jaBody: "ページを読み込めませんでした。少し時間をおいて、もう一度お試しください。",
+      }
+    : {
+        code: "404",
+        title: "Page not found — Tomokichi",
+        description: "The page you were looking for could not be found.",
+        en: "Page not found",
+        ja: "ページが見つかりません",
+        enBody: "The URL may have changed, or the page may never have existed.",
+        jaBody: "URLが変わったか、そのページが存在しない可能性があります。",
+      };
+
+const links = [
+  { label: "Journal", jaLabel: "記録", href: "/journal", jaHref: "/ja/journal" },
+  { label: "Products", jaLabel: "つくったもの", href: "/products", jaHref: "/ja/products" },
+  { label: "Support", jaLabel: "サポート", href: "/support", jaHref: "/ja/support" },
+];
+---
+
+<BaseLayout lang="en" title={copy.title} description={copy.description} path="/" noindex>
+  <div class="site">
+    <SiteHeader lang="en" path="/" />
+
+    <main>
+      <section class="error-page shell">
+        <p class="error-code" aria-hidden="true">{copy.code}</p>
+        <h1>
+          <span lang="en">{copy.en}</span>
+          <span lang="ja">{copy.ja}</span>
+        </h1>
+        <p class="error-body" lang="en">{copy.enBody}</p>
+        <p class="error-body" lang="ja">{copy.jaBody}</p>
+
+        <nav class="error-links" aria-label="Elsewhere on this site">
+          <a href="/" lang="en">Home</a>
+          <a href="/ja" lang="ja">ホーム</a>
+          {links.map((link) => (
+            <>
+              <a href={link.href} lang="en">{link.label}</a>
+              <a href={link.jaHref} lang="ja">{link.jaLabel}</a>
+            </>
+          ))}
+        </nav>
+      </section>
+    </main>
+
+    <SiteFooter lang="en" />
+  </div>
+</BaseLayout>

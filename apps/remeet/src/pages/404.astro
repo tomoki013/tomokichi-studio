@@ -1,4 +1,5 @@
 ---
+import AppErrorPage from "@tomokichi/app-site/AppErrorPage.astro";
 import AppShell from "../components/AppShell.astro";
 import "../styles/global.css";
 ---
@@ -6,36 +7,13 @@ import "../styles/global.css";
 <AppShell
   lang="en"
   title="Page not found"
-  description="The page you were looking for could not be found." noindex
+  description="The page you were looking for could not be found."
+  noindex
 >
-  <section class="subpage not-found">
-    <header class="page-intro">
-      <h1>Page not found / ページが見つかりません</h1>
-      <p>The URL may have changed, or the page may not exist.<br />URLが変わったか、ページが存在しない可能性があります。</p>
-      <p class="not-found-actions">
-        <a href="/">Home (EN)</a>
-        <a href="/ja">ホーム（日本語）</a>
-        <a href="/faq">FAQ</a>
-        <a href="/ja/faq">よくある質問</a>
-      </p>
-    </header>
-  </section>
+  <AppErrorPage
+    links={[
+      { label: "FAQ", jaLabel: "よくある質問", href: "/faq", jaHref: "/ja/faq" },
+      { label: "Features", jaLabel: "機能", href: "/features", jaHref: "/ja/features" },
+    ]}
+  />
 </AppShell>
-
-<style>
-  .not-found-actions {
-    margin-top: 28px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px 24px;
-    justify-content: center;
-  }
-  .not-found-actions a {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-</style>
