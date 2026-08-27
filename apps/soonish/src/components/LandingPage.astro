@@ -1,6 +1,7 @@
 ---
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
 import PhoneFrame from "@tomokichi/app-site/PhoneFrame.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
 import { appSiteUrl } from "@tomokichi/app-site/urls";
 import {
   homeDescription,
@@ -36,21 +37,16 @@ const shelfItems = ja
       { tone: "mist", chip: "Note", title: "Transit times", why: "For AI context" },
     ];
 
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Soonish",
-  applicationCategory: "LifestyleApplication",
-  operatingSystem: "iOS 17.0 or later",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "JPY",
-    availability: "https://schema.org/PreOrder",
-  },
-  description,
-  url: `${appSiteUrl("soonish")}${base || ""}` || appSiteUrl("soonish"),
-});
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("soonish"),
+    name: "Soonish",
+    description,
+    applicationCategory: "LifestyleApplication",
+    operatingSystem: "iOS 17.0 or later",
+    path: base || "/",
+  }),
+);
 ---
 
 <AppShell

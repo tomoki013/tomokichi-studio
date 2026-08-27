@@ -1,5 +1,7 @@
 ---
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
+import { appSiteUrl } from "@tomokichi/app-site/urls";
 import AppScreen from "./AppScreen.astro";
 import Shell from "./Shell.astro";
 
@@ -67,9 +69,27 @@ const journey = ja
       ["10.02", "Cusco"],
       ["11.19", "Sydney"],
     ];
+
+const description = ja
+  ? "Triporyは、写真・タイムライン・メモで旅そのものを記憶として残すiPhoneアプリです。現在App Store公開準備中。"
+  : "Tripory keeps the journey itself — photos, timeline and notes — as memory you can revisit. Preparing for the App Store.";
+
+/* Preparing for the App Store, so no offers and no downloadUrl: the page says
+   "coming soon", and the structured data has to agree. */
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("tripory"),
+    name: "Tripory",
+    description,
+    applicationCategory: "TravelApplication",
+    operatingSystem: "iOS 26 or later",
+    path: base || "/",
+    image: "/assets/cappadocia.png",
+  }),
+);
 ---
 
-<Shell lang={lang} title={`${c.title} — ${c.tagline}`}>
+<Shell lang={lang} title={`${c.title} — ${c.tagline}`} description={description} jsonLd={jsonLd}>
   <section class="new-home tripory-hero">
     <img class="home-sky" src="/assets/cappadocia.png" alt="" />
     <div class="hero-editorial">

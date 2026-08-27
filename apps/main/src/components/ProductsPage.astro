@@ -4,6 +4,7 @@ import { conceptApps, developingApps, orderedApps, releasedApps } from "../data/
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { appsPage } from "../lib/copy";
 import { entriesForProduct } from "../lib/journal";
+import { productsJsonLd } from "../lib/structured-data";
 import AppCard from "./AppCard.astro";
 import ArrowLink from "./ArrowLink.astro";
 import SiteFooter from "./SiteFooter.astro";
@@ -26,7 +27,13 @@ const visualIcons = orderedApps.slice(0, 4).map((app) => ({
 }));
 ---
 
-<BaseLayout lang={lang} title={appsPage.metaTitle[lang]} description={appsPage.metaDescription[lang]}>
+<BaseLayout
+  lang={lang}
+  title={appsPage.metaTitle[lang]}
+  description={appsPage.metaDescription[lang]}
+  path="/products"
+  jsonLd={productsJsonLd(lang)}
+>
   <div class="site">
     <SiteHeader lang={lang} path="/products" current="products" />
 

@@ -3,6 +3,7 @@ import type { Locale } from "../data/apps";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { journal } from "../lib/copy";
 import { journalEntries } from "../lib/journal";
+import { journalIndexJsonLd } from "../lib/structured-data";
 import JournalCard from "./JournalCard.astro";
 import SiteFooter from "./SiteFooter.astro";
 import SiteHeader from "./SiteHeader.astro";
@@ -15,6 +16,8 @@ const entries = await journalEntries(lang);
   lang={lang}
   title={journal.metaTitle[lang]}
   description={journal.metaDescription[lang]}
+  path="/journal"
+  jsonLd={journalIndexJsonLd(lang, entries)}
 >
   <div class="site">
     <SiteHeader lang={lang} path="/journal" current="journal" />

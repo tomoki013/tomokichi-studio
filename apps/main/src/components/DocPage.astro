@@ -16,7 +16,12 @@ const { lang, path, current, doc } = Astro.props;
 const supportHref = lang === "ja" ? "/ja/support" : "/support";
 ---
 
-<BaseLayout lang={lang} title={doc.metaTitle[lang]} description={doc.metaDescription[lang]}>
+<BaseLayout
+  lang={lang}
+  title={doc.metaTitle[lang]}
+  description={doc.metaDescription[lang]}
+  path={path}
+>
   <div class="site">
     <SiteHeader lang={lang} path={path} current={current} />
     <main>

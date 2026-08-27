@@ -54,6 +54,11 @@ export interface AppItem {
   detail?: AppDetail;
   /** Live site. Left undefined while a subdomain is not published yet. */
   url?: string;
+  /**
+   * App Store listing. Set only once the app is actually downloadable — it is
+   * what lets structured data say "available" without overstating anything.
+   */
+  appStoreUrl?: string;
   /** Accent colour, used sparingly inside a card. */
   accent?: string;
   featured: boolean;
@@ -204,6 +209,7 @@ export const apps: AppItem[] = [
     platform: ["iPhone"],
     iconClass: "colorvia",
     url: appSiteUrl("colorvia"),
+    appStoreUrl: "https://apps.apple.com/app/id6798378768",
     accent: "#55A7A7",
     screen: "colorvia-home",
     detail: {
@@ -266,6 +272,7 @@ export const apps: AppItem[] = [
     platform: ["iPhone"],
     iconClass: "yohaku",
     url: appSiteUrl("yohaku"),
+    appStoreUrl: "https://apps.apple.com/app/id6798718923",
     accent: "#6B7280",
     screen: "yohaku-today",
     detail: {

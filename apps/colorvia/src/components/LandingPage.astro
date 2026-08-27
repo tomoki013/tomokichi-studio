@@ -1,6 +1,7 @@
 ---
 import AppHeroChrome from "@tomokichi/app-site/AppHeroChrome.astro";
 import PhoneFrame from "@tomokichi/app-site/PhoneFrame.astro";
+import { appApplicationGraph, jsonLd as serializeJsonLd } from "@tomokichi/app-site/seo";
 import { appSiteUrl } from "@tomokichi/app-site/urls";
 import { languagesEn, languagesJa, regions } from "../lib/content";
 import AppShell from "./AppShell.astro";
@@ -60,22 +61,18 @@ const faqs = ja
       ["Can I back up my data?", "Yes. Export JSON from Settings → Data management and import it on another device. There is no automatic iCloud sync."],
     ];
 
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Colorvia",
-  applicationCategory: "TravelApplication",
-  operatingSystem: "iOS 18.0 or later",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "JPY",
-    availability: "https://schema.org/InStock",
-  },
-  description,
-  url: `${appSiteUrl("colorvia")}${base || ""}` || appSiteUrl("colorvia"),
-  image: `${appSiteUrl("colorvia")}/og.png`,
-});
+const jsonLd = serializeJsonLd(
+  appApplicationGraph({
+    siteUrl: appSiteUrl("colorvia"),
+    name: "Colorvia",
+    description,
+    applicationCategory: "TravelApplication",
+    operatingSystem: "iOS 18.0 or later",
+    path: base || "/",
+    image: "/og.png",
+    appStoreUrl: "https://apps.apple.com/app/id6798378768",
+  }),
+);
 ---
 
 <AppShell

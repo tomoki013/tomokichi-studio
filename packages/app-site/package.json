@@ -16,6 +16,8 @@
     "./AppUpdatesPage.astro": "./src/AppUpdatesPage.astro",
     "./asset-cache-worker": "./src/asset-cache-worker.js",
     "./apps": "./src/apps.ts",
+    "./seo": "./src/seo.ts",
+    "./seo-assets": "./src/seo-assets.ts",
     "./i18n": "./src/i18n.ts",
     "./operator": "./src/operator.ts",
     "./urls": "./src/urls.ts"

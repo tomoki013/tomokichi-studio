@@ -58,12 +58,33 @@ pnpm --filter @tomokichi/tripory dev  # http://localhost:4323
 pnpm --filter @tomokichi/api dev      # http://localhost:8787
 ```
 
+## SEO
+
+Every site serves its own `robots.txt` and `sitemap.xml`, generated at build
+time by the `seoAssets()` integration in each `astro.config.mjs`. The sitemap is
+read back out of the built HTML, so it lists exactly the pages that shipped an
+indexable canonical — adding a page needs no sitemap edit, and the two cannot
+drift apart.
+
+Search and AI-search crawlers (`Googlebot`, `Bingbot`, `OAI-SearchBot`,
+`Claude-SearchBot`, `Claude-User`) are allowed explicitly. Model-training
+crawlers are a separate decision, kept in one place: `aiTraining` in
+`packages/app-site/src/seo.ts`, currently `allow`, which is the policy these
+sites have always had. Changing it does not touch anything else.
+
+Structured data lives in `packages/app-site/src/seo.ts`. The studio is one
+entity — `https://tmkch.io/#studio` — referenced from every site, and each app
+has one `@id` shared between tmkch.io and its brand site. Nothing there may
+claim what the page does not: no legal entity, no ratings, and no `offers` for
+an app that is not on the App Store yet.
+
 ## Checks
 
 ```bash
 pnpm check
 pnpm test
 pnpm build
+pnpm check:seo
 ```
 
 ## Cloudflare deployment

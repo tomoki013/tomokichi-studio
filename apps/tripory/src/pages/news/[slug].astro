@@ -11,6 +11,6 @@ export function getStaticPaths() {
 const { post } = Astro.props as { post: ReturnType<typeof getNewsPosts>[number] };
 ---
 
-<Shell lang="en" title={post.title} description={post.summary} page="news">
+<Shell lang="en" title={post.title} description={post.summary} page="news" routePath={`news/${post.id}`}>
   <NewsArticlePage post={post} lang="en" backHref="/news" />
 </Shell>

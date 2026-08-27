@@ -1,5 +1,5 @@
 ---
-import { mainSiteUrl, SITE_ORIGINS } from "@tomokichi/app-site/urls";
+import { SITE_ORIGINS } from "@tomokichi/app-site/urls";
 import type { Locale } from "../data/apps";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { supportAppOptions, supportCategoryOptions, supportCopy } from "../lib/support-copy";
@@ -9,7 +9,6 @@ import SiteHeader from "./SiteHeader.astro";
 const { lang } = Astro.props as { lang: Locale };
 const copy = supportCopy[lang];
 const isJapanese = lang === "ja";
-const canonical = mainSiteUrl(lang, "/support");
 const privacyHref = isJapanese ? "/ja/privacy" : "/privacy";
 ---
 
@@ -17,9 +16,7 @@ const privacyHref = isJapanese ? "/ja/privacy" : "/privacy";
   lang={lang}
   title={copy.metaTitle}
   description={copy.description}
-  canonical={canonical}
-  alternateJa={mainSiteUrl("ja", "/support")}
-  alternateEn={mainSiteUrl("en", "/support")}
+  path="/support"
 >
   <div class="site">
     <SiteHeader lang={lang} path="/support" current="support" />

@@ -4,18 +4,21 @@ import { appSiteUrl, mainSiteUrl } from "@tomokichi/app-site/urls";
 import { supportHref } from "../lib/links";
 
 type Locale = "ja" | "en";
-const { lang, title, page = "", description, jsonLd = "" } = Astro.props as {
+const { lang, title, page = "", routePath = page, description, jsonLd = "", noindex = false } = Astro.props as {
   lang: Locale;
   title: string;
   page?: string;
+  /** Route used for canonical and hreflang, when it differs from `page`. */
+  routePath?: string;
   description?: string;
   jsonLd?: string;
+  noindex?: boolean;
 };
 const ja = lang === "ja";
 const base = ja ? "/ja" : "";
 const href = (slug: string) => `${base}/${slug}`.replaceAll("//", "/");
-const jaPageHref = (`/ja/${page}`.replace(/\/$/, "")) || "/ja";
-const enPageHref = `/${page}`.replace(/\/$/, "") || "/";
+const jaPageHref = (`/ja/${routePath}`.replace(/\/$/, "")) || "/ja";
+const enPageHref = `/${routePath}`.replace(/\/$/, "") || "/";
 const labels = ja
   ? { features: "機能", how: "使い方", pricing: "料金", faq: "よくある質問", news: "ニュース" }
   : { features: "Features", how: "How it works", pricing: "Pricing", faq: "FAQ", news: "News" };
@@ -83,6 +86,7 @@ const storeLabel = ja ? "App Storeで近日公開" : "Coming soon on the App Sto
   pageClass="remeet-page"
   themeColor="#f8f4ef"
   jsonLd={jsonLd}
+  noindex={noindex}
 >
   <slot />
   <script is:inline>

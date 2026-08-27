@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://remeet.tmkch.io/sitemap.xml

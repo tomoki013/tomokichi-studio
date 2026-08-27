@@ -1,6 +1,10 @@
 /**
  * Thin Worker in front of static assets: long-cache hashed/static files,
  * short revalidation for HTML so deploys show up quickly.
+ *
+ * It also keeps preview deployments out of search. Every page canonicalises to
+ * the production hostname, but a `*.workers.dev` preview is a live, crawlable
+ * copy of the whole site, so it says so in a header as well.
  */
 const LONG_CACHE = "public, max-age=31536000, immutable";
 const HTML_CACHE = "public, max-age=300, must-revalidate";
@@ -17,6 +21,13 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     const headers = new Headers(response.headers);
+
+    // Only the custom domain is the real site. Matching on workers.dev rather
+    // than on a configured hostname means production can never be excluded by
+    // a missing or mistyped variable.
+    if (url.hostname.endsWith(".workers.dev")) {
+      headers.set("X-Robots-Tag", "noindex, nofollow");
+    }
 
     if (path.startsWith("/_astro/") || LONG_EXT.test(path)) {
       headers.set("Cache-Control", LONG_CACHE);

@@ -3,18 +3,21 @@ import AppSiteShell from "@tomokichi/app-site/AppSiteShell.astro";
 import { appSiteUrl, mainSiteUrl, supportUrl } from "@tomokichi/app-site/urls";
 
 type Locale = "ja" | "en";
-const { lang, title, page = "", description, jsonLd = "" } = Astro.props as {
+const { lang, title, page = "", routePath = page, description, jsonLd = "", noindex = false } = Astro.props as {
   lang: Locale;
   title: string;
   page?: string;
+  /** Route used for canonical and hreflang, when it differs from `page`. */
+  routePath?: string;
   description?: string;
   jsonLd?: string;
+  noindex?: boolean;
 };
 const ja = lang === "ja";
 const base = ja ? "/ja" : "";
 const href = (slug: string) => `${base}/${slug}`.replaceAll("//", "/");
-const jaPageHref = (`/ja/${page}`.replace(/\/$/, "")) || "/ja";
-const enPageHref = `/${page}`.replace(/\/$/, "") || "/";
+const jaPageHref = (`/ja/${routePath}`.replace(/\/$/, "")) || "/ja";
+const enPageHref = `/${routePath}`.replace(/\/$/, "") || "/";
 const supportHref = supportUrl("quiet-solitaire", lang);
 const storeLabel = ja ? "App Storeで近日公開" : "Coming soon on the App Store";
 
@@ -116,6 +119,7 @@ const metaDescription =
   page={page}
   brand="Quiet Solitaire"
   tagline={ja ? "静かなテーブルで、一巡だけ。" : "One quiet deal at the table."}
+  ogImage="/assets/hero-mug.jpg"
   siteUrl={appSiteUrl("quiet-solitaire")}
   homeHref={ja ? "/ja" : "/"}
   jaPageHref={jaPageHref}
@@ -132,6 +136,7 @@ const metaDescription =
   themeColor="#f4f0e6"
   pageClass="quiet-solitaire-page"
   jsonLd={jsonLd}
+  noindex={noindex}
 >
   <slot />
   <script is:inline>

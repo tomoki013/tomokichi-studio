@@ -43,6 +43,20 @@ export async function entriesForProduct(lang: Locale, slug: string): Promise<Jou
   return entries.filter((entry) => entry.data.products.includes(slug));
 }
 
+/**
+ * The locales an entry is actually published in.
+ *
+ * The slug is shared, but a translation is not guaranteed to exist — and
+ * hreflang pointing at an entry that was never written would send search
+ * engines to a 404.
+ */
+export async function entryLocales(slug: string): Promise<Locale[]> {
+  const entries = await getCollection("journal", published);
+  return (["en", "ja"] as Locale[]).filter((lang) =>
+    entries.some((entry) => entry.id === `${lang}/${slug}`),
+  );
+}
+
 export async function relatedEntries(entry: JournalEntry, lang: Locale): Promise<JournalEntry[]> {
   if (entry.data.related.length === 0) return [];
   const entries = await journalEntries(lang);
