@@ -1,11 +1,11 @@
-name: Deploy Tripory
+name: Deploy Quiet Solitaire
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'apps/tripory/**'
+      - 'apps/quiet-solitaire/**'
       - 'packages/app-site/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-tripory
+  group: deploy-quiet-solitaire
   cancel-in-progress: true
 
 jobs:
@@ -34,10 +34,10 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @tomokichi/tripory build
+      - run: pnpm --filter @tomokichi/quiet-solitaire build
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/tripory
+          workingDirectory: apps/quiet-solitaire
           command: deploy

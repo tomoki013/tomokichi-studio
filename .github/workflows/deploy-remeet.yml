@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'apps/remeet/**'
+      - 'packages/app-site/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
