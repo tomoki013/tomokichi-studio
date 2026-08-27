@@ -100,6 +100,22 @@ has something to ask. Turn both on together: a site key without a secret means
 a widget that verifies nothing, and a secret without a site key rejects every
 real sender.
 
+The widget can be created from the CLI — `wrangler login` first, since the
+Turnstile scope is not in an older token:
+
+```bash
+pnpm --filter @tomokichi/api exec wrangler turnstile widget create "tmkch.io support" --domain tmkch.io --mode managed
+```
+
+The apps carry a shared key instead, sent as `X-Support-Client`, because they
+have no browser to challenge. Without it Turnstile would be decorative —
+anything could claim `source: "remeet-ios"` and skip the token. Set it in the
+apps first, then here:
+
+```bash
+openssl rand -hex 24 | pnpm --filter @tomokichi/api exec wrangler secret put SUPPORT_CLIENT_KEY
+```
+
 ## Checks
 
 ```bash

@@ -57,7 +57,27 @@ Four properties worth knowing before changing anything here:
   value that resolves to one — which is why `routes/remeet/invites.ts` has no
   logging while `routes/support.ts` beside it does.
 
-### Who may call it
+### Who may call the support endpoint
+
+Every source has one gate, and neither is a way past the other:
+
+- `main-web` presents a Turnstile token, checked when `TURNSTILE_SECRET_KEY`
+  is set. See the support section of the workspace README for setup.
+- The iOS apps present `SUPPORT_CLIENT_KEY` as `X-Support-Client`, checked when
+  that secret is set — the same arrangement, and the same honest limits, as
+  `REMEET_INVITE_CLIENT_KEY` below.
+
+Without the second, the first was decorative: anything could send
+`source: "remeet-ios"` and skip the token entirely.
+
+Both are unenforced while unset, so each can be switched on once its other half
+exists, and the client key rotates apps-first the way the invite one does.
+
+Rate limits are per IP. They were keyed on `clientId` until the two gates went
+in, which the client generates itself — a sender who wanted around the limit
+only had to send a new one.
+
+### Who may call the invite routes
 
 `REMEET_INVITE_CLIENT_KEY` is a value the Remeet app and the Remeet site send
 as `X-Remeet-Client`. It ships inside the app, so it is a filter rather than a

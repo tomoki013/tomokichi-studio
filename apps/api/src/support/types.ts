@@ -51,6 +51,11 @@ export interface SupportBindings {
    * web form is not behind Turnstile and nothing is verified.
    */
   TURNSTILE_SECRET_KEY?: string;
+  /**
+   * Shared with the iOS apps, sent as `X-Support-Client`. Unset means
+   * unenforced; see `fromKnownClient` in `routes/support.ts`.
+   */
+  SUPPORT_CLIENT_KEY?: string;
   SUPPORT_RATE_LIMITER: {
     limit(options: { key: string }): Promise<{ success: boolean }>;
   };

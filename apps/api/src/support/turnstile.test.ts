@@ -176,3 +176,76 @@ describe("verifyTurnstileToken", () => {
     expect(result).toEqual({ ok: false, errorCodes: ["http-500"] });
   });
 });
+
+describe("the client key, for sources that cannot solve a challenge", () => {
+  function postWithHeaders(
+    body: unknown,
+    options: { clientKey?: string; header?: string; secret?: string } = {},
+  ) {
+    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
+      id: "email-id",
+    }));
+    const app = createApp({
+      deliver,
+      rateLimit: async () => true,
+      verifyTurnstile: async () => ({ ok: true }),
+    });
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (options.header) headers["X-Support-Client"] = options.header;
+    const response = app.request(
+      "https://api.example.com/api/v1/support",
+      { method: "POST", headers, body: JSON.stringify(body) },
+      {
+        ...baseEnv,
+        ...(options.clientKey ? { SUPPORT_CLIENT_KEY: options.clientKey } : {}),
+        ...(options.secret ? { TURNSTILE_SECRET_KEY: options.secret } : {}),
+      },
+    );
+    return { response, deliver };
+  }
+
+  const appRequest = { ...webRequest, source: "remeet-ios", app: "remeet" };
+
+  it("enforces nothing while no key is configured", async () => {
+    const { response } = postWithHeaders(appRequest);
+    expect((await response).status).toBe(200);
+  });
+
+  it("accepts an app that presents the key", async () => {
+    const { response } = postWithHeaders(appRequest, {
+      clientKey: "shared-key",
+      header: "shared-key",
+    });
+    expect((await response).status).toBe(200);
+  });
+
+  it("turns away an app request with no key, or the wrong one", async () => {
+    const missing = postWithHeaders(appRequest, { clientKey: "shared-key" });
+    expect((await missing.response).status).toBe(403);
+    expect(missing.deliver).not.toHaveBeenCalled();
+
+    const wrong = postWithHeaders(appRequest, { clientKey: "shared-key", header: "nope-same-len" });
+    expect((await wrong.response).status).toBe(403);
+  });
+
+  it("closes the gap where claiming to be an app skipped the web check", async () => {
+    // The whole point: with Turnstile on, `source: "main-web"` needs a token
+    // and every other source needs the key. Neither is a way past the other.
+    const { response, deliver } = postWithHeaders(
+      { ...webRequest, source: "remeet-ios", app: "remeet" },
+      { clientKey: "shared-key", secret: "sk" },
+    );
+
+    expect((await response).status).toBe(403);
+    expect(await (await response).json()).toMatchObject({ code: "CLIENT_NOT_ALLOWED" });
+    expect(deliver).not.toHaveBeenCalled();
+  });
+
+  it("never asks the web form for a key it could not keep secret", async () => {
+    const { response } = postWithHeaders(
+      { ...webRequest, turnstileToken: "token" },
+      { clientKey: "shared-key", secret: "sk" },
+    );
+    expect((await response).status).toBe(200);
+  });
+});
