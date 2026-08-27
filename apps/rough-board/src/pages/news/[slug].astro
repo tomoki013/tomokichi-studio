@@ -1,0 +1,22 @@
+---
+import NewsArticlePage from "@tomokichi/app-site/NewsArticlePage.astro";
+import AppShell from "../../components/AppShell.astro";
+import { newsPosts } from "../../lib/content";
+import "../../styles/global.css";
+
+export function getStaticPaths() {
+  return newsPosts(false).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: ReturnType<typeof newsPosts>[number] };
+---
+
+<AppShell
+  lang="en"
+  title={post.title}
+  description={post.summary}
+  page="news"
+  routePath={`news/${post.id}`}
+>
+  <NewsArticlePage post={post} lang="en" backHref="/news" />
+</AppShell>

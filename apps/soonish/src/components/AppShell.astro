@@ -4,10 +4,12 @@ import { appSiteUrl, mainSiteUrl, supportUrl } from "@tomokichi/app-site/urls";
 import { homeDescription, tagline } from "../lib/content";
 
 type Locale = "ja" | "en";
-const { lang, title, page = "", description, jsonLd = "", noindex = false } = Astro.props as {
+const { lang, title, page = "", routePath = page, description, jsonLd = "", noindex = false } = Astro.props as {
   lang: Locale;
   title: string;
   page?: string;
+  /** Route used for canonical and hreflang, when it differs from `page`. */
+  routePath?: string;
   description?: string;
   jsonLd?: string;
   noindex?: boolean;
@@ -15,8 +17,8 @@ const { lang, title, page = "", description, jsonLd = "", noindex = false } = As
 const ja = lang === "ja";
 const base = ja ? "/ja" : "";
 const href = (slug: string) => `${base}/${slug}`.replaceAll("//", "/");
-const jaPageHref = (`/ja/${page}`.replace(/\/$/, "")) || "/ja";
-const enPageHref = `/${page}`.replace(/\/$/, "") || "/";
+const jaPageHref = (`/ja/${routePath}`.replace(/\/$/, "")) || "/ja";
+const enPageHref = `/${routePath}`.replace(/\/$/, "") || "/";
 const supportHref = supportUrl("soonish", lang);
 const storeLabel = ja ? "近日公開" : "Coming soon";
 
