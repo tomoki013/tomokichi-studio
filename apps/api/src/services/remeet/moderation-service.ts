@@ -1,10 +1,10 @@
 import {
   CHILD_KINDS,
-  ROOT_FIELDS,
   childDigest,
-  rootFieldDigest,
   type ModerationRootField,
   type ModerationTargetKind,
+  ROOT_FIELDS,
+  rootFieldDigest,
 } from "./moderation-digest";
 import type {
   ModerationActionRecord,
@@ -26,7 +26,11 @@ import type {
 
 export const MANIFEST_SCHEMA_VERSION = 1;
 
-export type ModerationFailure = "INVALID_REQUEST" | "DUPLICATE_TARGET" | "NOT_FOUND" | "STALE_REVISION";
+export type ModerationFailure =
+  | "INVALID_REQUEST"
+  | "DUPLICATE_TARGET"
+  | "NOT_FOUND"
+  | "STALE_REVISION";
 
 export type ModerationResult<T> = { ok: true; value: T } | { ok: false; error: ModerationFailure };
 
@@ -85,7 +89,8 @@ export async function addAction(
   if (typeof targetKind !== "string") return fail("INVALID_REQUEST");
   const reasonCode = typeof input.reasonCode === "string" ? input.reasonCode : "";
   if (!REASON_CODES.has(reasonCode)) return fail("INVALID_REQUEST");
-  const issuedBy = typeof input.issuedBy === "string" && input.issuedBy.length <= 128 ? input.issuedBy : "";
+  const issuedBy =
+    typeof input.issuedBy === "string" && input.issuedBy.length <= 128 ? input.issuedBy : "";
   if (!issuedBy) return fail("INVALID_REQUEST");
 
   const now = (context.now ?? (() => new Date()))();
@@ -272,9 +277,7 @@ export async function publishManifest(
 
 /** Days until the current manifest stops being accepted, or `null` if none has
  *  ever been published. Read by the nightly cron. */
-export async function daysUntilManifestExpiry(
-  context: ModerationContext,
-): Promise<number | null> {
+export async function daysUntilManifestExpiry(context: ModerationContext): Promise<number | null> {
   // Production only. A lapsed dev manifest inconveniences one developer; a
   // lapsed production one silently stops all moderation, which is the thing
   // worth waking somebody up about.

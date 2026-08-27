@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { landingCopy, landingPage } from "./landing";
 
-const page = (lang: string | null, inviteCode: string | null = null, appStoreURL: string | null = null) =>
+const page = (
+  lang: string | null,
+  inviteCode: string | null = null,
+  appStoreURL: string | null = null,
+) =>
   landingPage({
     copy: landingCopy(lang),
     appStoreURL,

@@ -44,7 +44,8 @@ const JA: LandingCopy = {
   copied: "コピーしました",
   selected: "選択しました",
   codeHint: "Remeetをインストールしたあと、「招待を受け取った」で入力してください。",
-  footnote: "参加すると、再会の予定・やりたいこと・待っている間の記録をふたりで見られるようになります。",
+  footnote:
+    "参加すると、再会の予定・やりたいこと・待っている間の記録をふたりで見られるようになります。",
   countdown: (days) => (days === 0 ? "再会は今日です。" : `次に会えるまで、あと${days}日。`),
 };
 
@@ -65,9 +66,12 @@ const EN: LandingCopy = {
   copied: "Copied",
   selected: "Selected",
   codeHint: "Enter it under \u201cI received an invitation\u201d once Remeet is installed.",
-  footnote: "Joining lets you both see the reunion date, the wishes, and the notes kept while waiting.",
+  footnote:
+    "Joining lets you both see the reunion date, the wishes, and the notes kept while waiting.",
   countdown: (days) =>
-    days === 0 ? "The reunion is today." : `${days} ${days === 1 ? "day" : "days"} until they meet.`,
+    days === 0
+      ? "The reunion is today."
+      : `${days} ${days === 1 ? "day" : "days"} until they meet.`,
 };
 
 export function landingCopy(acceptLanguage: string | null): LandingCopy {

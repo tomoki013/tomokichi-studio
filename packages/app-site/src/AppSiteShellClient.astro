@@ -157,7 +157,9 @@
       setOpen(false);
       const items = document.querySelectorAll("[data-reveal]");
       if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
-        items.forEach((item) => item.classList.add("visible"));
+        items.forEach((item) => {
+          item.classList.add("visible");
+        });
         return;
       }
       const observer = new IntersectionObserver(

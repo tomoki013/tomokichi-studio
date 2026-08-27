@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   DETAILS_LIMIT,
-  MAX_IMAGE_BYTES,
-  SNAPSHOT_LIMIT,
   imageObjectKey,
+  MAX_IMAGE_BYTES,
   parseReport,
   reportContentTypes,
+  SNAPSHOT_LIMIT,
   validateImage,
 } from "./report-service";
 
@@ -59,12 +59,7 @@ describe("parseReport", () => {
   });
 
   it("accepts every kind of post and nothing else", () => {
-    expect(reportContentTypes).toEqual([
-      "waitingMemory",
-      "anniversaryCard",
-      "wish",
-      "statusNote",
-    ]);
+    expect(reportContentTypes).toEqual(["waitingMemory", "anniversaryCard", "wish", "statusNote"]);
     for (const contentType of reportContentTypes) {
       expect(parseReport({ ...valid, contentType })).toBeDefined();
     }

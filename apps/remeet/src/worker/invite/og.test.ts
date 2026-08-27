@@ -37,7 +37,7 @@ describe("the invitation preview image", () => {
     expect(svg).not.toContain("東京");
     // The route is drawn either way, so an invitation that keeps its places
     // private is not visibly a lesser one.
-    expect(svg).toContain("<path d=\"M300 528");
+    expect(svg).toContain('<path d="M300 528');
   });
 
   it("draws the places when it did", () => {

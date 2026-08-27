@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { createInvite, resolveInvite, type InviteServiceContext } from "./invite-service";
+import { createInvite, type InviteServiceContext, resolveInvite } from "./invite-service";
 import { InMemoryInviteStore } from "./invite-store.memory";
 
 const SHARE_URL = "https://www.icloud.com/share/0abcdefghijklmnopqrstuvwxy";

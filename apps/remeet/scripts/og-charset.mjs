@@ -17,11 +17,10 @@ export const SERIF_CHARS = "Remet0123456789DAYS ♡";
  * subset — a missing glyph here is a hole in every preview, not a label the
  * renderer can decide to drop.
  */
-const FIXED_COPY = "次に会う日まで、一緒に待とう。会えるまであと日今" +
-  "Waitforthenextimeyoumet,gher.DAYSUNTIL";
+const FIXED_COPY =
+  "次に会う日まで、一緒に待とう。会えるまであと日今" + "Waitforthenextimeyoumet,gher.DAYSUNTIL";
 
-const LATIN =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,.'’-–—()&/";
+const LATIN = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ,.'’-–—()&/";
 
 const KANA =
   "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをん" +

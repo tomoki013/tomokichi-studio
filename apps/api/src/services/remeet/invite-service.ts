@@ -3,9 +3,9 @@ import {
   decryptSecret,
   encryptSecret,
   hashesMatch,
+  type InviteKeys,
   lookupHash,
   lookupHashes,
-  type InviteKeys,
 } from "./invite-crypto";
 import type { InviteRecord, InviteStore } from "./invite-store";
 import { generateManagementToken, generateURLToken, isWellFormedToken } from "./invite-tokens";

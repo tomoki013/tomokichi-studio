@@ -7,12 +7,12 @@ import {
   initialSelections,
   isValidEmail,
   requiresEmail,
-  showsReplyToggle,
   SUPPORT_API_PUBLIC_URL,
   SUPPORT_API_URL,
   SUPPORT_CLIENT_ID_KEY,
   type SupportFormValues,
   SupportRequestCycle,
+  showsReplyToggle,
   statusForApiResponse,
   validateSupportForm,
 } from "./support";
@@ -46,9 +46,7 @@ describe("support form validation", () => {
   });
 
   it("does not require email when no reply is requested", () => {
-    expect(
-      validateSupportForm({ ...validValues, email: "", replyRequested: false }),
-    ).toEqual({});
+    expect(validateSupportForm({ ...validValues, email: "", replyRequested: false })).toEqual({});
     expect(
       validateSupportForm({ ...validValues, email: "invalid", replyRequested: false }),
     ).toEqual({});
@@ -96,7 +94,12 @@ describe("reply-implying categories", () => {
 
   it("rejects a missing email for 'question' regardless of the toggle", () => {
     expect(
-      validateSupportForm({ ...validValues, category: "question", email: "", replyRequested: false }),
+      validateSupportForm({
+        ...validValues,
+        category: "question",
+        email: "",
+        replyRequested: false,
+      }),
     ).toMatchObject({ email: "REQUIRED" });
   });
 

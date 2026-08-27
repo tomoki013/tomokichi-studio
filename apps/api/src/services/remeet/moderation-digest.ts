@@ -159,6 +159,8 @@ export async function rootFieldDigest(
 ): Promise<string> {
   const valueDigest = hex(await sha256(normalize(value)));
   return base64url(
-    await sha256([NAMESPACE, "reunionField", canonicalUUID(reunionID), field, valueDigest].join(SEP)),
+    await sha256(
+      [NAMESPACE, "reunionField", canonicalUUID(reunionID), field, valueDigest].join(SEP),
+    ),
   );
 }

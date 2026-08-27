@@ -35,7 +35,8 @@ const newsPostsEn: NewsPost[] = [
     datetime: "2026-08-17",
     badge: "Update",
     title: "Yohaku is now available on the App Store",
-    summary: "Yohaku, for leaving room between your plans, is available to download starting today.",
+    summary:
+      "Yohaku, for leaving room between your plans, is available to download starting today.",
     body: [
       "Yohaku is live on the App Store today. It gives unplanned time a name, a start and an end, then lets you look back on that rhythm across Today, Week and Month.",
       "Every core feature is free. The free version may show unobtrusive banner ads; a one-time ¥400 “Remove ads permanently” purchase removes them. It is not a subscription.",

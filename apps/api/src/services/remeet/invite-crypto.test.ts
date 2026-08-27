@@ -30,7 +30,9 @@ describe("the stored share URL", () => {
   it("comes back out unchanged", async () => {
     const sealed = await encryptSecret(KEY, "invite-id", shareURL);
     expect(sealed).not.toContain("icloud");
-    expect(await decryptSecret({ tokenSecret: "s", urlKey: KEY }, "invite-id", sealed)).toBe(shareURL);
+    expect(await decryptSecret({ tokenSecret: "s", urlKey: KEY }, "invite-id", sealed)).toBe(
+      shareURL,
+    );
   });
 
   it("cannot be read with the wrong key", async () => {

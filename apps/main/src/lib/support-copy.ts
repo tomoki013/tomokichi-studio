@@ -95,7 +95,8 @@ export const supportCopy = {
     optional: "Optional",
     email: "Reply-to email address",
     replyRequested: "I’d like a reply",
-    replyNote: "You can leave this off and still send the form. We only ask for an email address if you want a reply.",
+    replyNote:
+      "You can leave this off and still send the form. We only ask for an email address if you want a reply.",
     message: "Message",
     submit: "Send",
     submitting: "Sending…",

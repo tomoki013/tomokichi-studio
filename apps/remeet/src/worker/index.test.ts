@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-
-import worker from "./index";
 import type { WorkerEnv } from "./env";
+import worker from "./index";
 
 function makeEnv(overrides: Partial<WorkerEnv> = {}): WorkerEnv {
   return {
@@ -18,11 +17,16 @@ describe("the Remeet Worker", () => {
   it("serves the associated-domains file as JSON", async () => {
     const response = await worker.fetch(get("/.well-known/apple-app-site-association"), makeEnv());
     expect(response.headers.get("Content-Type")).toBe("application/json");
-    expect((await response.json()).applinks.details[0].appIDs).toEqual(["7GU925RQ99.io.tmkch.remeet"]);
+    expect((await response.json()).applinks.details[0].appIDs).toEqual([
+      "7GU925RQ99.io.tmkch.remeet",
+    ]);
   });
 
   it("shows the landing page for an invitation link", async () => {
-    const response = await worker.fetch(get("/i/abcdefghijklmnopqrstuvwxy", { "Accept-Language": "ja" }), makeEnv());
+    const response = await worker.fetch(
+      get("/i/abcdefghijklmnopqrstuvwxy", { "Accept-Language": "ja" }),
+      makeEnv(),
+    );
     const html = await response.text();
     expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(html).toContain("Remeetへの招待が届いています");
@@ -50,7 +54,9 @@ describe("the Remeet Worker", () => {
     const original = globalThis.fetch;
     globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       calls.push(new Request(input as RequestInfo, init));
-      return new Response(JSON.stringify({ inviteCode: "7KM4P-Q2X8N", expiresAt: "2026-08-26T00:00:00Z" }));
+      return new Response(
+        JSON.stringify({ inviteCode: "7KM4P-Q2X8N", expiresAt: "2026-08-26T00:00:00Z" }),
+      );
     }) as typeof fetch;
     try {
       const response = await worker.fetch(

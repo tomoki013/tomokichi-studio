@@ -23,7 +23,8 @@ import { SANS_CHARS, SERIF_CHARS } from "./og-charset.mjs";
 // Pinned URLs rather than "latest": a font that silently changes metrics
 // between builds moves every label in the picture.
 const SOURCES = {
-  serif: "https://fonts.gstatic.com/s/notoserifjp/v33/xn71YHs72GKoTvER4Gn3b5eMRtWGkp6o7MjQ2bzvPebA.ttf",
+  serif:
+    "https://fonts.gstatic.com/s/notoserifjp/v33/xn71YHs72GKoTvER4Gn3b5eMRtWGkp6o7MjQ2bzvPebA.ttf",
   sans: "https://fonts.gstatic.com/s/notosansjp/v56/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFM8k75s.ttf",
 };
 

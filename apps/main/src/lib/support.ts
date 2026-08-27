@@ -91,7 +91,9 @@ export function showsReplyToggle(category: string): boolean {
 }
 
 /** Whether email is required, given the category and the toggle state. */
-export function requiresEmail(values: Pick<SupportFormValues, "category" | "replyRequested">): boolean {
+export function requiresEmail(
+  values: Pick<SupportFormValues, "category" | "replyRequested">,
+): boolean {
   return categoryImpliesReply(values.category) || values.replyRequested;
 }
 

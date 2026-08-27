@@ -2,11 +2,11 @@ import type { Context, Hono } from "hono";
 
 import {
   createInvite,
+  type InviteFailure,
+  type InviteServiceContext,
   previewInvite,
   resolveInvite,
   revokeInvite,
-  type InviteFailure,
-  type InviteServiceContext,
 } from "../../services/remeet/invite-service";
 import { D1InviteStore } from "../../services/remeet/invite-store";
 import type { RateLimiter, RemeetInviteBindings } from "../../services/remeet/types";
@@ -167,7 +167,10 @@ async function readBody(c: InviteContext): Promise<unknown | undefined> {
   }
 }
 
-async function withinRateLimit(c: InviteContext, limiter: RateLimiter | undefined): Promise<boolean> {
+async function withinRateLimit(
+  c: InviteContext,
+  limiter: RateLimiter | undefined,
+): Promise<boolean> {
   if (!limiter) return true;
   const { success } = await limiter.limit({ key: c.req.header("CF-Connecting-IP") ?? "unknown" });
   return success;

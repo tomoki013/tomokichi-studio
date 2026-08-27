@@ -20,9 +20,7 @@
   // The two subsetted fonts the invitation preview is drawn with. resvg is
   // handed their bytes directly: workerd has no system fonts, so a family it
   // cannot find renders as nothing at all.
-  "rules": [
-    { "type": "Data", "globs": ["**/*.bin"], "fallthrough": false }
-  ],
+  "rules": [{ "type": "Data", "globs": ["**/*.bin"], "fallthrough": false }],
   "observability": {
     "enabled": true
   },

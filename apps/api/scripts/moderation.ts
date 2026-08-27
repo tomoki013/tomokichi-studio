@@ -278,7 +278,9 @@ async function revoke(): Promise<void> {
 
 async function publish(): Promise<void> {
   if (!KEY_ID) {
-    console.error("No key id. Run `moderation keygen --key-id <id>`, or set REMEET_MODERATION_KEY_ID.");
+    console.error(
+      "No key id. Run `moderation keygen --key-id <id>`, or set REMEET_MODERATION_KEY_ID.",
+    );
     process.exit(1);
   }
   const payload = await call(
@@ -313,7 +315,9 @@ async function publish(): Promise<void> {
  */
 function signFile(): void {
   if (!KEY_ID) {
-    console.error("No key id. Run `moderation keygen --key-id <id>`, or set REMEET_MODERATION_KEY_ID.");
+    console.error(
+      "No key id. Run `moderation keygen --key-id <id>`, or set REMEET_MODERATION_KEY_ID.",
+    );
     process.exit(1);
   }
   const inPath = requireFlag("in");

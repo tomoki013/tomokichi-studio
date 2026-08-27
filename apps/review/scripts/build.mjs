@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { extname, join, relative } from "node:path";
 
 const appDir = new URL("..", import.meta.url);
@@ -68,7 +68,10 @@ function validateReview(data, source) {
   }
 
   for (const optional of ["recordedAt", "notes"]) {
-    if (data[optional] !== undefined && (typeof data[optional] !== "string" || !data[optional].trim())) {
+    if (
+      data[optional] !== undefined &&
+      (typeof data[optional] !== "string" || !data[optional].trim())
+    ) {
       throw new Error(`${source}: ${optional} must be a non-empty string when provided`);
     }
   }
@@ -173,7 +176,9 @@ for (const file of reviewFiles.sort()) {
   if (!data.published) continue;
 
   if (publishedByApp.has(data.app)) {
-    throw new Error(`${source}: only one published review version is allowed per app (already published: ${publishedByApp.get(data.app)})`);
+    throw new Error(
+      `${source}: only one published review version is allowed per app (already published: ${publishedByApp.get(data.app)})`,
+    );
   }
 
   const routeKey = `${data.app}/${data.version}`;

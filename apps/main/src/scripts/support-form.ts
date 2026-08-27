@@ -6,12 +6,12 @@ import {
   initialSelections,
   isValidEmail,
   requiresEmail,
-  showsReplyToggle,
   SUPPORT_API_URL,
   SUPPORT_TIMEOUT_MS,
   type SupportFieldErrors,
   type SupportFormValues,
   SupportRequestCycle,
+  showsReplyToggle,
   statusForApiResponse,
   validateSupportForm,
 } from "../lib/support";
@@ -73,7 +73,10 @@ function initializeSupportForm(root: HTMLElement): void {
     const toggleVisible = showsReplyToggle(category.value);
     if (replyToggle) replyToggle.hidden = !toggleVisible;
 
-    const wanted = requiresEmail({ category: category.value, replyRequested: replyCheckbox.checked });
+    const wanted = requiresEmail({
+      category: category.value,
+      replyRequested: replyCheckbox.checked,
+    });
     if (emailField) emailField.hidden = !wanted;
     email.required = wanted;
     if (!wanted) {

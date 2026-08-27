@@ -61,6 +61,15 @@ const faqs = ja
       ["Can I back up my data?", "Yes. Export JSON from Settings → Data management and import it on another device. There is no automatic iCloud sync."],
     ];
 
+/**
+ * Two identical copy containers for the region marquee, each owning its own
+ * inter-card gaps AND one trailing gap, so the track's translateX(-50%) lands
+ * exactly one copy-width later. A flat list with a shared flex gap left the
+ * -50% point half a gap (8px) short of the seam, which showed as a one-frame
+ * jump every loop.
+ */
+const slideshowCopies = [0, 1];
+
 const jsonLd = serializeJsonLd(
   appApplicationGraph({
     siteUrl: appSiteUrl("colorvia"),
@@ -206,13 +215,8 @@ const jsonLd = serializeJsonLd(
         <div class="region-slideshow" data-reveal data-region-slideshow>
           <div class="region-slideshow-fade region-slideshow-fade-left" aria-hidden="true"></div>
           <div class="region-slideshow-fade region-slideshow-fade-right" aria-hidden="true"></div>
-          {/* Two identical copy containers, each owning its own inter-card
-              gaps AND one trailing gap, so the marquee's translateX(-50%)
-              lands exactly one copy-width later — a flat list with a shared
-              flex gap left the -50% point half a gap (8px) short of the
-              seam, which showed as a one-frame jump every loop. */}
           <div class="region-slideshow-track" data-region-track>
-            {[0, 1].map((copy) => (
+            {slideshowCopies.map((copy) => (
               <div class="region-slideshow-copy" aria-hidden={copy === 1 ? "true" : undefined}>
                 {regions.map((r) => (
                   <a

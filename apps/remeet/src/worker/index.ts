@@ -30,12 +30,15 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/.well-known/apple-app-site-association") {
-      return new Response(appleAppSiteAssociation(env.APPLE_APP_ID ?? "7GU925RQ99.io.tmkch.remeet"), {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=3600",
+      return new Response(
+        appleAppSiteAssociation(env.APPLE_APP_ID ?? "7GU925RQ99.io.tmkch.remeet"),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "public, max-age=3600",
+          },
         },
-      });
+      );
     }
 
     // The picture beside the link, drawn per request so its countdown is the
