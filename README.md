@@ -78,6 +78,28 @@ has one `@id` shared between tmkch.io and its brand site. Nothing there may
 claim what the page does not: no legal entity, no ratings, and no `offers` for
 an app that is not on the App Store yet.
 
+## Support form
+
+The shared support form at `/support` posts to `api.tmkch.io`, which the Remeet
+and Colorvia apps also use.
+
+Cloudflare Turnstile sits in front of the **web form only** — the apps have no
+browser to solve a challenge in, so requiring a token of them would silently
+break support from inside them. It is off until both halves are configured, and
+until then the form behaves exactly as it did before:
+
+1. Create a Turnstile widget in the Cloudflare dashboard for `tmkch.io`.
+2. Set the site key as the repository variable `PUBLIC_TURNSTILE_SITE_KEY`.
+   It is public, baked in at build time; with none set no widget renders and
+   the third-party script is not loaded at all.
+3. Set the secret with `pnpm --filter @tomokichi/api exec wrangler secret put
+   TURNSTILE_SECRET_KEY`. With no secret, the API verifies nothing.
+
+The widget uses `interaction-only`, so it stays invisible unless it actually
+has something to ask. Turn both on together: a site key without a secret means
+a widget that verifies nothing, and a secret without a site key rejects every
+real sender.
+
 ## Checks
 
 ```bash

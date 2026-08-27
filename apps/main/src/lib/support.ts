@@ -46,6 +46,8 @@ export interface SupportRequestBody {
   locale: "ja-JP" | "en";
   submittedAt: string;
   website: string;
+  /** Turnstile token, when the form is behind Turnstile. */
+  turnstileToken?: string;
 }
 
 export type FormStatus =
@@ -58,6 +60,7 @@ export type FormStatus =
   | "delivery_failed"
   | "server_error"
   | "network_error"
+  | "verification_failed"
   | "timeout";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -135,6 +138,8 @@ export function buildSupportRequest(
     clientId: string;
     locale: Locale;
     now?: Date;
+    /** Omitted when the form is not behind Turnstile. */
+    turnstileToken?: string;
   },
 ): SupportRequestBody {
   const app = apps.has(values.app) ? (values.app as SupportApp) : "remeet";
@@ -157,6 +162,7 @@ export function buildSupportRequest(
     locale: options.locale === "ja" ? "ja-JP" : "en",
     submittedAt: (options.now ?? new Date()).toISOString(),
     website: values.website,
+    ...(options.turnstileToken ? { turnstileToken: options.turnstileToken } : {}),
   };
 }
 
@@ -179,11 +185,16 @@ export function statusForApiResponse(
   status: number,
   responseRequestId: unknown,
   expectedRequestId: string,
+  /** The API's error code, which tells two different 403s apart. */
+  code?: unknown,
 ): FormStatus {
   if (status === 200) {
     return responseRequestId === expectedRequestId ? "success" : "server_error";
   }
   if (status === 400) return "validation_error";
+  // The other 403 is an origin the API does not allow, which no visitor to
+  // the real site can produce and which reloading would not fix.
+  if (status === 403) return code === "TURNSTILE_FAILED" ? "verification_failed" : "server_error";
   if (status === 429) return "rate_limited";
   if (status === 502) return "delivery_failed";
   return status >= 500 ? "server_error" : "server_error";

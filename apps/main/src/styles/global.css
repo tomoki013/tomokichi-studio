@@ -2009,6 +2009,13 @@ a.app-card:hover,
     color 0.2s ease,
     opacity 0.2s ease;
 }
+/* Turnstile. With "interaction-only" the widget stays empty and collapsed for
+   almost everyone, and only takes up room on the rare occasion it has
+   something to ask. */
+.support-turnstile:not(:empty) {
+  margin: 20px 0 4px;
+}
+
 .support-submit {
   width: 100%;
   color: var(--surface);

@@ -33,7 +33,13 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @tomokichi/main build
+      - name: Build
+        # Turnstile's site key is public and baked in at build time. Unset, the
+        # support form renders without a widget — which is exactly what should
+        # happen until the matching API secret exists.
+        env:
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
+        run: pnpm --filter @tomokichi/main build
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

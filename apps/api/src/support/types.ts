@@ -23,6 +23,8 @@ export interface SupportRequest {
   locale?: string;
   submittedAt: string;
   website: string;
+  /** Turnstile token. Sent by the web form only; see `support/turnstile.ts`. */
+  turnstileToken?: string;
 }
 
 export type ValidationFields = Record<string, string>;
@@ -44,6 +46,11 @@ export interface SupportBindings {
   MAIN_SITE_ORIGIN: string;
   MAIN_SITE_WORKERS_ORIGIN: string;
   SUPPORT_MOCK_DELIVERY?: string;
+  /**
+   * Turnstile's secret key, set with `wrangler secret put`. Absent means the
+   * web form is not behind Turnstile and nothing is verified.
+   */
+  TURNSTILE_SECRET_KEY?: string;
   SUPPORT_RATE_LIMITER: {
     limit(options: { key: string }): Promise<{ success: boolean }>;
   };

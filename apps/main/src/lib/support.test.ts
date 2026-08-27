@@ -270,3 +270,45 @@ describe("support request state", () => {
     expect(cycle.status).toBe("idle");
   });
 });
+
+describe("Turnstile", () => {
+  const values = {
+    app: "yohaku",
+    category: "question",
+    name: "",
+    email: "user@example.com",
+    replyRequested: true,
+    message: "これは十分な長さの問い合わせ内容です。",
+    website: "",
+  };
+  const options = {
+    requestId: "49a3999c-0ce1-4ea6-ab68-afcd6dc2e794",
+    clientId: "6ba7b810-9dad-41d1-80b4-00c04fd430c8",
+    locale: "ja" as const,
+  };
+
+  it("sends the token when the form is behind Turnstile", () => {
+    const body = buildSupportRequest(values, { ...options, turnstileToken: "a-token" });
+    expect(body.turnstileToken).toBe("a-token");
+  });
+
+  it("sends no token field at all when it is not", () => {
+    expect("turnstileToken" in buildSupportRequest(values, options)).toBe(false);
+    expect(
+      "turnstileToken" in buildSupportRequest(values, { ...options, turnstileToken: "" }),
+    ).toBe(false);
+  });
+
+  it("tells the reader to reload when the check fails", () => {
+    expect(statusForApiResponse(403, undefined, options.requestId, "TURNSTILE_FAILED")).toBe(
+      "verification_failed",
+    );
+  });
+
+  it("does not blame Turnstile for a 403 that is not one", () => {
+    expect(statusForApiResponse(403, undefined, options.requestId, "ORIGIN_NOT_ALLOWED")).toBe(
+      "server_error",
+    );
+    expect(statusForApiResponse(403, undefined, options.requestId)).toBe("server_error");
+  });
+});

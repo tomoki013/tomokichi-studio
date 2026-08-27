@@ -2,6 +2,7 @@ import type { Context, Hono } from "hono";
 
 import { sendSupportEmail } from "../support/email";
 import { createSupportEmail } from "../support/template";
+import { verifyTurnstileToken } from "../support/turnstile";
 import type { EmailDeliveryResult, SupportBindings, SupportEmail } from "../support/types";
 import { validateSupportRequest } from "../support/validation";
 
@@ -15,12 +16,14 @@ type SupportContext = Context<{ Bindings: SupportBindings }>;
 export interface SupportDependencies {
   deliver?: (email: SupportEmail, env: SupportBindings) => Promise<EmailDeliveryResult>;
   rateLimit?: (clientId: string, env: SupportBindings) => Promise<boolean>;
+  verifyTurnstile?: typeof verifyTurnstileToken;
 }
 
 const errorMessages = {
   INVALID_JSON: "リクエストを読み取れませんでした。",
   RATE_LIMITED: "短時間に送信できる回数を超えました。しばらくしてからお試しください。",
   DELIVERY_FAILED: "お問い合わせを送信できませんでした。時間をおいて再度お試しください。",
+  TURNSTILE_FAILED: "確認を完了できませんでした。ページを再読み込みして、もう一度お試しください。",
 } as const;
 
 function allowedOrigins(env: SupportBindings): Set<string> {
@@ -39,6 +42,8 @@ function logResult(
   status: number,
   startedAt: number,
   emailId?: string,
+  /** Why a request was turned away, when the status alone does not say. */
+  reason?: string,
 ): void {
   console.log(
     JSON.stringify({
@@ -48,6 +53,7 @@ function logResult(
       category: request?.category,
       status,
       emailId,
+      reason,
       durationMs: Date.now() - startedAt,
     }),
   );
@@ -158,6 +164,30 @@ export function registerSupportRoute(
         429,
         corsHeaders(c),
       );
+    }
+
+    // Turnstile, for the web form only: the Remeet and Colorvia apps post here
+    // too and have no browser to solve a challenge in. With no secret set,
+    // nothing is verified and the form behaves exactly as it did before.
+    if (c.env.TURNSTILE_SECRET_KEY && request.source === "main-web") {
+      const verification = await (dependencies.verifyTurnstile ?? verifyTurnstileToken)(
+        request.turnstileToken ?? "",
+        c.env.TURNSTILE_SECRET_KEY,
+        {
+          remoteIp: c.req.header("CF-Connecting-IP"),
+          idempotencyKey: request.requestId,
+        },
+      );
+      if (!verification.ok) {
+        // The sender is told to try again, not why they failed; the codes go
+        // to the log, for whoever is looking at abuse.
+        logResult(request, 403, startedAt, undefined, verification.errorCodes?.join(","));
+        return c.json(
+          { ok: false, code: "TURNSTILE_FAILED", message: errorMessages.TURNSTILE_FAILED },
+          403,
+          corsHeaders(c),
+        );
+      }
     }
 
     try {
