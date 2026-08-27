@@ -44,9 +44,9 @@ export function validateSupportRequest(input: unknown): ValidationResult {
   const source = trimmed(raw.source);
   const app = trimmed(raw.app);
   const category = trimmed(raw.category);
-  // The Remeet iOS app always sends the `email` key, empty string when no
-  // reply is requested — normalize that (and an entirely absent key, which
-  // the web form uses) to the same "no email" shape below.
+  // The native apps always send the `email` key, empty string when no reply is
+  // requested — normalize that (and an entirely absent key, which the web form
+  // uses) to the same "no email" shape below.
   const email = trimmed(raw.email)?.toLowerCase() || undefined;
   const message = trimmed(raw.message);
   const submittedAt = trimmed(raw.submittedAt);

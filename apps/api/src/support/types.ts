@@ -1,6 +1,6 @@
 import { supportAppBrands } from "@tomokichi/app-site/apps";
 
-export const supportSources = ["remeet-ios", "main-web"] as const;
+export const supportSources = ["remeet-ios", "colorvia-ios", "main-web"] as const;
 export const supportApps = [...supportAppBrands.map((app) => app.slug), "other"] as const;
 export const supportCategories = ["question", "bug", "feature", "other"] as const;
 
