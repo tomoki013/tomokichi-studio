@@ -8,7 +8,7 @@ export const supportCopy = {
     description: "Tomokichiのアプリに関する不具合、ご質問、ご意見をお送りください。",
     lead: "Tomokichiのアプリに関する不具合、ご質問、ご意見をお送りください。\n内容を確認のうえ、通常3営業日以内を目安にご返信します。",
     disclosure:
-      "お問い合わせへの回答と不具合調査のため、入力内容、メールアドレス、アプリや利用環境に関する情報を送信します。",
+      "お問い合わせへの回答や不具合調査のため、入力内容、アプリや利用環境に関する情報を送信します。返信をご希望の場合のみ、返信先メールアドレスも送信します。",
     steps: [
       {
         label: "STEP 01",
@@ -70,7 +70,7 @@ export const supportCopy = {
     description: "Send questions, bug reports, or feedback about Tomokichi apps.",
     lead: "Send us questions, bug reports, or feedback about Tomokichi apps.\nWe usually respond within three business days.",
     disclosure:
-      "To respond and investigate issues, we send the information you enter, your email address, and details about the app and your environment.",
+      "To respond and investigate issues, we send the information you enter and details about the app and your environment. We only send your reply-to email address if you ask for a reply.",
     steps: [
       {
         label: "STEP 01",
