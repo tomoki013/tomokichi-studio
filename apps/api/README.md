@@ -125,12 +125,12 @@ writes always use the current one.
 
 ```bash
 # 1. Move the current values into the PREVIOUS slots.
-pnpm exec wrangler secret put REMEET_INVITE_TOKEN_SECRET_PREVIOUS   # the old value
-pnpm exec wrangler secret put REMEET_INVITE_URL_KEY_PREVIOUS        # the old value
+pnpm -w cf secret put REMEET_INVITE_TOKEN_SECRET_PREVIOUS   # the old value
+pnpm -w cf secret put REMEET_INVITE_URL_KEY_PREVIOUS        # the old value
 
 # 2. Put the new values in place.
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_TOKEN_SECRET
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_URL_KEY
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_TOKEN_SECRET
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_URL_KEY
 
 # 3. After the longest invitation lifetime has passed — eight days, to be
 #    safe — delete the two PREVIOUS secrets.
@@ -154,9 +154,9 @@ pnpm exec wrangler d1 create remeet-invites
 pnpm exec wrangler d1 execute remeet-invites --remote --file migrations/0001_create_invites.sql
 pnpm exec wrangler d1 execute remeet-invites --remote --file migrations/0002_add_invite_code.sql
 
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_TOKEN_SECRET
-openssl rand -base64 32 | pnpm exec wrangler secret put REMEET_INVITE_URL_KEY
-openssl rand -hex 24    | pnpm exec wrangler secret put REMEET_INVITE_CLIENT_KEY
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_TOKEN_SECRET
+openssl rand -base64 32 | pnpm -w cf secret put REMEET_INVITE_URL_KEY
+openssl rand -hex 24    | pnpm -w cf secret put REMEET_INVITE_CLIENT_KEY
 ```
 
 Migrations are applied in order; `0003` adds the audit counters.
@@ -207,8 +207,8 @@ in the Remeet repository. What matters here:
 ### Secrets
 
 ```bash
-wrangler secret put REMEET_MODERATION_ADMIN_TOKEN   # bearer token for the operator routes
-wrangler secret put REMEET_MODERATION_KEY_ID        # e.g. remeet-moderation-2026-08
+pnpm -w cf secret put REMEET_MODERATION_ADMIN_TOKEN   # bearer token for the operator routes
+pnpm -w cf secret put REMEET_MODERATION_KEY_ID        # e.g. remeet-moderation-2026-08
 ```
 
 Unset means the operator routes answer 403. That default is the opposite of
@@ -261,12 +261,12 @@ Order matters — the invite change in the same release adds columns that the
 running Worker's SQL needs:
 
 ```bash
-wrangler d1 migrations apply remeet-invites --remote   # 0006, 0007, 0008
-wrangler deploy
+pnpm -w cf d1 migrations apply remeet-invites --remote   # 0006, 0007, 0008
+pnpm -w cf deploy
 pnpm moderation keygen --key-id remeet-moderation-2026-08
 # paste the printed public key into Remeet's project.yml (Release config)
-wrangler secret put REMEET_MODERATION_ADMIN_TOKEN
-wrangler secret put REMEET_MODERATION_KEY_ID
+pnpm -w cf secret put REMEET_MODERATION_ADMIN_TOKEN
+pnpm -w cf secret put REMEET_MODERATION_KEY_ID
 pnpm moderation publish     # publishes an empty, signed manifest at revision 1
 
 # Optional, and useful: rehearse the whole thing on the dev channel first. It

@@ -92,20 +92,24 @@ until then the form behaves exactly as it did before:
 2. Set the site key as the repository variable `PUBLIC_TURNSTILE_SITE_KEY`.
    It is public, baked in at build time; with none set no widget renders and
    the third-party script is not loaded at all.
-3. Set the secret with `pnpm --filter @tomokichi/api exec wrangler secret put
-   TURNSTILE_SECRET_KEY`. With no secret, the API verifies nothing.
+3. Set the secret with `pnpm -w cf secret put TURNSTILE_SECRET_KEY`. With no
+   secret, the API verifies nothing.
 
 The widget uses `interaction-only`, so it stays invisible unless it actually
 has something to ask. Turn both on together: a site key without a secret means
 a widget that verifies nothing, and a secret without a site key rejects every
 real sender.
 
-The widget can be created from the CLI — `wrangler login` first, since the
-Turnstile scope is not in an older token:
+The widget can be created from the CLI. `wrangler` is a dependency of each app
+rather than the workspace root, so `pnpm -w cf` is the way to reach it — it runs
+wrangler against the API Worker, which is where every secret here lives:
 
 ```bash
-pnpm --filter @tomokichi/api exec wrangler turnstile widget create "tmkch.io support" --domain tmkch.io --mode managed
+pnpm -w cf turnstile widget create "tmkch.io support" --domain tmkch.io --mode managed
 ```
+
+Run `wrangler login` first: an older token predates the Turnstile scope, and
+`pnpm -w cf whoami` names any scope that is missing.
 
 The apps carry a shared key instead, sent as `X-Support-Client`, because they
 have no browser to challenge. Without it Turnstile would be decorative —
@@ -113,7 +117,25 @@ anything could claim `source: "remeet-ios"` and skip the token. Set it in the
 apps first, then here:
 
 ```bash
-openssl rand -hex 24 | pnpm --filter @tomokichi/api exec wrangler secret put SUPPORT_CLIENT_KEY
+openssl rand -hex 24 | pnpm -w cf secret put SUPPORT_CLIENT_KEY
+```
+
+## Cloudflare CLI
+
+`wrangler` is installed per app, not at the workspace root, so a bare
+`wrangler` — or `pnpm exec wrangler` from the root — finds nothing. Use:
+
+```bash
+pnpm -w cf whoami
+```
+
+`-w` reaches the root script, so this works from any app directory as well as
+from the root. It runs against `apps/api`, which is the right target for every
+secret in this setup and harmless for account-level commands like `turnstile`
+and `whoami`. To drive a different Worker, filter it directly:
+
+```bash
+pnpm --filter @tomokichi/main exec wrangler versions list
 ```
 
 ## Checks
