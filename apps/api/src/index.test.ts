@@ -108,6 +108,11 @@ describe("POST /api/v1/support", () => {
     expect(deliver.mock.calls[0]?.[0].text).toContain("（未入力・返信不要）");
   });
 
+  it("accepts the Colorvia iOS source", async () => {
+    const response = await post({ ...validRequest, source: "colorvia-ios", app: "colorvia" });
+    expect(response.status).toBe(200);
+  });
+
   it("accepts empty name and email together", async () => {
     const response = await post({ ...validRequest, name: "", email: "" });
     expect(response.status).toBe(200);
