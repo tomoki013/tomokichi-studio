@@ -1,4 +1,4 @@
-# tomokichi app studio
+# tomokichi studio
 
 Tomokichiの小さなアプリをまとめたpnpm + Turborepo monorepoです。
 
