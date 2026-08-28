@@ -10,6 +10,10 @@ service, and vice versa.
 | `/remeet/v1/invites*` | Remeet invitations |
 | `/api/v1/health` | liveness |
 
+Everything current posts to `/api/v1/support`. The unversioned path stays
+served for Remeet builds up to 40, which used it; retiring it means waiting
+until those are out of people's hands, not just until a release ships.
+
 ```bash
 pnpm dev        # wrangler dev on :8787
 pnpm check      # wrangler types + tsc
