@@ -10,9 +10,12 @@ service, and vice versa.
 | `/remeet/v1/invites*` | Remeet invitations |
 | `/api/v1/health` | liveness |
 
-Everything current posts to `/api/v1/support`. The unversioned path stays
-served for Remeet builds up to 40, which used it; retiring it means waiting
-until those are out of people's hands, not just until a release ships.
+Both paths are load-bearing. Remeet and Colorvia both posted to the
+unversioned `/api/support` until the builds released in August 2026; only the
+web form ever used `/api/v1/support`. Both apps are moving to the versioned
+path, but every copy already installed — including Colorvia, which is live on
+the App Store — still calls the unversioned one. Retiring it means waiting
+until those builds are out of people's hands, not until a release ships.
 
 ```bash
 pnpm dev        # wrangler dev on :8787
