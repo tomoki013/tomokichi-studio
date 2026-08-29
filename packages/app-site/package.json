@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test": "node --test src/*.test.js"
+  },
   "exports": {
     "./AppSiteShell.astro": "./src/AppSiteShell.astro",
     "./LocaleSwitcher.astro": "./src/LocaleSwitcher.astro",
@@ -15,7 +18,10 @@
     "./NewsFeed.astro": "./src/NewsFeed.astro",
     "./NewsArticlePage.astro": "./src/NewsArticlePage.astro",
     "./AppUpdatesPage.astro": "./src/AppUpdatesPage.astro",
-    "./asset-cache-worker": "./src/asset-cache-worker.js",
+    "./asset-cache-worker": {
+      "types": "./src/asset-cache-worker.d.ts",
+      "default": "./src/asset-cache-worker.js"
+    },
     "./apps": "./src/apps.ts",
     "./seo": "./src/seo.ts",
     "./seo-assets": "./src/seo-assets.ts",

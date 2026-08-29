@@ -150,6 +150,26 @@ engine or an assistant nothing.
 - Run `pnpm check:seo` after building; it validates the metadata, sitemap and
   robots.txt of every built site.
 
+## Universal links
+
+Brand sites hosted by the shared `asset-cache-worker` can opt into Universal
+Links without adding an app-specific Worker. Add these values to the site's
+`wrangler.jsonc`:
+
+```jsonc
+"vars": {
+  "APPLE_APP_ID": "<Apple Team ID>.<bundle identifier>",
+  "APP_STORE_URL": "https://apps.apple.com/app/id<store id>",
+  "UNIVERSAL_LINK_PATHS": "[\"/open\"]"
+}
+```
+
+The Worker then serves `/.well-known/apple-app-site-association` directly as
+`application/json` and redirects `/open` to the App Store when the app is not
+installed. Keep `UNIVERSAL_LINK_PATHS` narrow: privacy, support, news, and
+ordinary product pages belong on the website. The matching iOS target must add
+`applinks:<brand-host>.tmkch.io` to its Associated Domains entitlement.
+
 ## Creating a new app site
 
 Run the scaffold command from the workspace root:

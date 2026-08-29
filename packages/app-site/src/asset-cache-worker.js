@@ -18,6 +18,96 @@ const SHORT_CACHE = "public, max-age=3600, must-revalidate";
 const LONG_EXT =
   /\.(?:css|js|mjs|map|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|mp4|webm|txt)$/i;
 
+const AASA_PATHS = new Set([
+  "/apple-app-site-association",
+  "/.well-known/apple-app-site-association",
+]);
+
+/**
+ * Builds the Apple App Site Association payload shared by every app site.
+ * Callers provide only their app identifiers and the narrow URL components
+ * their app actually understands; ordinary brand-site pages stay on the web.
+ */
+export function appleAppSiteAssociation(appIDs, components) {
+  return JSON.stringify({
+    applinks: {
+      details: [{ appIDs, components }],
+    },
+  });
+}
+
+function universalLinkConfiguration(env) {
+  const appIDs = (() => {
+    if (env.APPLE_APP_IDS) {
+      try {
+        const parsed = JSON.parse(env.APPLE_APP_IDS);
+        if (Array.isArray(parsed) && parsed.every((value) => typeof value === "string")) {
+          return parsed.filter(Boolean);
+        }
+      } catch {
+        return [];
+      }
+    }
+    return env.APPLE_APP_ID ? [env.APPLE_APP_ID] : [];
+  })();
+
+  let paths = ["/open"];
+  if (env.UNIVERSAL_LINK_PATHS) {
+    try {
+      const parsed = JSON.parse(env.UNIVERSAL_LINK_PATHS);
+      if (!Array.isArray(parsed) || !parsed.every((value) => typeof value === "string")) {
+        return null;
+      }
+      paths = parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  if (appIDs.length === 0 || paths.length === 0) return null;
+  const components = paths.map((path) => ({
+    "/": path,
+    comment: "Open this app link in the installed app",
+  }));
+  return { appIDs, components, paths };
+}
+
+function universalLinkResponse(request, env) {
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+
+  const url = new URL(request.url);
+  const configuration = universalLinkConfiguration(env);
+  if (!configuration) return null;
+
+  if (AASA_PATHS.has(url.pathname)) {
+    const body =
+      request.method === "HEAD"
+        ? null
+        : appleAppSiteAssociation(configuration.appIDs, configuration.components);
+    return new Response(body, {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "public, max-age=3600, must-revalidate",
+      },
+    });
+  }
+
+  const normalizedPath = url.pathname.replace(/\/$/, "") || "/";
+  const fallbackPath = env.UNIVERSAL_LINK_FALLBACK_PATH || "/open";
+  if (normalizedPath === fallbackPath && env.APP_STORE_URL) {
+    try {
+      const fallbackURL = new URL(env.APP_STORE_URL);
+      if (fallbackURL.protocol === "https:") {
+        return Response.redirect(fallbackURL, 302);
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
 /**
  * The site's own error page, served with a 5xx status so nothing mistakes a
  * failure for a page. If even this cannot be fetched, fall back to plain text
@@ -45,6 +135,9 @@ export async function errorPage(request, env, status) {
 
 export default {
   async fetch(request, env) {
+    const appLinkResponse = universalLinkResponse(request, env);
+    if (appLinkResponse) return appLinkResponse;
+
     let response;
     try {
       response = await env.ASSETS.fetch(request);

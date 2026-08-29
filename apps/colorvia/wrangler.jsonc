@@ -11,5 +11,10 @@
     "html_handling": "auto-trailing-slash",
     "run_worker_first": true
   },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  "vars": {
+    "APPLE_APP_ID": "7GU925RQ99.io.tmkch.colorvia",
+    "APP_STORE_URL": "https://apps.apple.com/app/id6798378768",
+    "UNIVERSAL_LINK_PATHS": "[\"/open\"]"
+  }
 }

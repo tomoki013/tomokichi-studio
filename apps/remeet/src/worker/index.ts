@@ -1,6 +1,7 @@
-import assetCacheWorker, { errorPage } from "@tomokichi/app-site/asset-cache-worker";
-
-import { appleAppSiteAssociation } from "./apple-app-site-association";
+import assetCacheWorker, {
+  appleAppSiteAssociation,
+  errorPage,
+} from "@tomokichi/app-site/asset-cache-worker";
 import type { WorkerEnv } from "./env";
 import { landingCopy, landingPage } from "./invite/landing";
 import { ogCopy } from "./invite/og";
@@ -49,7 +50,10 @@ async function handle(request: Request, env: WorkerEnv): Promise<Response> {
 
     if (url.pathname === "/.well-known/apple-app-site-association") {
       return new Response(
-        appleAppSiteAssociation(env.APPLE_APP_ID ?? "7GU925RQ99.io.tmkch.remeet"),
+        appleAppSiteAssociation(
+          [env.APPLE_APP_ID ?? "7GU925RQ99.io.tmkch.remeet"],
+          [{ "/": "/i/*", comment: "Remeet invitation links" }],
+        ),
         {
           headers: {
             "Content-Type": "application/json",
