@@ -1,0 +1,98 @@
+---
+import { TELECOM, telecommunicationsRows } from "./telecommunications";
+import { supportUrl } from "./urls";
+
+const {
+  lang,
+  appName,
+  appSlug,
+  summary,
+} = Astro.props as {
+  lang: "ja" | "en";
+  appName: string;
+  appSlug: string;
+  /** What the app actually transmits, Japanese then English. */
+  summary?: [string, string];
+};
+const ja = lang === "ja";
+const rows = telecommunicationsRows(lang, appName);
+const contactHref = supportUrl(appSlug, lang);
+---
+
+<section class="telecom-page">
+  <header class="telecom-intro" data-reveal>
+    <p class="telecom-eyebrow">LEGAL</p>
+    <h1>{ja ? "電気通信事業者情報" : "Telecommunications Business Information"}</h1>
+    <p>
+      {ja
+        ? `${appName}は、電気通信事業法第16条に基づく届出を行っています。`
+        : `A notification for ${appName} has been filed under Article 16 of Japan's Telecommunications Business Act.`}
+    </p>
+  </header>
+
+  <dl class="telecom-list" data-reveal>
+    {rows.map((row) => (
+      <div>
+        <dt>{row.term}</dt>
+        <dd>
+          {row.kind === "contact" ? (
+            <span class="telecom-actions">
+              <a class="telecom-action" href={`mailto:${TELECOM.email}`}>{row.body}</a>
+              <a class="telecom-action is-primary" href={contactHref}>
+                {ja ? "お問い合わせフォームを開く" : "Open the support form"}
+                <span aria-hidden="true">→</span>
+              </a>
+            </span>
+          ) : (
+            row.body
+          )}
+        </dd>
+      </div>
+    ))}
+  </dl>
+
+  {summary && <p class="telecom-summary">{summary[ja ? 0 : 1]}</p>}
+</section>
+
+<style>
+  .telecom-page { width: min(760px, calc(100% - 40px)); margin: 0 auto; padding: clamp(84px, 10vw, 128px) 0 clamp(80px, 10vw, 120px); }
+  .telecom-intro { margin-bottom: clamp(36px, 6vw, 58px); }
+  .telecom-eyebrow { margin: 0 0 14px; font-size: 10px; font-weight: 700; letter-spacing: .22em; opacity: .52; }
+  .telecom-intro h1 { margin: 0; font-size: clamp(30px, 5vw, 48px); font-weight: 500; line-height: 1.32; letter-spacing: -.035em; }
+  .telecom-intro > p:last-child { margin: 20px 0 0; line-height: 1.9; opacity: .68; }
+  .telecom-list { margin: 0; border-top: 1px solid currentColor; }
+  .telecom-list > div { display: grid; grid-template-columns: minmax(150px, 28%) 1fr; gap: 24px; padding: 23px 4px; border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+  .telecom-list dt { font-size: 13px; font-weight: 650; line-height: 1.8; }
+  .telecom-list dd { margin: 0; font-size: 13px; line-height: 1.9; opacity: .78; }
+  .telecom-list a { color: inherit; text-underline-offset: 4px; }
+  /* Not a `[data-reveal]` element: it sits at the very bottom, where a jump
+     to the end of the page can leave it never observed and so never faded in.
+     The last line of the commercial-transactions page stays out of the reveal
+     set for the same reason. */
+  .telecom-summary { margin: 26px 0 0; font-size: 13px; line-height: 1.9; opacity: .68; }
+
+  .telecom-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .telecom-action {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 15px; border-radius: 999px;
+    border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+    font-size: 12.5px; line-height: 1.5; text-decoration: none; white-space: nowrap;
+    transition: background-color .22s ease, border-color .22s ease, transform .22s ease;
+  }
+  .telecom-action:hover,
+  .telecom-action:focus-visible {
+    background: color-mix(in srgb, currentColor 9%, transparent);
+    border-color: color-mix(in srgb, currentColor 46%, transparent);
+    transform: translateY(-1px);
+  }
+  .telecom-action.is-primary { border-color: color-mix(in srgb, currentColor 52%, transparent); font-weight: 600; }
+  .telecom-action span { transition: transform .22s ease; }
+  .telecom-action:hover span { transform: translateX(3px); }
+
+  @media (max-width: 600px) {
+    .telecom-page { width: min(100% - 32px, 760px); padding-top: 72px; }
+    .telecom-list > div { grid-template-columns: 1fr; gap: 7px; padding: 19px 2px; }
+    .telecom-list dt, .telecom-list dd { font-size: 12.5px; }
+    .telecom-action { white-space: normal; }
+  }
+</style>

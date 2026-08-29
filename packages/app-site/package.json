@@ -13,6 +13,7 @@
     "./AppStory.astro": "./src/AppStory.astro",
     "./AppSimpleSteps.astro": "./src/AppSimpleSteps.astro",
     "./CommercialTransactionsPage.astro": "./src/CommercialTransactionsPage.astro",
+    "./TelecommunicationsPage.astro": "./src/TelecommunicationsPage.astro",
     "./PhoneFrame.astro": "./src/PhoneFrame.astro",
     "./AppErrorPage.astro": "./src/AppErrorPage.astro",
     "./NewsFeed.astro": "./src/NewsFeed.astro",
@@ -27,6 +28,7 @@
     "./seo-assets": "./src/seo-assets.ts",
     "./i18n": "./src/i18n.ts",
     "./operator": "./src/operator.ts",
+    "./telecommunications": "./src/telecommunications.ts",
     "./urls": "./src/urls.ts"
   },
   "peerDependencies": {

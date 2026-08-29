@@ -1,0 +1,19 @@
+---
+import TelecommunicationsPage from "@tomokichi/app-site/TelecommunicationsPage.astro";
+import AppShell from "../../../components/AppShell.astro";
+import "../../../styles/global.css";
+
+const summary: [string, string] = [
+  "Remeetは、Apple iCloud / CloudKitを利用し、特定の利用者間で予定、写真、記録、メッセージ、リアクション等を共有・同期するサービスです。",
+  "Remeet uses Apple iCloud and CloudKit to share and synchronise plans, photos, records, messages and reactions between specific users.",
+];
+---
+
+<AppShell
+  lang="ja"
+  title="電気通信事業者情報"
+  page="legal/telecommunications"
+  description="Remeetの電気通信事業法第16条に基づく届出に関する情報と、運営者への連絡先を掲載しています。"
+>
+  <TelecommunicationsPage lang="ja" appName="Remeet" appSlug="remeet" summary={summary} />
+</AppShell>
