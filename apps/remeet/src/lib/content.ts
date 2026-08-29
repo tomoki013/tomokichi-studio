@@ -55,8 +55,8 @@ export const subtitleMap: Partial<Record<Page, [string, string]>> = {
     "The features you need, kept simple —\nquietly supporting the time you wait.",
   ],
   "how-to": [
-    "初回設定からデータ管理まで、\n画面の流れに沿ってご案内します。",
-    "From first setup to data management,\nfollow the flow of the real app screens.",
+    "初回設定から日々の使い方まで、\n画面の流れに沿ってご案内します。",
+    "From first setup to everyday use,\nfollow the flow of the real app screens.",
   ],
   screenshots: ["美しく、シンプルで、使いやすいデザイン。", "Beautiful, simple, and easy to use."],
   pricing: [
@@ -83,8 +83,8 @@ export const pageDescriptions: Partial<Record<Page, [string, string]>> = {
     "Explore Remeet’s countdown, route illustration, waiting memories, widgets, and other core features.",
   ],
   "how-to": [
-    "再会予定の作成からウィジェット、データ概要の書き出しまで、Remeetの使い方を画面付きで解説します。",
-    "Learn how to create reunions, keep records, add widgets, and export a non-restorable data summary.",
+    "再会予定の作成から記録、ウィジェットまで、Remeetの使い方を画面付きで解説します。",
+    "Learn how to create reunions, keep records, and add widgets.",
   ],
   screenshots: [
     "Remeetのホーム、記録、ウィジェットなどの画面イメージです。",
@@ -406,26 +406,15 @@ export function guides(ja: boolean): Guide[] {
           ],
         },
         {
-          icon: "export",
-          title: "データ概要の書き出し",
-          screen: "settings",
-          steps: [
-            "「設定」→「データ管理」を開きます。",
-            "「データ概要を書き出す」を選びます。",
-            "登録名と予定・再会済み件数などの概要をJSONで保存できます。",
-          ],
-          note: "書き出されるファイルはデータ概要です。写真やメモの完全な内容は含まれず、アプリへ復元することはできません。",
-        },
-        {
           icon: "trash",
           title: "すべてのデータの削除",
           screen: "settings",
           steps: [
-            "「設定」→「データ管理」を開きます。",
-            "「すべてのデータを削除」を選びます。",
-            "確認のあと、予定・記録・アルバムを含む端末内のRemeetデータが削除されます。",
+            "「設定」を開き、いちばん下の「すべてのデータを削除」を選びます。",
+            "何が消えて何が残るかを読み、赤いボタンを押します。",
+            "共有中の再会は先に共有が終了され、そのあと端末内のRemeetデータが削除されます。",
           ],
-          note: "削除後は元に戻せません。大切な写真が写真アプリにも残っていることを確認してください。",
+          note: "削除後は元に戻せません。共有していた相手からも見えなくなります。購入したShare Passとブロックの設定は残ります。大切な写真が写真アプリにも残っていることを確認してください。",
         },
       ]
     : [
@@ -554,26 +543,15 @@ export function guides(ja: boolean): Guide[] {
           ],
         },
         {
-          icon: "export",
-          title: "Export a data summary",
-          screen: "settings",
-          steps: [
-            "Open Settings → Data management.",
-            "Choose Export data summary.",
-            "Save a JSON summary of names and counts.",
-          ],
-          note: "The file is a data summary only. Photos and full notes are not included, and it cannot be restored into the app.",
-        },
-        {
           icon: "trash",
           title: "Delete all data",
           screen: "settings",
           steps: [
-            "Open Settings → Data management.",
-            "Choose Delete all data.",
-            "After confirmation, plans, records and albums on this device are removed.",
+            "Open Settings and choose Delete all data at the bottom.",
+            "Read what goes and what stays, then press the red button.",
+            "Shared reunions are unshared first, then Remeet data on this device is removed.",
           ],
-          note: "This cannot be undone. Make sure important photos also live in the Photos app.",
+          note: "This cannot be undone. A partner you shared with loses access too. Purchased Share Passes and your block list are kept. Make sure important photos also live in the Photos app.",
         },
       ];
 }
@@ -649,17 +627,7 @@ export function faqs(ja: boolean) {
         [
           "data",
           "機種変更時にデータを引き継げますか？",
-          "同じApple AccountでiCloudを利用している場合、個人利用の記録が新しい端末へ同期されることがあります。共有中の再会は、双方がiCloudを利用できることが前提です。\n\n設定から書き出せるJSONファイルは、登録名や記録件数を確認するための概要データです。写真、メモ、各記録の完全な内容は含まれず、アプリへ復元することはできません。招待リンクは新しい端末へは引き継がれません。",
-        ],
-        [
-          "data",
-          "JSONファイルはバックアップですか？",
-          "いいえ。書き出されるJSONファイルは、保存されているデータの概要を確認するためのファイルです。復元用バックアップではありません。",
-        ],
-        [
-          "data",
-          "JSONからアプリへ復元できますか？",
-          "できません。データ概要の書き出しのみで、読み込み・復元機能はありません。",
+          "同じApple AccountでiCloudを利用している場合、個人利用の記録が新しい端末へ同期されることがあります。共有中の再会は、双方がiCloudを利用できることが前提です。\n\n招待リンクは新しい端末へは引き継がれません。",
         ],
         [
           "data",
@@ -674,7 +642,7 @@ export function faqs(ja: boolean) {
         [
           "data",
           "すべてのデータを削除できますか？",
-          "はい。「設定 → データ管理 → すべてのデータを削除」から削除できます。削除後は元に戻せません。",
+          "はい。「設定」のいちばん下にある「すべてのデータを削除」から削除できます。共有中の再会は先に共有が終了され、相手からも見えなくなります。削除後は元に戻せません。購入したShare Passとブロックの設定は残ります。",
         ],
         [
           "other",
@@ -762,17 +730,7 @@ export function faqs(ja: boolean) {
         [
           "data",
           "Can I move data when I change phones?",
-          "If you use iCloud with the same Apple Account, personal records may appear on a new device. A shared reunion still needs iCloud on both phones.\n\nThe JSON file from Settings is only a summary of names and counts. Photos, notes and full records are not included, and it cannot be restored into the app. Invite links do not transfer to a new phone.",
-        ],
-        [
-          "data",
-          "Is the JSON file a backup?",
-          "No. The exported JSON file is a summary for checking stored data. It is not a restorable backup.",
-        ],
-        [
-          "data",
-          "Can I restore from JSON into the app?",
-          "No. There is only a data-summary export — no import or restore.",
+          "If you use iCloud with the same Apple Account, personal records may appear on a new device. A shared reunion still needs iCloud on both phones.\n\nInvite links do not transfer to a new phone.",
         ],
         [
           "data",
@@ -787,7 +745,7 @@ export function faqs(ja: boolean) {
         [
           "data",
           "Can I delete all data?",
-          "Yes, from Settings → Data management → Delete all data. This cannot be undone.",
+          "Yes — Delete all data at the bottom of Settings. Shared reunions are unshared first, so a partner loses access too. This cannot be undone. Purchased Share Passes and your block list are kept.",
         ],
         [
           "other",
@@ -853,30 +811,26 @@ export function privacySections(ja: boolean): [string, string][] {
         ],
         [
           "10. 保存期間と削除",
-          "端末内およびiCloudの情報は、利用者が削除するまで保存されます。個々の記録は各画面から、すべてのデータは「設定 → データ管理 → すべてのデータを削除」から削除できます。共有中の再会を削除すると共有参加者からも閲覧できなくなります。アンインストールすると端末内情報は削除されますが、iCloud上の共有状態やShare Pass台帳は再インストール後の同期に必要な範囲で残る場合があります。",
+          "端末内およびiCloudの情報は、利用者が削除するまで保存されます。個々の記録は各画面から、すべてのデータは「設定 → すべてのデータを削除」から削除できます。共有中の再会を削除すると共有参加者からも閲覧できなくなります。アンインストールすると端末内情報は削除されますが、iCloud上の共有状態やShare Pass台帳は再インストール後の同期に必要な範囲で残る場合があります。",
         ],
         [
-          "11. データ概要の書き出し",
-          "設定画面から、登録名および予定・再会済み記録の件数等をJSON形式のデータ概要として書き出せます。写真、メモおよび各記録の完全な内容は含まれず、書き出したファイルをアプリへ復元する機能はありません。書き出したファイルの管理は利用者の責任において行ってください。",
-        ],
-        [
-          "12. 安全管理措置",
+          "11. 安全管理措置",
           "本アプリは独自アカウントを必要とせず、パスワードを取り扱いません。端末内情報はiOSの標準的なセキュリティ機構で、共有データはAppleのiCloud / CloudKitの仕組みで保護されます。",
         ],
         [
-          "13. 通報時に取得する情報",
+          "12. 通報時に取得する情報",
           "本アプリの共有機能で作成された内容（本文・写真）は、通常、運営者へ送信されません。端末とiCloudのあいだでのみやり取りされます。\n\n利用者が共有相手のコンテンツについて「通報する」を実行した場合に限り、確認のため次の情報を運営者が受領します。\n\n・通報対象コンテンツの本文\n・通報対象コンテンツに添付された画像\n・通報の理由および利用者が任意で入力した説明\n・通報ID、コンテンツID、再会ID、投稿者および通報者の端末識別子\n・アプリのバージョン、ビルド番号、OSバージョン、言語設定\n\n利用目的は、不適切な利用への対応、安全の確保およびお問い合わせ対応です。\n\n通報に添付された画像は、確認のため非公開のストレージ（Cloudflare R2）に保存し、原則として30日以内に自動的に削除します。\n\n通報の記録およびその他の関連情報は、不正利用への対応、安全の確保、紛争への対応その他必要な目的のため、必要な期間保存する場合があります。",
         ],
         [
-          "14. 未成年者の利用",
+          "13. 未成年者の利用",
           "未成年の方が本アプリを利用する場合は、保護者の同意を得たうえでご利用ください。",
         ],
         [
-          "15. ポリシーの変更",
+          "14. ポリシーの変更",
           "法令の改正または本アプリの機能変更に伴い、本ポリシーを変更する場合があります。重要な変更を行う場合は、本アプリ内または本ウェブサイトにて周知します。変更後の内容は、掲載された時点から適用されます。",
         ],
         [
-          "16. お問い合わせ",
+          "15. お問い合わせ",
           "本ポリシーおよび個人情報の取扱いに関するお問い合わせは、Tomokichi共通お問い合わせフォームまたは support@tmkch.io からお送りください。フォームを送信しない限り、問い合わせ情報は送信されません。",
         ],
       ]
@@ -916,30 +870,26 @@ export function privacySections(ja: boolean): [string, string][] {
         ],
         [
           "10. Retention and deletion",
-          "On-device and iCloud information is kept until you delete it. Delete individual records on their screens, or all data from Settings → Data management → Delete all data. Deleting a shared reunion also removes access for its participant. Uninstalling removes on-device data, but sharing state and the Share Pass ledger in iCloud may remain as needed for synchronization after reinstalling.",
+          "On-device and iCloud information is kept until you delete it. Delete individual records on their screens, or all data from Settings → Delete all data. Deleting a shared reunion also removes access for its participant. Uninstalling removes on-device data, but sharing state and the Share Pass ledger in iCloud may remain as needed for synchronization after reinstalling.",
         ],
         [
-          "11. Data summary export",
-          "From Settings you can export a JSON data summary of registered names and plan / completed-reunion counts. Photos, notes and full record contents are not included, and there is no way to restore the file into the app. You are responsible for any file you export.",
-        ],
-        [
-          "12. Security",
+          "11. Security",
           "The app has no proprietary account and does not handle passwords. On-device data is protected by iOS security mechanisms; shared data is protected through Apple iCloud / CloudKit.",
         ],
         [
-          "13. Information obtained from reports",
+          "12. Information obtained from reports",
           "Content created through sharing (text and photos) is not sent to the operator during ordinary use. It stays between the device and iCloud.\n\nOnly when you tap Report on a partner’s content does the operator receive, for review:\n\n・The reported text\n・Any image attached to that content\n・The reason and an optional explanation you type\n・Report id, content id, reunion id, and device identifiers for the author and the reporter\n・App version, build number, OS version, and language\n\nThe purpose is responding to misuse, keeping people safe, and handling support.\n\nReported images are stored in private storage (Cloudflare R2) for review and are deleted automatically within 30 days in principle.\n\nReport records and related information may be kept as needed for misuse response, safety, disputes, and similar purposes.",
         ],
         [
-          "14. Minors",
+          "13. Minors",
           "If a minor uses the app, please do so with a parent or guardian’s consent.",
         ],
         [
-          "15. Changes",
+          "14. Changes",
           "This policy may change with law or product updates. Material changes will be announced in the app or on this website and take effect when published.",
         ],
         [
-          "16. Contact",
+          "15. Contact",
           "Questions about this policy: shared Tomokichi support form or support@tmkch.io. Support information is not sent unless you submit the form.",
         ],
       ];
@@ -978,7 +928,7 @@ export function termsSections(ja: boolean): [string, string][] {
         ],
         [
           "第7条（データの管理）",
-          "データは端末内に保存されます。同じApple AccountのiCloudにサインインしている場合、個人利用の記録も非公開のiCloudへ同期されることがあります。共有を有効にした再会のデータ、初回無料共有の利用状態およびShare Pass台帳はiCloudにも保存されます。共有参加者は共有された再会の内容を閲覧・編集できます。「設定 → データ管理」のJSON書き出しはデータ概要であり、写真やメモのバックアップまたは復元には使用できません。端末、iCloudまたは通信の障害等によるデータ消失について、運営者は責任を負いません。",
+          "データは端末内に保存されます。同じApple AccountのiCloudにサインインしている場合、個人利用の記録も非公開のiCloudへ同期されることがあります。共有を有効にした再会のデータ、初回無料共有の利用状態およびShare Pass台帳はiCloudにも保存されます。共有参加者は共有された再会の内容を閲覧・編集できます。端末、iCloudまたは通信の障害等によるデータ消失について、運営者は責任を負いません。",
         ],
         [
           "第8条（保証の否認・免責事項）",
@@ -1032,7 +982,7 @@ export function termsSections(ja: boolean): [string, string][] {
         ],
         [
           "Article 7 — Data management",
-          "Data is stored on your device. If you are signed into iCloud with the same Apple Account, personal records may also sync to your private iCloud database. Shared reunion data, first-free-sharing state, and the Share Pass ledger also use iCloud. A participant can view and edit a shared reunion. The JSON export under Settings → Data management is a summary only and cannot back up or restore photos or notes. The operator is not responsible for loss caused by device, iCloud, or network failure.",
+          "Data is stored on your device. If you are signed into iCloud with the same Apple Account, personal records may also sync to your private iCloud database. Shared reunion data, first-free-sharing state, and the Share Pass ledger also use iCloud. A participant can view and edit a shared reunion. The operator is not responsible for loss caused by device, iCloud, or network failure.",
         ],
         [
           "Article 8 — Disclaimer",
