@@ -237,6 +237,29 @@ export function registerSupportRoute(
       }
     }
 
+    // A copy for Studio Admin, so the message can be answered from
+    // admin.tmkch.io.
+    //
+    // Before the mail, and deliberately not conditional on it. This used to run
+    // only after a successful send, which meant the one time it mattered most —
+    // Resend over its quota, or refusing for any other reason — the sender got
+    // a 502 and the message existed nowhere at all. Admin has a database; there
+    // is no reason for somebody's question to depend on a mail provider being
+    // up. It still runs outside the response path, so it cannot slow down or
+    // fail the request either way.
+    background(
+      c,
+      mirrorSupportMessage(c.env, {
+        requestId: request.requestId,
+        appSlug: request.app,
+        requesterEmail: request.email,
+        requesterName: request.name,
+        category: request.category,
+        message: request.message,
+        source: request.source,
+      }),
+    );
+
     try {
       const email = createSupportEmail(request, {
         from: c.env.SUPPORT_FROM_EMAIL,
@@ -248,22 +271,6 @@ export function registerSupportRoute(
           ? { id: "mock-email-id" }
           : await sendSupportEmail(email, c.env.RESEND_API_KEY);
       logResult(request, 200, startedAt, result.id);
-
-      // A copy for Studio Admin, so the message can be answered from
-      // admin.tmkch.io. After delivery and outside the response path: the mail
-      // is what the sender was promised.
-      background(
-        c,
-        mirrorSupportMessage(c.env, {
-          requestId: request.requestId,
-          appSlug: request.app,
-          requesterEmail: request.email,
-          requesterName: request.name,
-          category: request.category,
-          message: request.message,
-          source: request.source,
-        }),
-      );
 
       return c.json({ ok: true, requestId: request.requestId }, 200, corsHeaders(c));
     } catch {
