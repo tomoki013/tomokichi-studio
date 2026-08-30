@@ -21,6 +21,7 @@ jobs:
       quiet-solitaire: ${{ steps.filter.outputs.quiet-solitaire }}
       review: ${{ steps.filter.outputs.review }}
       api: ${{ steps.filter.outputs.api }}
+      admin: ${{ steps.filter.outputs.admin }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,6 +77,17 @@ jobs:
               - 'package.json'
             api:
               - 'apps/api/**'
+              - 'packages/admin-contracts/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+            admin:
+              - 'apps/admin-core/**'
+              - 'apps/admin-web/**'
+              - 'apps/mail-ingress/**'
+              - 'packages/admin-contracts/**'
+              - 'packages/admin-mail/**'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
@@ -233,3 +245,33 @@ jobs:
       - run: pnpm --filter @tomokichi/api check
       - run: pnpm --filter @tomokichi/api test
       - run: pnpm --filter @tomokichi/api build
+
+  admin:
+    name: Admin check
+    needs: changes
+    if: needs.changes.outputs.admin == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.11.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @tomokichi/admin-contracts test
+      - run: pnpm --filter @tomokichi/admin-mail test
+      - run: pnpm --filter @tomokichi/admin-core check
+      - run: pnpm --filter @tomokichi/admin-core test
+      - run: pnpm --filter @tomokichi/admin-core build
+      - run: pnpm --filter @tomokichi/admin-web check
+      - run: pnpm --filter @tomokichi/admin-web test
+      - run: pnpm --filter @tomokichi/admin-web build
+      - run: pnpm --filter @tomokichi/mail-ingress check
+      - run: pnpm --filter @tomokichi/mail-ingress test
+      - run: pnpm --filter @tomokichi/mail-ingress build
+      # The Admin bridge lives in apps/api, so a contracts change has to be
+      # proven against the live support and invite Worker as well.
+      - run: pnpm --filter @tomokichi/api test

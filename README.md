@@ -138,6 +138,26 @@ and `whoami`. To drive a different Worker, filter it directly:
 pnpm --filter @tomokichi/main exec wrangler versions list
 ```
 
+## Admin
+
+`admin.tmkch.io` is the shared operations screen for every Studio app —
+moderation reports, support conversations, and the app registry. It is three
+Workers, and only one of them is on the internet:
+
+- `apps/admin-web` — React + Hono behind Cloudflare Access. Its only binding is
+  a Service Binding to Admin Core.
+- `apps/admin-core` — D1, R2 and every domain rule. No route, no `workers.dev`.
+- `apps/mail-ingress` — receives `support@tmkch.io`, stores the message, and
+  forwards it to the address that was already receiving it.
+
+`apps/api` hands Admin a copy of each Remeet report and support-form message
+through `src/services/admin-bridge.ts`. That path is additive and best-effort:
+with no `ADMIN_CORE` binding, or with Admin Core down, reports and support mail
+behave exactly as they did before.
+
+Setup, the deployment order, and the Email Routing switchover are in
+[`apps/admin-core/README.md`](apps/admin-core/README.md).
+
 ## Checks
 
 ```bash
