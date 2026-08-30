@@ -221,6 +221,28 @@ describe("POST /api/v1/support", () => {
     expect(input.requesterEmail).toBe("user@example.com");
   });
 
+  /**
+   * The reason this exists: the app asks for an address only when somebody
+   * wants an answer, so 不具合 / 要望 / その他 arrive without one. The mirror
+   * used to skip exactly those, and every inquiry sent from inside the app was
+   * mail-only — invisible on the screen the operator actually reads.
+   */
+  it("records a message sent without a reply address", async () => {
+    const createSupportThread = vi.fn().mockResolvedValue({ ok: true, value: {} });
+    const response = await post(
+      { ...validRequest, email: "" },
+      { env: { ADMIN_CORE: { createSupportThread } } },
+    );
+
+    expect(response.status).toBe(200);
+    expect(createSupportThread).toHaveBeenCalledTimes(1);
+    const [input] = createSupportThread.mock.calls[0] as [Record<string, unknown>];
+    // The route's own validation folds an empty address into nothing at all,
+    // so what reaches Admin is an absence rather than a blank string.
+    expect(input.requesterEmail).toBeUndefined();
+    expect(input.bodyText).toContain("十分な長さ");
+  });
+
   it("normalizes reply-to and sets an idempotency key", async () => {
     const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
       id: "email-id",

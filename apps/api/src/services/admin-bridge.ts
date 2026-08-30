@@ -157,23 +157,28 @@ export interface MirroredSupportMessage {
  * Records a support-form submission in Admin so it can be answered from the
  * admin screen rather than only from the operator's inbox.
  *
- * Skipped entirely when the sender did not ask for a reply: with no address
- * there is nobody to write back to, and a thread that can never be answered is
- * a row holding somebody's message for no operational reason.
+ * **Including the ones with no address.** This used to return early when the
+ * sender had not asked for a reply, on the reasoning that a thread nobody can
+ * answer is a row for no operational reason. That was written when every
+ * sender was a web form that always collected an address; the Remeet app then
+ * made "no reply wanted" the default for 不具合 / 要望 / その他, so most of
+ * what people sent from inside the app existed only as mail and never appeared
+ * on the screen the operator actually reads. Reading is an operational reason.
+ * `sendReply` still refuses a thread with nowhere to write back to.
  */
 export async function mirrorSupportMessage(
   env: AdminBridgeBindings,
   message: MirroredSupportMessage,
 ): Promise<void> {
   const core = env.ADMIN_CORE;
-  if (!core || !message.requesterEmail) return;
+  if (!core) return;
 
   await attempt("support", async () => {
     const result = await core.createSupportThread(
       {
         appSlug: message.appSlug === "other" ? undefined : message.appSlug,
         source: "web_form",
-        requesterEmail: message.requesterEmail as string,
+        requesterEmail: message.requesterEmail,
         // Only what the person typed into the name field. Never inferred.
         requesterName: message.requesterName,
         subject: `[${message.category}] ${message.requestId}`,
