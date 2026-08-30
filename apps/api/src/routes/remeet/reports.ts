@@ -1,4 +1,5 @@
 import type { Context, Hono } from "hono";
+import { type AdminBridgeBindings, background, mirrorReport } from "../../services/admin-bridge";
 import {
   type ContentReport,
   IMAGE_RETENTION_DAYS,
@@ -30,7 +31,8 @@ import type { SupportBindings } from "../../support/types";
  * sensibly.
  */
 export type ReportBindings = SupportBindings &
-  RemeetInviteBindings & {
+  RemeetInviteBindings &
+  AdminBridgeBindings & {
     /** Reported photos, private, with a lifecycle rule that deletes them after
      * `IMAGE_RETENTION_DAYS`. Absent in environments that have no bucket yet,
      * in which case a report with a photo is still accepted — the mail says the
@@ -81,12 +83,14 @@ export function registerRemeetReportRoutes(app: ReportApp): void {
     }
 
     let imageKey: string | undefined;
+    let evidence: { bytes: Uint8Array; contentType: string } | undefined;
     const image = form.get("image");
     if (image instanceof File) {
       const bytes = new Uint8Array(await image.arrayBuffer());
       const validation = validateImage(bytes, image.type);
       if (!validation.ok) return json(c, 400, { error: validation.failure });
       imageKey = await storeImage(c, report.reportId, bytes, validation.contentType);
+      evidence = { bytes, contentType: validation.contentType };
     }
 
     try {
@@ -99,6 +103,31 @@ export function registerRemeetReportRoutes(app: ReportApp): void {
     }
 
     await remember(c, report);
+
+    // Studio Admin gets a copy so the report can be worked through a queue
+    // instead of an inbox. Deliberately after the mail and outside the response
+    // path — see `services/admin-bridge.ts` for why a failure here does not
+    // fail the report.
+    background(
+      c,
+      mirrorReport(
+        c.env,
+        {
+          reportId: report.reportId,
+          reportedAt: report.reportedAt,
+          reason: report.reason,
+          contentType: report.contentType,
+          contentId: report.contentId,
+          reunionId: report.reunionId,
+          reporterAuthorId: report.reporterAuthorId,
+          contentAuthorId: report.contentAuthorId,
+          details: report.details,
+          contentTextSnapshot: report.contentTextSnapshot,
+        },
+        evidence,
+      ),
+    );
+
     return json(c, 201, { ok: true, duplicate: false });
   });
 }

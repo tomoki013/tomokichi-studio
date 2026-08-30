@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "@tomokichi/app-site": "workspace:*",
-    "hono": "^4.13.2"
+    "hono": "^4.13.2",
+    "@tomokichi/admin-contracts": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.18.7",

@@ -1,5 +1,10 @@
 import type { Context, Hono } from "hono";
 
+import {
+  type AdminBridgeBindings,
+  background,
+  mirrorSupportMessage,
+} from "../services/admin-bridge";
 import { sendSupportEmail } from "../support/email";
 import { createSupportEmail } from "../support/template";
 import { verifyTurnstileToken } from "../support/turnstile";
@@ -10,8 +15,9 @@ const MAX_BODY_BYTES = 20 * 1024;
 const LOCAL_ORIGIN = "http://localhost:4321";
 const SUPPORT_API_PATHS = ["/api/v1/support", "/api/support"];
 
-type SupportApp = Hono<{ Bindings: SupportBindings }>;
-type SupportContext = Context<{ Bindings: SupportBindings }>;
+type SupportRouteBindings = SupportBindings & AdminBridgeBindings;
+type SupportApp = Hono<{ Bindings: SupportRouteBindings }>;
+type SupportContext = Context<{ Bindings: SupportRouteBindings }>;
 
 export interface SupportDependencies {
   deliver?: (email: SupportEmail, env: SupportBindings) => Promise<EmailDeliveryResult>;
@@ -231,6 +237,29 @@ export function registerSupportRoute(
       }
     }
 
+    // A copy for Studio Admin, so the message can be answered from
+    // admin.tmkch.io.
+    //
+    // Before the mail, and deliberately not conditional on it. This used to run
+    // only after a successful send, which meant the one time it mattered most —
+    // Resend over its quota, or refusing for any other reason — the sender got
+    // a 502 and the message existed nowhere at all. Admin has a database; there
+    // is no reason for somebody's question to depend on a mail provider being
+    // up. It still runs outside the response path, so it cannot slow down or
+    // fail the request either way.
+    background(
+      c,
+      mirrorSupportMessage(c.env, {
+        requestId: request.requestId,
+        appSlug: request.app,
+        requesterEmail: request.email,
+        requesterName: request.name,
+        category: request.category,
+        message: request.message,
+        source: request.source,
+      }),
+    );
+
     try {
       const email = createSupportEmail(request, {
         from: c.env.SUPPORT_FROM_EMAIL,
@@ -242,6 +271,7 @@ export function registerSupportRoute(
           ? { id: "mock-email-id" }
           : await sendSupportEmail(email, c.env.RESEND_API_KEY);
       logResult(request, 200, startedAt, result.id);
+
       return c.json({ ok: true, requestId: request.requestId }, 200, corsHeaders(c));
     } catch {
       logResult(request, 502, startedAt);

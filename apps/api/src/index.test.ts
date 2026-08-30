@@ -52,6 +52,8 @@ function post(
     origin?: string;
     deliver?: (email: SupportEmail) => Promise<{ id: string }>;
     rate?: boolean;
+    /** Extra bindings, for the tests that care what reaches Studio Admin. */
+    env?: Partial<SupportBindings & { ADMIN_CORE: unknown }>;
   } = {},
 ) {
   const app = createApp({
@@ -65,7 +67,7 @@ function post(
   return app.request(
     "https://api.example.com/api/v1/support",
     { method: "POST", headers, body: JSON.stringify(body) },
-    env,
+    { ...env, ...options.env },
   );
 }
 
@@ -194,6 +196,29 @@ describe("POST /api/v1/support", () => {
     });
     expect(response.status).toBe(502);
     expect(JSON.stringify(await response.json())).not.toContain("secret upstream");
+  });
+
+  /**
+   * The copy for Admin does not depend on the mail going out.
+   *
+   * It used to: the mirror ran after a successful send, so a provider over its
+   * quota meant the sender got a 502 and their message existed nowhere. Admin
+   * has a database, and a question is worth more than the notification about
+   * it.
+   */
+  it("records the message in Admin even when delivery fails", async () => {
+    const createSupportThread = vi.fn().mockResolvedValue({ ok: true, value: {} });
+    const response = await post(validRequest, {
+      deliver: async () => {
+        throw new Error("resend is over quota");
+      },
+      env: { ADMIN_CORE: { createSupportThread } },
+    });
+
+    expect(response.status).toBe(502);
+    expect(createSupportThread).toHaveBeenCalledTimes(1);
+    const [input] = createSupportThread.mock.calls[0] as [Record<string, unknown>];
+    expect(input.requesterEmail).toBe("user@example.com");
   });
 
   it("normalizes reply-to and sets an idempotency key", async () => {

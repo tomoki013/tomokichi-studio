@@ -16,7 +16,12 @@
     "REMEET_INVITE_BASE_URL": "https://remeet.tmkch.io",
     "REMEET_INVITE_TTL_DAYS": "7",
     "SUPPORT_TO_EMAIL": "gaomuyouxi81@gmail.com",
-    "SUPPORT_FROM_EMAIL": "Tomokichi Support <onboarding@resend.dev>",
+    // The Studio's own address, now that tmkch.io is a verified sending domain
+    // in Resend. It was `onboarding@resend.dev` — Resend's shared sandbox
+    // sender — for as long as the domain was unverified. `Reply-To` is still
+    // the person who wrote in, so answering a notification still reaches them
+    // and not this address.
+    "SUPPORT_FROM_EMAIL": "Tomokichi Support <support@tmkch.io>",
     "MAIN_SITE_ORIGIN": "https://tmkch.io",
     "MAIN_SITE_WORKERS_ORIGIN": "https://tomokichi-main.tomoki-ttttt.workers.dev"
   },
@@ -87,6 +92,20 @@
     // would be the only part of this feature that looked at who was asking.
     // The operator routes are protected by a bearer token instead.
   ],
+  // Studio Admin. A Service Binding requires its target Worker to already
+  // exist in the account, so this stayed commented out until
+  // `tomokichi-admin-core` was deployed — it is bound now, and
+  // `services/admin-bridge.ts` mirrors reports and support mail into Admin.
+  // The mirror is best-effort: if Admin Core is unreachable the operator mail
+  // still goes out, which is the behaviour this Worker had before the binding.
+  "services": [
+    {
+      "binding": "ADMIN_CORE",
+      "service": "tomokichi-admin-core",
+      "entrypoint": "AdminCore"
+    }
+  ],
+
   "r2_buckets": [
     {
       // Photos attached to reported content. Private, and with a lifecycle
