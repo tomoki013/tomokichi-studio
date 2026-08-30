@@ -87,6 +87,20 @@
     // would be the only part of this feature that looked at who was asking.
     // The operator routes are protected by a bearer token instead.
   ],
+  // Studio Admin. A Service Binding requires its target Worker to already
+  // exist in the account, so this stayed commented out until
+  // `tomokichi-admin-core` was deployed — it is bound now, and
+  // `services/admin-bridge.ts` mirrors reports and support mail into Admin.
+  // The mirror is best-effort: if Admin Core is unreachable the operator mail
+  // still goes out, which is the behaviour this Worker had before the binding.
+  "services": [
+    {
+      "binding": "ADMIN_CORE",
+      "service": "tomokichi-admin-core",
+      "entrypoint": "AdminCore"
+    }
+  ],
+
   "r2_buckets": [
     {
       // Photos attached to reported content. Private, and with a lifecycle

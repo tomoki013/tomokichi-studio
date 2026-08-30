@@ -1,5 +1,10 @@
 import type { Context, Hono } from "hono";
 
+import {
+  type AdminBridgeBindings,
+  background,
+  mirrorSupportMessage,
+} from "../services/admin-bridge";
 import { sendSupportEmail } from "../support/email";
 import { createSupportEmail } from "../support/template";
 import { verifyTurnstileToken } from "../support/turnstile";
@@ -10,8 +15,9 @@ const MAX_BODY_BYTES = 20 * 1024;
 const LOCAL_ORIGIN = "http://localhost:4321";
 const SUPPORT_API_PATHS = ["/api/v1/support", "/api/support"];
 
-type SupportApp = Hono<{ Bindings: SupportBindings }>;
-type SupportContext = Context<{ Bindings: SupportBindings }>;
+type SupportRouteBindings = SupportBindings & AdminBridgeBindings;
+type SupportApp = Hono<{ Bindings: SupportRouteBindings }>;
+type SupportContext = Context<{ Bindings: SupportRouteBindings }>;
 
 export interface SupportDependencies {
   deliver?: (email: SupportEmail, env: SupportBindings) => Promise<EmailDeliveryResult>;
@@ -242,6 +248,23 @@ export function registerSupportRoute(
           ? { id: "mock-email-id" }
           : await sendSupportEmail(email, c.env.RESEND_API_KEY);
       logResult(request, 200, startedAt, result.id);
+
+      // A copy for Studio Admin, so the message can be answered from
+      // admin.tmkch.io. After delivery and outside the response path: the mail
+      // is what the sender was promised.
+      background(
+        c,
+        mirrorSupportMessage(c.env, {
+          requestId: request.requestId,
+          appSlug: request.app,
+          requesterEmail: request.email,
+          requesterName: request.name,
+          category: request.category,
+          message: request.message,
+          source: request.source,
+        }),
+      );
+
       return c.json({ ok: true, requestId: request.requestId }, 200, corsHeaders(c));
     } catch {
       logResult(request, 502, startedAt);
