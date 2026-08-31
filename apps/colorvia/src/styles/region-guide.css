@@ -1,0 +1,274 @@
+.region-guide-page {
+  max-width: 980px;
+}
+
+.region-guide-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+  margin-top: 26px;
+}
+
+.region-guide-heading h1 {
+  margin: 8px 0 0;
+  font: 400 clamp(32px, 5vw, 52px) / 1.35 Georgia, "Yu Mincho", serif;
+  letter-spacing: 0.01em;
+}
+
+.region-guide-flag {
+  font-size: 34px;
+}
+
+.region-guide-answer {
+  margin: 24px 0 0;
+  padding: 20px 22px;
+  border: 1px solid rgb(85 167 167 / 20%);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgb(239 248 247 / 90%), rgb(255 255 255 / 96%));
+  color: #294e52;
+  font-size: 15px;
+  font-weight: 570;
+  line-height: 1.9;
+  box-shadow: 0 10px 34px rgb(46 102 103 / 7%);
+}
+
+.region-guide-figure {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 16px 44px rgb(40 91 92 / 8%);
+}
+
+.region-guide-map {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.region-guide-figcap {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.region-guide-facts {
+  margin: 44px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.region-guide-fact {
+  min-height: 104px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.region-guide-fact dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.region-guide-fact dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.region-guide-section {
+  margin-top: 56px;
+}
+
+.region-guide-section > h2,
+.region-guide-directory > h2,
+.region-guide-faq > h2,
+.region-guide-sources > h2,
+.region-guide-app-cta > h2 {
+  margin: 0;
+  font: 400 clamp(24px, 3vw, 32px) / 1.45 Georgia, "Yu Mincho", serif;
+}
+
+.region-guide-section p,
+.region-guide-directory-lead,
+.region-guide-faq dd,
+.region-guide-app-cta p {
+  color: #536b6f;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.region-guide-section p {
+  margin: 16px 0 0;
+}
+
+.region-guide-section ul {
+  margin: 18px 0 0;
+  padding-left: 1.25rem;
+  color: #536b6f;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.region-guide-directory {
+  margin-top: 56px;
+}
+
+.region-guide-directory-lead {
+  margin: 14px 0 22px;
+}
+
+.region-guide-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.region-guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.region-guide-table th,
+.region-guide-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #e9f0ef;
+  text-align: left;
+  vertical-align: top;
+}
+
+.region-guide-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: #426468;
+  background: #f3f9f8;
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.region-guide-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.region-guide-table-primary {
+  color: var(--ink);
+  font-weight: 680;
+}
+
+.region-guide-table-secondary {
+  color: var(--muted);
+}
+
+.region-guide-faq {
+  margin-top: 60px;
+}
+
+.region-guide-faq dl {
+  margin: 20px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.region-guide-faq-item {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.region-guide-faq dt {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.65;
+}
+
+.region-guide-faq dd {
+  margin: 8px 0 0;
+}
+
+.region-guide-sources {
+  margin-top: 48px;
+  padding: 22px;
+  border-radius: 16px;
+  background: #f5f9f8;
+}
+
+.region-guide-sources > h2 {
+  font-size: 19px;
+}
+
+.region-guide-sources ul {
+  margin: 14px 0 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.region-guide-sources a {
+  color: var(--teal-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.region-guide-disclaimer {
+  margin: 24px 0 0;
+  color: #7b8d90;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.region-guide-app-cta {
+  margin-top: 56px;
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid rgb(85 167 167 / 22%);
+  border-radius: 24px;
+  background: linear-gradient(140deg, #eaf6f5, #f9fcfb);
+}
+
+.region-guide-app-cta p {
+  margin: 14px 0 0;
+  max-width: 680px;
+}
+
+.region-guide-app-cta .store-button {
+  margin-top: 22px;
+}
+
+@media (max-width: 760px) {
+  .region-guide-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .region-guide-figure {
+    max-width: 520px;
+    width: 100%;
+    margin-inline: auto;
+  }
+
+  .region-guide-table th,
+  .region-guide-table td {
+    padding: 12px;
+  }
+
+  .region-guide-table {
+    font-size: 12px;
+  }
+}
