@@ -1,0 +1,234 @@
+---
+import type { Locale } from "../data/apps";
+
+const { siteKey, lang } = Astro.props as { siteKey: string; lang: Locale };
+const isJapanese = lang === "ja";
+const statusCopy = isJapanese
+  ? {
+      checking: "セキュリティ確認中",
+      verified: "セキュリティ確認済み",
+      interactive: "セキュリティ確認が必要です",
+      error: "セキュリティ確認に失敗しました",
+      unsupported: "このブラウザでは確認できません",
+      retry: "再試行",
+    }
+  : {
+      checking: "Checking security",
+      verified: "Security check complete",
+      interactive: "Security check required",
+      error: "Security check failed",
+      unsupported: "Security check is not supported here",
+      retry: "Retry",
+    };
+---
+
+{siteKey && (
+  <>
+    <div
+      class="cf-turnstile support-turnstile"
+      data-support-turnstile
+      data-sitekey={siteKey}
+      data-response-field-name="turnstileToken"
+      data-appearance="interaction-only"
+      data-size="flexible"
+      data-language={isJapanese ? "ja" : "en"}
+      data-callback="supportTurnstileVerified"
+      data-error-callback="supportTurnstileError"
+      data-expired-callback="supportTurnstileExpired"
+      data-timeout-callback="supportTurnstileTimeout"
+      data-unsupported-callback="supportTurnstileUnsupported"
+      data-before-interactive-callback="supportTurnstileInteractive"
+      data-after-interactive-callback="supportTurnstileChecking"
+    ></div>
+
+    <div
+      class="support-security-status"
+      data-support-security-status
+      data-status="checking"
+      data-visible="true"
+      data-checking={statusCopy.checking}
+      data-verified={statusCopy.verified}
+      data-interactive={statusCopy.interactive}
+      data-error={statusCopy.error}
+      data-unsupported={statusCopy.unsupported}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <span class="support-security-indicator" data-support-security-indicator aria-hidden="true"></span>
+      <span data-support-security-message>{statusCopy.checking}</span>
+      <button type="button" class="support-security-retry" data-support-security-retry hidden>
+        {statusCopy.retry}
+      </button>
+    </div>
+
+    <script is:inline>
+      (() => {
+        const widget = document.querySelector("[data-support-turnstile]");
+        const status = document.querySelector("[data-support-security-status]");
+        if (!(widget instanceof HTMLElement) || !(status instanceof HTMLElement)) return;
+
+        const indicator = status.querySelector("[data-support-security-indicator]");
+        const message = status.querySelector("[data-support-security-message]");
+        const retry = status.querySelector("[data-support-security-retry]");
+        if (!(indicator instanceof HTMLElement) || !(message instanceof HTMLElement) || !(retry instanceof HTMLButtonElement)) return;
+
+        let watchdog = 0;
+        let hideTimer = 0;
+
+        const clearTimers = () => {
+          window.clearTimeout(watchdog);
+          window.clearTimeout(hideTimer);
+        };
+
+        const scheduleWatchdog = () => {
+          window.clearTimeout(watchdog);
+          watchdog = window.setTimeout(() => setState("error"), 10000);
+        };
+
+        const setState = (state) => {
+          clearTimers();
+          status.dataset.status = state;
+          status.dataset.visible = "true";
+          status.removeAttribute("aria-hidden");
+
+          const copy = status.dataset[state];
+          if (copy) message.textContent = copy;
+
+          indicator.textContent = state === "verified" ? "✓" : state === "error" || state === "unsupported" ? "!" : state === "interactive" ? "·" : "";
+          retry.hidden = state !== "error" && state !== "unsupported";
+
+          if (state === "checking") {
+            scheduleWatchdog();
+          } else if (state === "verified") {
+            hideTimer = window.setTimeout(() => {
+              status.dataset.visible = "false";
+              status.setAttribute("aria-hidden", "true");
+            }, 1600);
+          }
+        };
+
+        window.supportTurnstileVerified = () => setState("verified");
+        window.supportTurnstileError = () => setState("error");
+        window.supportTurnstileExpired = () => setState("checking");
+        window.supportTurnstileTimeout = () => setState("error");
+        window.supportTurnstileUnsupported = () => setState("unsupported");
+        window.supportTurnstileInteractive = () => setState("interactive");
+        window.supportTurnstileChecking = () => setState("checking");
+        window.supportTurnstileLoadError = () => setState("error");
+
+        retry.addEventListener("click", () => {
+          setState("checking");
+          if (window.turnstile?.reset) {
+            window.turnstile.reset(widget);
+          } else {
+            window.location.reload();
+          }
+        });
+
+        setState("checking");
+      })();
+    </script>
+
+    <script
+      is:inline
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      async
+      defer
+      onerror="supportTurnstileLoadError()"
+    ></script>
+  </>
+)}
+
+<style>
+  .support-security-status {
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100vw - 28px);
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 10px 32px rgb(45 35 25 / 10%);
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(7px);
+    transition:
+      opacity 180ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .support-security-status[data-visible="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .support-security-indicator {
+    display: grid;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .support-security-status[data-status="checking"] .support-security-indicator {
+    border: 1.5px solid var(--line);
+    border-top-color: var(--ink-soft);
+    animation: support-security-spin 720ms linear infinite;
+  }
+
+  .support-security-status[data-status="interactive"] .support-security-indicator {
+    border: 1px solid var(--line);
+    font-size: 14px;
+  }
+
+  .support-security-retry {
+    margin: -2px -2px -2px 1px;
+    padding: 2px 2px 2px 9px;
+    border: 0;
+    border-left: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .support-security-retry:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  @keyframes support-security-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .support-security-status {
+      transition: none;
+    }
+
+    .support-security-status[data-status="checking"] .support-security-indicator {
+      animation-duration: 1.6s;
+    }
+  }
+</style>

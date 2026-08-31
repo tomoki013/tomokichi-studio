@@ -5,23 +5,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { supportAppOptions, supportCategoryOptions, supportCopy } from "../lib/support-copy";
 import SiteFooter from "./SiteFooter.astro";
 import SiteHeader from "./SiteHeader.astro";
+import SupportTurnstile from "./SupportTurnstile.astro";
 
 const { lang } = Astro.props as { lang: Locale };
 const copy = supportCopy[lang];
 const isJapanese = lang === "ja";
 const privacyHref = isJapanese ? "/ja/privacy" : "/privacy";
 
-/**
- * Turnstile's site key is public, but it is still configuration: with none
- * set, no widget renders, no third-party script loads, and the form submits
- * exactly as it always has. The API makes the matching decision from whether
- * its secret is set, so the two halves can be switched on together.
- *
- * The widget below renders implicitly — Turnstile finds it by class on load
- * and puts its token in a hidden `turnstileToken` input inside the form. There
- * is no callback to define, so nothing depends on whether the third-party
- * script arrives before or after this page's own.
- */
+/** Turnstile is fully inert until the public site key is present at build time. */
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 ---
 
@@ -160,17 +151,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
             <p class="support-privacy">
               {copy.privacyPrefix} <a href={privacyHref}>{copy.privacyLink}</a>{copy.privacySuffix}
             </p>
-            {turnstileSiteKey && (
-              <div
-                class="cf-turnstile support-turnstile"
-                data-support-turnstile
-                data-sitekey={turnstileSiteKey}
-                data-response-field-name="turnstileToken"
-                data-appearance="interaction-only"
-                data-size="flexible"
-                data-language={isJapanese ? "ja" : "en"}
-              ></div>
-            )}
+            <SupportTurnstile siteKey={turnstileSiteKey} lang={lang} />
             <button class="support-submit" type="submit" data-support-submit disabled>{copy.submit}</button>
           </form>
 
@@ -195,15 +176,6 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
     <SiteFooter lang={lang} />
   </div>
 </BaseLayout>
-
-{turnstileSiteKey && (
-  <script
-    is:inline
-    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-    async
-    defer
-  ></script>
-)}
 
 <script>
   import "../scripts/support-form";
