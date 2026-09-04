@@ -1,0 +1,183 @@
+name: Deploy
+
+# Deployment is chained off CI rather than triggered by the same push, so a red
+# check can no longer be shipped past. CI publishes the list of affected apps as
+# an artifact; this workflow reads it back and deploys only those.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: 'Apps to deploy: "all", or a comma-separated list (e.g. admin-core,admin-web).'
+        required: true
+        default: all
+
+permissions:
+  contents: read
+  # Required to read the affected-apps artifact out of the CI run.
+  actions: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  affected:
+    name: Resolve deploy targets
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || (github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.resolve.outputs.apps }}
+      sha: ${{ steps.resolve.outputs.sha }}
+    steps:
+      - name: Download the app list CI computed
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v8
+        with:
+          name: affected-apps
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - id: resolve
+        env:
+          EVENT: ${{ github.event_name }}
+          REQUESTED: ${{ inputs.apps }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          all='["main","remeet","tripory","colorvia","yohaku","quiet-solitaire","api","admin-core","admin-web","mail-ingress"]'
+          if [ "$EVENT" = "workflow_run" ]; then
+            apps=$(cat affected-apps.json)
+            sha="$RUN_SHA"
+          elif [ "$REQUESTED" = "all" ]; then
+            apps="$all"
+            sha="$GITHUB_SHA"
+          else
+            apps=$(printf '%s' "$REQUESTED" | tr -d '[:space:]' | tr ',' '\n' | grep -v '^$' | jq -R . | jq -sc .)
+            sha="$GITHUB_SHA"
+          fi
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          printf '### Deploy targets\n\n`%s` at `%s`\n' "$apps" "$sha" >> "$GITHUB_STEP_SUMMARY"
+
+  main:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'main')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: main
+      build-filter: "@tomokichi/main"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  remeet:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'remeet')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: remeet
+      build-filter: "@tomokichi/remeet"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  tripory:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'tripory')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: tripory
+      build-filter: "@tomokichi/tripory"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  colorvia:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'colorvia')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: colorvia
+      build-filter: "@tomokichi/colorvia"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  yohaku:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'yohaku')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: yohaku
+      build-filter: "@tomokichi/yohaku"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  quiet-solitaire:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'quiet-solitaire')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: quiet-solitaire
+      build-filter: "@tomokichi/quiet-solitaire"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  api:
+    needs: affected
+    if: vars.CLOUDFLARE_DEPLOY_ENABLED == 'true' && contains(fromJSON(needs.affected.outputs.apps), 'api')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: api
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  # Admin Core holds the bindings the other two Workers attach to, so it ships
+  # first — see the deployment order in apps/admin-core/README.md. `!cancelled()`
+  # keeps admin-web and mail-ingress deployable on a push that changed only
+  # them, where admin-core is skipped rather than run.
+  admin-core:
+    needs: affected
+    if: >-
+      vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+      && vars.ADMIN_DEPLOY_ENABLED == 'true'
+      && contains(fromJSON(needs.affected.outputs.apps), 'admin-core')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: admin-core
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  admin-web:
+    needs: [affected, admin-core]
+    if: >-
+      !cancelled()
+      && needs.affected.result == 'success'
+      && needs.admin-core.result != 'failure'
+      && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+      && vars.ADMIN_DEPLOY_ENABLED == 'true'
+      && contains(fromJSON(needs.affected.outputs.apps), 'admin-web')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: admin-web
+      build-filter: "@tomokichi/admin-web"
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit
+
+  mail-ingress:
+    needs: [affected, admin-core]
+    if: >-
+      !cancelled()
+      && needs.affected.result == 'success'
+      && needs.admin-core.result != 'failure'
+      && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+      && vars.ADMIN_DEPLOY_ENABLED == 'true'
+      && contains(fromJSON(needs.affected.outputs.apps), 'mail-ingress')
+    uses: ./.github/workflows/deploy-worker.yml
+    with:
+      app: mail-ingress
+      ref: ${{ needs.affected.outputs.sha }}
+    secrets: inherit

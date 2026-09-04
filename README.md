@@ -176,4 +176,19 @@ pnpm check:seo
 - `apps/tripory/wrangler.jsonc` → `tomokichi-tripory`
 - `apps/api/wrangler.jsonc` → `tomokichi-api`
 
-GitHub ActionsのRepository secretsに `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を設定し、Repository variable `CLOUDFLARE_DEPLOY_ENABLED=true` を設定してください。`main`ブランチに変更をpushすると、変更されたアプリだけがビルド・デプロイされます。Cloudflareの設定前はデプロイjobが自動的にskipされるため、CIを赤くしません。各デプロイworkflowはActionsから手動実行もできます。
+GitHub ActionsのRepository secretsに `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を設定し、Repository variable `CLOUDFLARE_DEPLOY_ENABLED=true` を設定してください。Cloudflareの設定前はデプロイjobが自動的にskipされるため、CIを赤くしません。
+
+デプロイは単一の `Deploy` workflow (`.github/workflows/deploy.yml`) にまとまっており、`main`へのpushで直接起動するのではなく **CIの成功を待ってから** 起動します（`workflow_run`）。デプロイ対象はCIが算出した変更アプリ一覧をそのまま引き継ぐため、CIが赤いままデプロイが進むことはありません。
+
+Worker間の順序も同じworkflow内の `needs:` で表現されています。Admin Coreは他の2つのWorkerがService Bindingで参照する先なので、必ず先にデプロイされます。
+
+```
+CI (成功)
+ └─ 変更アプリ判定
+      ├─ main / remeet / tripory / colorvia / yohaku / quiet-solitaire / api
+      └─ admin-core
+            ├─ admin-web
+            └─ mail-ingress
+```
+
+手動デプロイはActionsの `Deploy` → *Run workflow* から行えます。`apps` に `all`（既定）か、`admin-core,admin-web` のようなカンマ区切りのアプリ名を渡します。

@@ -1,0 +1,56 @@
+name: Deploy worker
+
+# Shared body of every production deploy. It exists so that the deployment
+# order between Workers lives in one place (deploy.yml) instead of being spread
+# across one workflow file per app.
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: Directory under apps/ holding the Worker.
+        required: true
+        type: string
+      build-filter:
+        description: pnpm filter to build first. Empty when the Worker needs no build.
+        required: false
+        default: ""
+        type: string
+      ref:
+        description: Commit to deploy.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.11.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build
+        if: inputs.build-filter != ''
+        # Only apps/main reads this. Turnstile's site key is public and baked in
+        # at build time; unset, the support form renders without a widget —
+        # which is exactly what should happen until the matching API secret
+        # exists.
+        env:
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.PUBLIC_TURNSTILE_SITE_KEY }}
+        run: pnpm --filter ${{ inputs.build-filter }} build
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/${{ inputs.app }}
+          command: deploy

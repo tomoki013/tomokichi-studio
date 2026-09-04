@@ -13,6 +13,10 @@ jobs:
     name: Detect changed apps
     runs-on: ubuntu-latest
     outputs:
+      # Anything that can change how *every* app is checked. Kept separate from
+      # the per-app filters so that touching CI re-runs every check without also
+      # redeploying every Worker.
+      global: ${{ steps.filter.outputs.global }}
       main: ${{ steps.filter.outputs.main }}
       remeet: ${{ steps.filter.outputs.remeet }}
       tripory: ${{ steps.filter.outputs.tripory }}
@@ -23,13 +27,22 @@ jobs:
       api: ${{ steps.filter.outputs.api }}
       admin: ${{ steps.filter.outputs.admin }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
+            global:
+              - '.github/workflows/**'
+              - 'biome.json'
+              - 'mise.toml'
+              - 'scripts/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
             main:
               - 'apps/main/**'
               - 'packages/app-site/**'
@@ -92,18 +105,58 @@ jobs:
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
               - 'turbo.json'
+            # Deploy-only filters. The `admin` filter above is the union used by
+            # the Admin check job; deployment needs one Worker at a time because
+            # admin-core has to ship before the Workers that bind to it.
+            admin-core:
+              - 'apps/admin-core/**'
+              - 'packages/admin-contracts/**'
+              - 'packages/admin-mail/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+            admin-web:
+              - 'apps/admin-web/**'
+              - 'packages/admin-contracts/**'
+              - 'packages/admin-mail/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+            mail-ingress:
+              - 'apps/mail-ingress/**'
+              - 'packages/admin-contracts/**'
+              - 'packages/admin-mail/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+
+      # The Deploy workflow is chained off this run with `workflow_run`, which
+      # carries no file list of its own. Hand it the one computed here so that
+      # nothing is deployed without a matching green check.
+      - name: Record the affected apps for the Deploy workflow
+        env:
+          CHANGES: ${{ steps.filter.outputs.changes }}
+        run: printf '%s' "$CHANGES" > affected-apps.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: affected-apps
+          path: affected-apps.json
+          retention-days: 7
 
   main:
     name: Main check
     needs: changes
-    if: needs.changes.outputs.main == 'true'
+    if: needs.changes.outputs.main == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -116,14 +169,14 @@ jobs:
   remeet:
     name: Remeet check
     needs: changes
-    if: needs.changes.outputs.remeet == 'true'
+    if: needs.changes.outputs.remeet == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -136,14 +189,14 @@ jobs:
   tripory:
     name: Tripory check
     needs: changes
-    if: needs.changes.outputs.tripory == 'true'
+    if: needs.changes.outputs.tripory == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -156,14 +209,14 @@ jobs:
   colorvia:
     name: Colorvia check
     needs: changes
-    if: needs.changes.outputs.colorvia == 'true'
+    if: needs.changes.outputs.colorvia == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -175,14 +228,14 @@ jobs:
   yohaku:
     name: Yohaku check
     needs: changes
-    if: needs.changes.outputs.yohaku == 'true'
+    if: needs.changes.outputs.yohaku == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -194,14 +247,14 @@ jobs:
   quiet-solitaire:
     name: Quiet Solitaire check
     needs: changes
-    if: needs.changes.outputs.quiet-solitaire == 'true'
+    if: needs.changes.outputs.quiet-solitaire == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -213,14 +266,14 @@ jobs:
   review:
     name: App Review site check
     needs: changes
-    if: needs.changes.outputs.review == 'true'
+    if: needs.changes.outputs.review == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -230,14 +283,14 @@ jobs:
   api:
     name: API check
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -249,14 +302,14 @@ jobs:
   admin:
     name: Admin check
     needs: changes
-    if: needs.changes.outputs.admin == 'true'
+    if: needs.changes.outputs.admin == 'true' || needs.changes.outputs.global == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.11.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
