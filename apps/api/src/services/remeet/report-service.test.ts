@@ -99,6 +99,11 @@ describe("parseReport", () => {
     ).toBeUndefined();
   });
 
+  it.each(["😀", "👨‍👩‍👧‍👦", "é"])("counts visible graphemes for %s", (character) => {
+    expect(parseReport({ ...valid, details: character.repeat(DETAILS_LIMIT) })).toBeDefined();
+    expect(parseReport({ ...valid, details: character.repeat(DETAILS_LIMIT + 1) })).toBeUndefined();
+  });
+
   it("keeps the optional fields optional", () => {
     const report = parseReport({ ...valid, details: undefined, contentTextSnapshot: undefined });
     expect(report?.details).toBeUndefined();

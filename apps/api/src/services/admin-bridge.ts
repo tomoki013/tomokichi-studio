@@ -5,23 +5,8 @@ import {
   INTERNAL_PATHS,
 } from "@tomokichi/admin-contracts";
 
-/**
- * Handing a copy to Tomokichi Studio Admin.
- *
- * Everything in this file is **additive and best-effort**, and that is a
- * deliberate constraint rather than laziness. Before Admin existed, a Remeet
- * report reached a person by email and a support message reached a person by
- * email; those paths still run first and still decide the response. If Admin
- * Core is down, mid-deploy, or simply not bound in this environment, the
- * operator still gets the mail and the sender still gets a 201.
- *
- * The alternative — making the request fail when Admin is unavailable — would
- * mean a phone showing "通報できませんでした" for a report that a human is about
- * to read in their inbox. That trade is not worth a tidier database.
- *
- * The binding is optional for the same reason: `preview` and local runs have no
- * Admin Core, and the API must not need one.
- */
+/** Reports are delivered through the durable report outbox. Support mirroring
+ * remains best-effort. Environments without Admin Core keep the mail path. */
 export interface AdminBridgeBindings {
   ADMIN_CORE?: AdminCoreStub;
 }
@@ -38,7 +23,7 @@ export interface AdminBridgeBindings {
  */
 export function background(
   context: { executionCtx: { waitUntil(promise: Promise<unknown>): void } },
-  work: Promise<void>,
+  work: Promise<unknown>,
 ): void {
   try {
     context.executionCtx.waitUntil(work);
@@ -72,7 +57,9 @@ export interface MirroredReport {
   reporterAuthorId: string;
   contentAuthorId?: string;
   details?: string;
+  reporterEmail?: string;
   contentTextSnapshot?: string;
+  evidenceExpected?: boolean;
 }
 
 /**
@@ -89,12 +76,12 @@ export interface MirroredReport {
 export async function mirrorReport(
   env: AdminBridgeBindings,
   report: MirroredReport,
-  image?: { bytes: Uint8Array; contentType: string },
-): Promise<void> {
+  image?: { bytes: Uint8Array; contentType: string; createdAt?: string },
+): Promise<boolean> {
   const core = env.ADMIN_CORE;
-  if (!core) return;
+  if (!core) return false;
 
-  await attempt("report", async () => {
+  try {
     const result = await core.createReport(
       {
         appSlug: "remeet",
@@ -105,9 +92,11 @@ export async function mirrorReport(
         reporterRefHash: report.reporterAuthorId,
         authorRefHash: report.contentAuthorId,
         reasonCode: report.reason,
+        reporterEmail: report.reporterEmail,
         detail: report.details,
         snapshotText: report.contentTextSnapshot,
         priority: "normal",
+        evidenceExpected: Boolean(image) || report.evidenceExpected,
         reportedAt: report.reportedAt,
       },
       { type: "app", id: "remeet-backend" },
@@ -117,11 +106,10 @@ export async function mirrorReport(
       console.log(
         JSON.stringify({ event: "admin_bridge.report_rejected", code: result.error.code }),
       );
-      return;
+      return false;
     }
-    // A duplicate already has whatever evidence it had; re-uploading the photo
-    // would store the same bytes under a second key.
-    if (result.value.duplicate || !image) return;
+    // Core deduplicates evidence separately, so a metadata-only success can recover.
+    if (!image) return !report.evidenceExpected;
 
     const response = await core.fetch(
       `${INTERNAL_ORIGIN}${INTERNAL_PATHS.reportAttachment(result.value.reportId)}`,
@@ -131,6 +119,7 @@ export async function mirrorReport(
           "Content-Type": image.contentType,
           "Content-Length": String(image.bytes.byteLength),
           [ATTACHMENT_FILENAME_HEADER]: "report-image",
+          ...(image.createdAt ? { "X-Evidence-Created-At": image.createdAt } : {}),
         },
         body: image.bytes,
       },
@@ -139,8 +128,13 @@ export async function mirrorReport(
       console.log(
         JSON.stringify({ event: "admin_bridge.evidence_failed", status: response.status }),
       );
+      return false;
     }
-  });
+    return true;
+  } catch {
+    console.log(JSON.stringify({ event: "admin_bridge.failed", what: "report" }));
+    return false;
+  }
 }
 
 export interface MirroredSupportMessage {

@@ -38,6 +38,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 
 /**
  * Which Keychain item holds the signing key.
@@ -333,8 +334,81 @@ function signFile(): void {
   console.log(`signed ${inPath} -> ${outPath} with ${KEY_ID}`);
 }
 
+/** Loopback-only signing companion. The private key never leaves Keychain. */
+function serve(): void {
+  const allowedOrigin = process.env.REMEET_ADMIN_ORIGIN ?? "https://admin.tmkch.io";
+  const port = 47831;
+  createServer(async (request, response) => {
+    if (request.headers.host !== `127.0.0.1:${port}` || request.headers.origin !== allowedOrigin) {
+      response.writeHead(403).end();
+      return;
+    }
+    response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+    response.setHeader("Vary", "Origin");
+    response.setHeader("Access-Control-Allow-Private-Network", "true");
+    response.setHeader("Cache-Control", "no-store");
+    if (request.method === "OPTIONS") {
+      response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+      response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      response.writeHead(204).end();
+      return;
+    }
+    if (
+      request.method !== "POST" ||
+      request.url !== "/sign" ||
+      request.headers["content-type"] !== "application/json"
+    ) {
+      response.writeHead(404).end();
+      return;
+    }
+    try {
+      const chunks: Buffer[] = [];
+      let size = 0;
+      for await (const chunk of request) {
+        size += chunk.length;
+        if (size > 4 * 1024 * 1024) throw new Error("Payload too large");
+        chunks.push(Buffer.from(chunk));
+      }
+      const input = JSON.parse(Buffer.concat(chunks).toString("utf8")) as { payload: string };
+      const payload = JSON.parse(input.payload) as {
+        keyID: string;
+        schemaVersion: number;
+        expiresAt: string;
+        actions: unknown[];
+      };
+      if (
+        payload.keyID !== KEY_ID ||
+        payload.schemaVersion !== 1 ||
+        !Array.isArray(payload.actions) ||
+        !Number.isFinite(Date.parse(payload.expiresAt)) ||
+        Date.parse(payload.expiresAt) <= Date.now()
+      )
+        throw new Error("Invalid manifest");
+      const bytes = Buffer.from(input.payload, "utf8");
+      const envelope = JSON.stringify({
+        keyID: KEY_ID,
+        payload: bytes.toString("base64url"),
+        signature: crypto.sign(null, bytes, readPrivateKey()).toString("base64url"),
+      });
+      response.setHeader("Content-Type", "application/json");
+      response.end(JSON.stringify({ envelope }));
+    } catch {
+      response.writeHead(400, { "Content-Type": "application/json" }).end(
+        JSON.stringify({
+          error: "署名できませんでした。キーチェーンと署名鍵を確認してください。",
+        }),
+      );
+    }
+  }).listen(port, "127.0.0.1", () =>
+    console.log(`Moderation signer ready for ${allowedOrigin} on port ${port}`),
+  );
+}
+
 const command = process.argv[2];
 switch (command) {
+  case "serve":
+    serve();
+    break;
   case "keygen":
     keygen();
     break;

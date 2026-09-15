@@ -1,3 +1,5 @@
+import { reporterEmailSchema } from "@tomokichi/admin-contracts";
+
 /**
  * Content reports from Remeet.
  *
@@ -42,6 +44,7 @@ export interface ContentReport {
   reportedAt: string;
   reason: ReportReason;
   details?: string;
+  reporterEmail?: string;
   appVersion: string;
   buildNumber: string;
   osVersion?: string;
@@ -133,8 +136,12 @@ export function parseReport(input: unknown): ContentReport | undefined {
   if (!reportContentTypes.includes(contentType as ReportContentType)) return undefined;
   if (Number.isNaN(Date.parse(reportedAt))) return undefined;
 
+  const email = reporterEmailSchema.safeParse(value.reporterEmail);
+  if (!email.success) return undefined;
+  const reporterEmail = email.data;
+
   const details = typeof value.details === "string" ? value.details : undefined;
-  if (details && details.length > DETAILS_LIMIT) return undefined;
+  if (details && graphemeCount(details) > DETAILS_LIMIT) return undefined;
   const snapshot =
     typeof value.contentTextSnapshot === "string" ? value.contentTextSnapshot : undefined;
   if (snapshot && snapshot.length > SNAPSHOT_LIMIT) return undefined;
@@ -144,6 +151,7 @@ export function parseReport(input: unknown): ContentReport | undefined {
     reportedAt,
     reason: reason as ReportReason,
     details,
+    reporterEmail,
     appVersion,
     buildNumber,
     osVersion: typeof value.osVersion === "string" ? value.osVersion : undefined,
@@ -213,4 +221,9 @@ function sniffImageType(bytes: Uint8Array): string | undefined {
  */
 export function imageObjectKey(reportId: string, random: string): string {
   return `reports/remeet/${reportId}/${random}`;
+}
+
+const segmenter = new Intl.Segmenter("und", { granularity: "grapheme" });
+function graphemeCount(value: string): number {
+  return Array.from(segmenter.segment(value)).length;
 }

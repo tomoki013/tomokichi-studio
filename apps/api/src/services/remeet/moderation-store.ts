@@ -44,6 +44,7 @@ export interface ModerationManifestRecord {
 }
 
 export interface ModerationStore {
+  dismissedReports?(): Promise<string[]>;
   insertAction(record: ModerationActionRecord): Promise<void>;
   revokeAction(actionId: string, revokedAt: string, revokedBy: string): Promise<boolean>;
   findByTarget(target: string): Promise<ModerationActionRecord | null>;
@@ -80,6 +81,14 @@ interface ManifestRow {
 }
 
 export class D1ModerationStore implements ModerationStore {
+  async dismissedReports(): Promise<string[]> {
+    const { results } = await this.database
+      .prepare(
+        "SELECT report_digest FROM remeet_report_decisions WHERE decision = 'dismiss' ORDER BY report_digest",
+      )
+      .all<{ report_digest: string }>();
+    return (results ?? []).map((r) => r.report_digest);
+  }
   constructor(private readonly database: D1Database) {}
 
   async insertAction(record: ModerationActionRecord): Promise<void> {

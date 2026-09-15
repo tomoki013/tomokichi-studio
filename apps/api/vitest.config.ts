@@ -10,8 +10,7 @@ import { defineConfig } from "vitest/config";
  * single assertion runs.
  *
  * The stub answers nothing: the entrypoint has no methods, so an RPC call to it
- * rejects. That is deliberate. `src/services/admin-bridge.ts` is best-effort by
- * design — a Remeet report must still reach the operator by mail, and the phone
+ * rejects. That is deliberate. Report delivery is queued durably before acceptance — a Remeet report must still reach the operator by mail, and the phone
  * must still get its 201, when Admin is down or mid-deploy. Running the suite
  * against an unavailable Admin keeps that guarantee under test rather than
  * assuming it.
