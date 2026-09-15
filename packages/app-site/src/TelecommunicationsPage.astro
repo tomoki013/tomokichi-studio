@@ -1,4 +1,5 @@
 ---
+import type { TelecomSection } from "./telecommunications";
 import { TELECOM, telecommunicationsRows } from "./telecommunications";
 import { supportUrl } from "./urls";
 
@@ -7,12 +8,18 @@ const {
   appName,
   appSlug,
   summary,
+  sections = [],
+  lastUpdated = ["2026年9月8日", "September 8, 2026"],
 } = Astro.props as {
   lang: "ja" | "en";
   appName: string;
   appSlug: string;
   /** What the app actually transmits, Japanese then English. */
   summary?: [string, string];
+  /** App-specific important-matters sections, Japanese then English. */
+  sections?: TelecomSection[];
+  /** Effective date of this disclosure, Japanese then English. */
+  lastUpdated?: [string, string];
 };
 const ja = lang === "ja";
 const rows = telecommunicationsRows(lang, appName);
@@ -22,11 +29,11 @@ const contactHref = supportUrl(appSlug, lang);
 <section class="telecom-page">
   <header class="telecom-intro" data-reveal>
     <p class="telecom-eyebrow">LEGAL</p>
-    <h1>{ja ? "電気通信事業者情報" : "Telecommunications Business Information"}</h1>
+    <h1>{ja ? "電気通信事業法に基づく表記" : "Telecommunications Business Act Disclosure"}</h1>
     <p>
       {ja
-        ? `${appName}は、電気通信事業法第16条に基づく届出を行っています。`
-        : `A notification for ${appName} has been filed under Article 16 of Japan's Telecommunications Business Act.`}
+        ? `${appName}は、電気通信事業法第16条に基づく届出を行っています。事業者情報と、サービスで行う通信の概要を掲載しています。`
+        : `A notification for ${appName} has been filed under Article 16 of Japan's Telecommunications Business Act. This page also explains the service's communications and conditions.`}
     </p>
   </header>
 
@@ -35,7 +42,9 @@ const contactHref = supportUrl(appSlug, lang);
       <div>
         <dt>{row.term}</dt>
         <dd>
-          {row.kind === "contact" ? (
+          {row.kind === "telephone" ? (
+            <a class="telecom-action" href={TELECOM.telephoneHref}>{row.body}</a>
+          ) : row.kind === "contact" ? (
             <span class="telecom-actions">
               <a class="telecom-action" href={`mailto:${TELECOM.email}`}>{row.body}</a>
               <a class="telecom-action is-primary" href={contactHref}>
@@ -51,7 +60,32 @@ const contactHref = supportUrl(appSlug, lang);
     ))}
   </dl>
 
-  {summary && <p class="telecom-summary">{summary[ja ? 0 : 1]}</p>}
+  {summary && (
+    <div class="telecom-summary" data-reveal>
+      <p class="telecom-summary-label">{ja ? "通信機能の概要" : "Communication summary"}</p>
+      <p>{summary[ja ? 0 : 1]}</p>
+    </div>
+  )}
+
+  {sections.length > 0 && (
+    <div class="telecom-sections" data-reveal>
+      {sections.map((section) => (
+        <article class="telecom-section">
+          <h2>{section.heading[ja ? 0 : 1]}</h2>
+          <p>{section.body[ja ? 0 : 1]}</p>
+          {section.links && section.links.length > 0 && (
+            <div class="telecom-section-links">
+              {section.links.map((link) => (
+                <a class="telecom-section-link" href={link.href[ja ? 0 : 1]}>{link.label[ja ? 0 : 1]} <span aria-hidden="true">→</span></a>
+              ))}
+            </div>
+          )}
+        </article>
+      ))}
+    </div>
+  )}
+
+  <p class="telecom-updated">{ja ? `最終更新日：${lastUpdated[0]}` : `Last updated: ${lastUpdated[1]}`}</p>
 </section>
 
 <style>
@@ -65,11 +99,20 @@ const contactHref = supportUrl(appSlug, lang);
   .telecom-list dt { font-size: 13px; font-weight: 650; line-height: 1.8; }
   .telecom-list dd { margin: 0; font-size: 13px; line-height: 1.9; opacity: .78; }
   .telecom-list a { color: inherit; text-underline-offset: 4px; }
-  /* Not a `[data-reveal]` element: it sits at the very bottom, where a jump
-     to the end of the page can leave it never observed and so never faded in.
-     The last line of the commercial-transactions page stays out of the reveal
-     set for the same reason. */
-  .telecom-summary { margin: 26px 0 0; font-size: 13px; line-height: 1.9; opacity: .68; }
+  .telecom-summary { margin: 26px 0 0; padding: 18px 20px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: 16px; font-size: 13px; line-height: 1.9; background: color-mix(in srgb, currentColor 4%, transparent); }
+  .telecom-summary p { margin: 0; }
+  .telecom-summary p + p { margin-top: 7px; opacity: .72; }
+  .telecom-summary-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; opacity: .58; }
+
+  .telecom-sections { margin-top: 18px; border-top: 1px solid currentColor; }
+  .telecom-section { padding: 27px 4px 29px; border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+  .telecom-section h2 { margin: 0; font-size: 18px; font-weight: 650; line-height: 1.5; letter-spacing: -.015em; }
+  .telecom-section p { margin: 11px 0 0; font-size: 13px; line-height: 2; white-space: pre-line; opacity: .76; }
+  .telecom-section-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+  .telecom-section-link { color: inherit; font-size: 12.5px; line-height: 1.5; text-underline-offset: 4px; }
+  .telecom-section-link span { display: inline-block; transition: transform .22s ease; }
+  .telecom-section-link:hover span, .telecom-section-link:focus-visible span { transform: translateX(3px); }
+  .telecom-updated { margin: 24px 0 0; font-size: 11px; opacity: .52; }
 
   .telecom-actions { display: flex; flex-wrap: wrap; gap: 10px; }
   .telecom-action {
@@ -93,6 +136,8 @@ const contactHref = supportUrl(appSlug, lang);
     .telecom-page { width: min(100% - 32px, 760px); padding-top: 72px; }
     .telecom-list > div { grid-template-columns: 1fr; gap: 7px; padding: 19px 2px; }
     .telecom-list dt, .telecom-list dd { font-size: 12.5px; }
+    .telecom-section { padding-left: 2px; padding-right: 2px; }
+    .telecom-section h2 { font-size: 16px; }
     .telecom-action { white-space: normal; }
   }
 </style>
