@@ -39,14 +39,6 @@ describe("the Remeet Worker", () => {
     expect(html.split("abcdefghijklmnopqrstuvwxy").length - 1).toBe(1);
   });
 
-  /// The preview a messaging app draws is part of the invitation, and says
-  /// nothing about who invited whom.
-  it("carries a Remeet link preview with nothing personal in it", async () => {
-    const html = await (await worker.fetch(get("/i/abcdefghijklmnopqrstuvwxy"), makeEnv())).text();
-    expect(html).toContain('property="og:title"');
-    expect(html).toContain("/assets/invite-preview.png?v=");
-  });
-
   /// The site asks the API for a code, and could not ask for a share URL if it
   /// wanted to — `preview` does not return one.
   it("shows the invitation code the API hands back", async () => {

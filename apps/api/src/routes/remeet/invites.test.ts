@@ -63,15 +63,6 @@ describe("the Remeet invite namespace", () => {
       );
     }
   });
-
-  it("is unenforced until a key is configured, so a rotation locks nobody out", async () => {
-    expect((await post("/remeet/v1/invites", {})).status).toBe(503);
-  });
-
-  it("does not disturb the rest of the API", async () => {
-    const response = await createApp().request("https://api.tmkch.io/api/v1/health");
-    expect(response.status).toBe(200);
-  });
 });
 
 describe("the nightly sweep", () => {

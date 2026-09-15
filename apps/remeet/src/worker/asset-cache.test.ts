@@ -75,7 +75,9 @@ describe("when something fails", () => {
 
     expect(response.status).toBe(503);
     expect(await response.text()).toBe(ERROR_PAGE);
+    // Never cached, never indexed.
     expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("X-Robots-Tag")).toBe("noindex");
   });
 
   it("catches a throw rather than letting it reach the reader", async () => {
@@ -86,14 +88,6 @@ describe("when something fails", () => {
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe(ERROR_PAGE);
-  });
-
-  it("never caches an error, and never lets one be indexed", async () => {
-    const env = assets(() => new Response("", { status: 500 }));
-    const response = await assetCacheWorker.fetch(get("/"), env);
-
-    expect(response.headers.get("Cache-Control")).toBe("no-store");
-    expect(response.headers.get("X-Robots-Tag")).toBe("noindex");
   });
 
   it("falls back to plain text when even the error page cannot be read", async () => {

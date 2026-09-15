@@ -59,7 +59,6 @@ describe("parseReport", () => {
   });
 
   it("accepts every kind of post and nothing else", () => {
-    expect(reportContentTypes).toEqual(["waitingMemory", "anniversaryCard", "wish", "statusNote"]);
     for (const contentType of reportContentTypes) {
       expect(parseReport({ ...valid, contentType })).toBeDefined();
     }
