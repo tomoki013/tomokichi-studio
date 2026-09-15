@@ -1,5 +1,6 @@
 import type { Context, Hono } from "hono";
-import { type AdminBridgeBindings, background, mirrorReport } from "../../services/admin-bridge";
+import { type AdminBridgeBindings, background } from "../../services/admin-bridge";
+import { deliverPendingReport, enqueueReport } from "../../services/remeet/report-outbox";
 import {
   type ContentReport,
   IMAGE_RETENTION_DAYS,
@@ -102,31 +103,18 @@ export function registerRemeetReportRoutes(app: ReportApp): void {
       return json(c, 502, { error: "DELIVERY_FAILED" });
     }
 
-    await remember(c, report);
-
-    // Studio Admin gets a copy so the report can be worked through a queue
-    // instead of an inbox. Deliberately after the mail and outside the response
-    // path — see `services/admin-bridge.ts` for why a failure here does not
-    // fail the report.
-    background(
-      c,
-      mirrorReport(
+    let pendingKey: string | undefined;
+    try {
+      pendingKey = await enqueueReport(
         c.env,
-        {
-          reportId: report.reportId,
-          reportedAt: report.reportedAt,
-          reason: report.reason,
-          contentType: report.contentType,
-          contentId: report.contentId,
-          reunionId: report.reunionId,
-          reporterAuthorId: report.reporterAuthorId,
-          contentAuthorId: report.contentAuthorId,
-          details: report.details,
-          contentTextSnapshot: report.contentTextSnapshot,
-        },
-        evidence,
-      ),
-    );
+        { ...report, evidenceExpected: Boolean(evidence) },
+        imageKey,
+      );
+    } catch {
+      return json(c, 502, { error: "DELIVERY_FAILED" });
+    }
+    await remember(c, report);
+    if (pendingKey) background(c, deliverPendingReport(c.env, pendingKey));
 
     return json(c, 201, { ok: true, duplicate: false });
   });

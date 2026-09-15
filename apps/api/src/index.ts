@@ -1,14 +1,22 @@
+import { WorkerEntrypoint } from "cloudflare:workers";
+import type { ModerationRequest } from "@tomokichi/admin-contracts";
 import { type Context, Hono } from "hono";
-
-import { type ApiBindings, registerRemeetInviteRoutes } from "./routes/remeet/invites";
+import {
+  type ApiBindings as InviteApiBindings,
+  registerRemeetInviteRoutes,
+} from "./routes/remeet/invites";
 import { registerRemeetModerationRoutes } from "./routes/remeet/moderation";
 import { registerRemeetReportRoutes } from "./routes/remeet/reports";
 import { registerSupportRoute, type SupportDependencies } from "./routes/support";
+import { completeDecision, prepareDecision } from "./services/remeet/admin-moderation";
 import { cleanUpExpiredInvites } from "./services/remeet/invite-service";
 import { D1InviteStore } from "./services/remeet/invite-store";
 import { daysUntilManifestExpiry } from "./services/remeet/moderation-service";
 import { D1ModerationStore } from "./services/remeet/moderation-store";
+import { type ReportOutboxBindings, retryReportOutbox } from "./services/remeet/report-outbox";
 import { sendSupportEmail } from "./support/email";
+
+type ApiBindings = InviteApiBindings & ReportOutboxBindings;
 
 type ApiContext = Context<{ Bindings: ApiBindings }>;
 
@@ -101,9 +109,25 @@ async function warnIfModerationManifestIsExpiring(env: ApiBindings): Promise<voi
  */
 export default {
   fetch: app.fetch,
-  async scheduled(_event: unknown, env: ApiBindings): Promise<void> {
+  async scheduled(event: { cron?: string }, env: ApiBindings): Promise<void> {
+    if (event.cron === "*/5 * * * *") {
+      await retryReportOutbox(env);
+      return;
+    }
     if (!env.REMEET_INVITES_DB) return;
     await cleanUpExpiredInvites(new D1InviteStore(env.REMEET_INVITES_DB));
     await warnIfModerationManifestIsExpiring(env);
   },
 };
+
+/** Only Admin Core binds to this entrypoint. No public HTTP route. */
+export class RemeetModeration extends WorkerEntrypoint<ApiBindings> {
+  async prepare(input: ModerationRequest) {
+    if (!this.env.REMEET_INVITES_DB) throw new Error("Moderation storage unavailable");
+    return prepareDecision(this.env.REMEET_INVITES_DB as D1Database, input);
+  }
+  async complete(id: string, envelope: string) {
+    if (!this.env.REMEET_INVITES_DB) throw new Error("Moderation storage unavailable");
+    return completeDecision(this.env.REMEET_INVITES_DB as D1Database, id, envelope);
+  }
+}

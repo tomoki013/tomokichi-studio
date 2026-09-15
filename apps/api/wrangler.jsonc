@@ -9,7 +9,7 @@
   // Nightly, to delete invitations that expired days ago. See
   // `scheduled` in src/index.ts.
   "triggers": {
-    "crons": ["17 3 * * *"]
+    "crons": ["17 3 * * *", "*/5 * * * *"]
   },
   "vars": {
     // Remeet invitations. The public URL is the site's, never this API's.

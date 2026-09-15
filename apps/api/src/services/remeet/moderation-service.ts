@@ -56,6 +56,7 @@ export interface ManifestPayload {
   expiresAt: string;
   keyID: string;
   actions: PublishedAction[];
+  dismissedReports?: string[];
 }
 
 const REASON_CODES = new Set([
@@ -205,6 +206,7 @@ export async function buildManifestPayload(
     generatedAt: now.toISOString(),
     expiresAt: expires.toISOString(),
     keyID,
+    dismissedReports: context.store.dismissedReports ? await context.store.dismissedReports() : [],
     actions: actions.map((action) =>
       action.status === "revoked"
         ? { id: action.actionId, target: action.target, revoked: true as const }
