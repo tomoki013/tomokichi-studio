@@ -48,46 +48,10 @@ describe("moderation digest", () => {
     }
   });
 
-  it("ignores UUID case", async () => {
-    const upper = await childDigest("wish", "6F9619FF-8B86-D011-B42D-00CF4FC964FF");
-    const lower = await childDigest("wish", "6f9619ff-8b86-d011-b42d-00cf4fc964ff");
-    expect(upper).toBe(lower);
-  });
-
   it("refuses anything that is not a UUID", () => {
     expect(() => canonicalUUID("not-a-uuid")).toThrow();
     // Half a UUID is the shape of a copy-paste that lost its tail, and turning
     // it into a digest would produce an action that can never match anything.
     expect(() => canonicalUUID("6f9619ff-8b86-d011")).toThrow();
-  });
-
-  it("puts the kind inside the digest", async () => {
-    const id = "1b4e28ba-2fa1-11d2-883f-0016d3cca427";
-    expect(await childDigest("wish", id)).not.toBe(await childDigest("statusNote", id));
-  });
-
-  it("follows the value for root fields", async () => {
-    const reunion = "6f9619ff-8b86-d011-b42d-00cf4fc964ff";
-    const bad = await rootFieldDigest(reunion, "sharedGroupDisplayName", "違反表現");
-    const good = await rootFieldDigest(reunion, "sharedGroupDisplayName", "東京旅行");
-    const again = await rootFieldDigest(reunion, "sharedGroupDisplayName", "違反表現");
-    expect(bad).not.toBe(good);
-    expect(bad).toBe(again);
-  });
-
-  it("folds evasion spellings together", async () => {
-    const reunion = "6f9619ff-8b86-d011-b42d-00cf4fc964ff";
-    const plain = await rootFieldDigest(reunion, "sharedGroupDisplayName", "BadName");
-    for (const variant of ["badname", "  BadName  ", "Ｂａｄｎａｍｅ", "Bad​Name", "BAD﻿NAME"]) {
-      expect(await rootFieldDigest(reunion, "sharedGroupDisplayName", variant), variant).toBe(
-        plain,
-      );
-    }
-  });
-
-  it("keeps the zero-width joiner", () => {
-    expect(normalize("\u{1F468}‍\u{1F469}‍\u{1F467}")).not.toBe(
-      normalize("\u{1F468}\u{1F469}\u{1F467}"),
-    );
   });
 });

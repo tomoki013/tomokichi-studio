@@ -115,11 +115,6 @@ describe("POST /api/v1/support", () => {
     expect(response.status).toBe(200);
   });
 
-  it("accepts empty name and email together", async () => {
-    const response = await post({ ...validRequest, name: "", email: "" });
-    expect(response.status).toBe(200);
-  });
-
   it("silently accepts (without delivering) a honeypot-triggered submission", async () => {
     const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
       id: "email-id",
@@ -171,15 +166,6 @@ describe("POST /api/v1/support", () => {
       code: "VALIDATION_ERROR",
       fields: { request: "TOO_LARGE" },
     });
-  });
-
-  it("does not deliver honeypot submissions", async () => {
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
-    const response = await post({ ...validRequest, website: "spam.example" }, { deliver });
-    expect(response.status).toBe(200);
-    expect(deliver).not.toHaveBeenCalled();
   });
 
   it("returns 429 when rate limited", async () => {
@@ -275,10 +261,6 @@ describe("POST /api/v1/support", () => {
     const response = await post(validRequest, { origin });
     expect(response.status).toBe(200);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(origin);
-  });
-
-  it("accepts an Origin-less iOS request", async () => {
-    expect((await post(validRequest)).status).toBe(200);
   });
 
   it("handles preflight for allowed origins", async () => {

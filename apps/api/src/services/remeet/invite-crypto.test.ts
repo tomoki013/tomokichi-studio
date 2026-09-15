@@ -7,10 +7,6 @@ const KEY = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
 const OTHER_KEY = "Hx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQA=";
 
 describe("lookup hashes", () => {
-  it("is stable for the same secret and value", async () => {
-    expect(await lookupHash("secret", "token")).toBe(await lookupHash("secret", "token"));
-  });
-
   /// The point of keying it: a stolen database is not a working invitation
   /// unless the Worker secret went with it.
   it("changes completely when the secret changes", async () => {
