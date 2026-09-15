@@ -25,11 +25,33 @@ export const TELECOM = {
   notificationNumber: null as string | null,
   /** The bureau the notification was filed with. */
   authority: ["関東総合通信局", "Kanto Bureau of Telecommunications"] as [string, string],
+  /** Service area for an app delivered over the public internet. */
+  serviceArea: [
+    "インターネット接続環境のある地域（App Storeの提供地域に準じます）",
+    "Areas with internet access, subject to App Store availability",
+  ] as [string, string],
+  /** Operator identity fields required by the notification and useful for contact. */
+  address: OPERATOR.address,
+  telephone: OPERATOR.telephone,
+  telephoneHref: OPERATOR.telephoneHref,
   /** Support mailbox, shared with every other legal page. */
   email: OPERATOR.email,
 } as const;
 
 export type TelecomLocale = "ja" | "en";
+
+/** A link shown beside a detailed section of the disclosure. */
+export type TelecomLink = {
+  label: [string, string];
+  href: [string, string];
+};
+
+/** A translated section used by an app's telecommunications disclosure. */
+export type TelecomSection = {
+  heading: [string, string];
+  body: [string, string];
+  links?: TelecomLink[];
+};
 
 const i = (lang: TelecomLocale) => (lang === "ja" ? 0 : 1);
 
@@ -50,7 +72,7 @@ export function pendingLabel(lang: TelecomLocale): string {
   return lang === "ja" ? "通知待ち" : "Awaiting notification";
 }
 
-export type TelecomRow = { term: string; body: string; kind?: "contact" };
+export type TelecomRow = { term: string; body: string; kind?: "telephone" | "contact" };
 
 /** The rows of the disclosure, in the order the page shows them. */
 export function telecommunicationsRows(lang: TelecomLocale, appName: string): TelecomRow[] {
@@ -59,16 +81,22 @@ export function telecommunicationsRows(lang: TelecomLocale, appName: string): Te
   return lang === "ja"
     ? [
         { term: "サービス名", body: appName },
+        { term: "業務区域", body: TELECOM.serviceArea[index] },
         { term: "届出事業者", body: TELECOM.operator[index] },
+        { term: "所在地", body: TELECOM.address[index] },
+        { term: "電話番号", body: TELECOM.telephone[index], kind: "telephone" },
         { term: "電気通信事業届出番号", body: number },
         { term: "管轄総合通信局", body: TELECOM.authority[index] },
         { term: "お問い合わせ", body: TELECOM.email, kind: "contact" },
       ]
     : [
         { term: "Service", body: appName },
+        { term: "Service area", body: TELECOM.serviceArea[index] },
         // Deliberately not "registered carrier": what was filed is a
         // notification (届出), which is not a registration (登録).
         { term: "Business operator (notification filed)", body: TELECOM.operator[index] },
+        { term: "Address", body: TELECOM.address[index] },
+        { term: "Telephone", body: TELECOM.telephone[index], kind: "telephone" },
         { term: "Telecommunications business notification number", body: number },
         { term: "Bureau", body: TELECOM.authority[index] },
         { term: "Contact", body: TELECOM.email, kind: "contact" },
