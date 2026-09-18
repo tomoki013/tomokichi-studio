@@ -314,3 +314,24 @@ describe("Resend delivery", () => {
     ).rejects.toThrow("status 500");
   });
 });
+
+describe("Public API cannot read Ticket internals", () => {
+  it.each([
+    "/api/tickets",
+    "/api/tickets/private-id",
+    "/api/tickets/private-id/notes",
+    "/api/admin/tickets",
+    "/admin/tickets",
+    "/api/v1/tickets",
+    "/api/support/threads/private-id",
+  ])("has no read endpoint at %s", async (path) => {
+    const core = { getTicket: vi.fn(), listTickets: vi.fn(), getSupportThread: vi.fn() };
+    const response = await createApp().request(`https://tmkch.io${path}`, {}, {
+      ADMIN_CORE: core,
+    } as never);
+    expect(response.status).toBe(404);
+    expect(core.getTicket).not.toHaveBeenCalled();
+    expect(core.listTickets).not.toHaveBeenCalled();
+    expect(core.getSupportThread).not.toHaveBeenCalled();
+  });
+});
