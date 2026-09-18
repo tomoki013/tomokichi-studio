@@ -140,6 +140,9 @@ pnpm --filter @tomokichi/main exec wrangler versions list
 
 ## Admin
 
+Ticket lifecycle, priority/resolution rules, SLA settings, migration results and operations: [Operations Tickets](docs/operations-tickets.md).
+
+
 `admin.tmkch.io` is the shared operations screen for every Studio app —
 moderation reports, support conversations, and the app registry. It is three
 Workers, and only one of them is on the internet:
