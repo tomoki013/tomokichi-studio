@@ -138,6 +138,23 @@ and `whoami`. To drive a different Worker, filter it directly:
 pnpm --filter @tomokichi/main exec wrangler versions list
 ```
 
+## Documentation
+
+| | |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | the three kinds of Worker, the data flows, dependencies |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | requirements (mise), setup, environment, dev servers, troubleshooting |
+| [docs/TESTING.md](docs/TESTING.md) | test philosophy, running, CI, critical areas |
+| [docs/SECURITY.md](docs/SECURITY.md) | threat surface, secrets, auth, data protection, logging policy |
+| [docs/RELEASE.md](docs/RELEASE.md) | branch strategy, deploy order, migrations, rollback |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | monitoring, backup, incidents, restore |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | design decisions (ADR-001…) |
+| [docs/AI_INSTRUCTIONS.md](docs/AI_INSTRUCTIONS.md) | rules for coding agents |
+| [docs/operations-tickets.md](docs/operations-tickets.md) | Ticket lifecycle, priority/resolution, SLA, migration record |
+| [docs/admin-report-workflow.md](docs/admin-report-workflow.md) | reports, mail replies, signed moderation |
+| [docs/audit/tomokichi-studio-platform-audit.md](docs/audit/tomokichi-studio-platform-audit.md) | platform audit: Incident, monitoring, audit log, roles, MCP |
+| [docs/testing/test-gap-analysis.md](docs/testing/test-gap-analysis.md) | risk map and coverage |
+
 ## Admin
 
 Ticket lifecycle, priority/resolution rules, SLA settings, migration results and operations: [Operations Tickets](docs/operations-tickets.md).
