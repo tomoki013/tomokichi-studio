@@ -1,11 +1,15 @@
 ---
+import LanguageSwitcher from "@tomokichi/app-site/LanguageSwitcher.astro";
 import type { Locale } from "../data/apps";
 import { footer } from "../lib/copy";
+import { localeLinks } from "../lib/locale-links";
 
 interface Props {
   lang: Locale;
+  /** Canonical path of the current page, so the switcher keeps the page. */
+  path?: string;
 }
-const { lang } = Astro.props;
+const { lang, path = "/" } = Astro.props;
 const base = lang === "ja" ? "/ja" : "";
 /* Internal paths get the locale prefix; external ones are used as-is. */
 const href = (p: string, external?: boolean) => {
@@ -21,6 +25,7 @@ const href = (p: string, external?: boolean) => {
       <span>Tomokichi</span>
     </a>
     <p class="f-tag">{footer.tagline[lang]}</p>
+    <LanguageSwitcher lang={lang} locales={localeLinks(path)} label={lang === "ja" ? "言語" : "Language"} placement="footer" />
   </div>
 
   <div class="footer-cols">
