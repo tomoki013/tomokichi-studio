@@ -4,14 +4,16 @@
  *
  * The images are unretouched iPhone 17 Pro Max captures produced by
  * `AppStoreScreenshotTests` in the app repo and imported with
- * `scripts/import-app-screenshots.mjs`. They run against the fictional
+ * `scripts/import-app-screenshots.mjs`. `reunion`, `widgets` and
+ * `lockscreen` are taken by hand on the same simulator and fixture, since a
+ * Home Screen or Lock Screen widget cannot be captured from inside the app. They run against the fictional
  * `-seedRemeetReference` fixture, so nothing personal and no ad appears in
  * them. Astro resizes them and emits WebP at build time.
  */
 import { Image } from "astro:assets";
 import PhoneFrame from "@tomokichi/app-site/PhoneFrame.astro";
 
-type Screen = "home" | "memories" | "wishes" | "album" | "settings";
+type Screen = "home" | "memories" | "wishes" | "album" | "reunion" | "settings" | "widgets" | "lockscreen";
 type Size = "xs" | "sm" | "md" | "lg" | "xl";
 
 const {
@@ -20,6 +22,7 @@ const {
   size = "md",
   label = "",
   priority = false,
+  tone = "titanium",
   class: className = "",
 } = Astro.props as {
   screen: Screen;
@@ -27,6 +30,8 @@ const {
   size?: Size;
   label?: string;
   priority?: boolean;
+  /** Device finish; the Lock Screen reads better on the darker shell. */
+  tone?: "titanium" | "graphite";
   class?: string;
 };
 
@@ -34,24 +39,36 @@ const ja = lang === "ja";
 
 const alts: Record<Screen, [string, string]> = {
   home: [
-    "Remeetのホーム画面。再会までの残り日数、進捗、ふたつの都市をつなぐルートイラスト",
-    "Remeet’s home screen, with the days remaining, progress, and a route connecting both cities",
+    "Remeetのホーム画面。再会まで123日のカウントダウン、待った時間の進捗、東京とロンドンをつなぐルート、それぞれの現地時間と天気とひとこと、やりたいこと・思い出・記念日への入り口",
+    "Remeet’s home screen: a 123-day countdown, progress through the wait, a route between Tokyo and London with each city’s local time, weather, and a short note, and shortcuts to things to do, memories, and anniversaries",
   ],
   memories: [
-    "待っている間の記録。写真とメモが月ごとに並んでいる",
-    "Waiting memories, with photos and notes grouped by month",
+    "「待っている間の記録」画面。写真つきのメモが月ごとに並んでいる",
+    "The waiting memories screen, with photo notes grouped by month",
   ],
   wishes: [
-    "会ったらやりたいことリスト",
-    "The list of things to do together when you meet again",
+    "「会ったらやりたいこと」画面。一緒に映画を観に行く、手をつないで散歩する、などのリスト",
+    "The things-to-do-together screen, listing plans like going to a movie or taking a walk hand in hand",
   ],
   album: [
-    "再会アルバム。これまでの再会が写真付きで並んでいる",
-    "The reunion album, with past reunions and their photos",
+    "アルバム画面。「春の旅」「帰省の日々」など、これまでの再会が写真つきで並んでいる",
+    "The album screen, with past reunions such as “Spring trip” and “Days back home” shown with their photos",
+  ],
+  reunion: [
+    "再会の記録画面。夕暮れの海辺の写真、「再会の日の思い出」というタイトル、日付と場所、ひとことの振り返り",
+    "A reunion record: a photo of a beach at sunset, the title “A memory from the reunion”, its date and place, and a short reflection",
+  ],
+  widgets: [
+    "iPhoneのホーム画面に置いたRemeetのウィジェット。中サイズには再会まで123日のカウントダウンと進捗、最新の記録とやりたいこと。小サイズには日数、再会の日付、進捗とルート",
+    "Remeet widgets on the iPhone Home Screen: the medium one shows a 123-day countdown with progress, the latest memory, and a thing to do; the small one shows the days, the reunion date, progress, and the route",
+  ],
+  lockscreen: [
+    "iPhoneのロック画面に置いたRemeetのウィジェット。長方形には再会までの日数と進捗、円形には日数のリング",
+    "Remeet widgets on the iPhone Lock Screen: a rectangular one with the days left and progress, and a circular one with a ring around the number of days",
   ],
   settings: [
-    "Remeetの設定画面。通知、データ管理、ヘルプ、法的情報",
-    "Remeet’s settings screen, with notifications, data, help, and legal information",
+    "Remeetの設定画面。上部にShare Passのカード、その下に通知・起動時の再会・カレンダー・位置情報などの設定",
+    "Remeet’s settings screen, with the Share Pass card at the top and settings for notifications, launch reunion, calendar, and location below",
   ],
 };
 
@@ -69,7 +86,7 @@ if (!image) {
 const screenWidth: Record<Size, number> = { xs: 118, sm: 158, md: 208, lg: 262, xl: 323 };
 ---
 
-<PhoneFrame size={size} label={label} class={className}>
+<PhoneFrame size={size} label={label} tone={tone} class={className}>
   <Image
     src={image}
     format="webp"

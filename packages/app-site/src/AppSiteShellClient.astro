@@ -3,29 +3,7 @@
     let scrollBound = false;
     let keyBound = false;
     let menuMediaBound = false;
-    let languageBound = false;
-    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-    const bindLanguageSwitchers = () => {
-      if (languageBound) return;
-      document.addEventListener("click", (event) => {
-        const target = event.target;
-        if (!(target instanceof Element)) return;
-        document.querySelectorAll("[data-language-switcher][open]").forEach((switcher) => {
-          if (!switcher.contains(target)) switcher.removeAttribute("open");
-        });
-      });
-      document.addEventListener("keydown", (event) => {
-        if (event.key !== "Escape") return;
-        document.querySelectorAll("[data-language-switcher][open]").forEach((switcher) => {
-          switcher.removeAttribute("open");
-        });
-      });
-      languageBound = true;
-    };
-
     const initShell = () => {
-      bindLanguageSwitchers();
       const header = document.querySelector("[data-app-header]");
       const mobileQuery = matchMedia("(max-width: 900px)");
       if (header) {

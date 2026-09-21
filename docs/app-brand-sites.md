@@ -103,7 +103,17 @@ no `detail`, and one without captures has no `screen`, so nothing on that page
 claims to be a screenshot when it isn't.
 
 That downsamples to WebP in `src/assets/screens/`, where Astro resizes per
-breakpoint. Render them through the app's local `AppScreen.astro`, which wraps
+breakpoint. Screens the UI test cannot reach — a Home Screen or Lock Screen
+with the app's widgets placed on it, a detail screen behind a tap — can be
+taken by hand on the same simulator and fixture (`xcrun simctl io <device>
+screenshot`) and dropped into the capture folder under the same
+`<lang>-<nn>-<name>.png` naming; run the importer with `--keep` so it adds to
+the folder. Whatever the fixture puts on screen is what ships, so keep it free
+of anything that reads as a real person, names included.
+
+Share images should come from the same captures. Remeet draws its
+`og.png`/`og-ja.png` with `scripts/build-og.mjs`; re-run it after re-importing
+screenshots. Render them through the app's local `AppScreen.astro`, which wraps
 `@tomokichi/app-site/PhoneFrame.astro` — the shared iPhone 17 Pro frame. Do not
 size the bitmap inside a frame from page CSS; the frame owns its geometry, and
 a stray `height` or `object-fit` rule on a descendant `img` will distort it.

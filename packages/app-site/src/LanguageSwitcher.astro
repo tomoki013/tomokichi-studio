@@ -1,0 +1,311 @@
+---
+/**
+ * The language switcher every app brand site shares.
+ *
+ * Desktop header and footer render a `[ globe  日本語 ▾ ]` button that opens a
+ * menu listing each language by its own name, with the current one checked.
+ * The mobile navigation renders the same list as a standalone section, so it
+ * is never a small link buried at the bottom of the menu.
+ *
+ * Every entry links to the same logical page in that language — the hrefs come
+ * from `i18n.localeLinks(page)` (or the legacy `enPageHref`/`jaPageHref`), so
+ * switching on `/ja/share-pass` lands on `/share-pass`, not on the home page.
+ *
+ * Languages are named, never flagged: a flag is a country, and a country is
+ * not a language.
+ */
+import type { AppSiteLocaleLink } from "./i18n";
+import "./language-switcher.css";
+
+const {
+  lang,
+  locales,
+  label = "Language",
+  placement = "header",
+} = Astro.props as {
+  lang: string;
+  locales: AppSiteLocaleLink[];
+  /** Localized "Language" heading / accessible name. */
+  label?: string;
+  placement?: "header" | "mobile" | "footer";
+};
+
+const current = locales.find((locale) => locale.code === lang) ?? locales[0];
+const safeLang = lang.replace(/[^a-zA-Z0-9_-]/g, "-");
+const menuId = `app-site-language-${placement}-${safeLang}`;
+const headingId = `${menuId}-heading`;
+---
+
+{placement === "mobile" ? (
+  <section class="app-site-language app-site-language--list" aria-labelledby={headingId} data-language-switcher>
+    <h2 class="app-site-language-heading" id={headingId}>
+      <svg class="app-site-language-globe" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6" /><path d="M3.4 12h17.2" /><path d="M12 3.4c2.6 2.9 2.6 14.3 0 17.2-2.6-2.9-2.6-14.3 0-17.2z" /></svg>
+      {label}
+    </h2>
+    <ul class="app-site-language-list">
+      {locales.map((locale) => (
+        <li>
+          <a
+            class:list={["app-site-language-option", { "is-current": locale.code === lang }]}
+            href={locale.href}
+            hreflang={locale.code}
+            lang={locale.code}
+            aria-current={locale.code === lang ? "true" : undefined}
+            data-language-choice={locale.code}
+            data-astro-prefetch
+          >
+            <svg class="app-site-language-check" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="m3.2 8.4 3 3 6.6-6.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>{locale.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+) : (
+  <div class:list={["app-site-language", "app-site-language--popover", `is-${placement}`]} data-language-switcher>
+    <button
+      class="app-site-language-toggle"
+      type="button"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-controls={menuId}
+      aria-label={`${label}: ${current?.label ?? lang}`}
+      data-language-toggle
+    >
+      <svg class="app-site-language-globe" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6" /><path d="M3.4 12h17.2" /><path d="M12 3.4c2.6 2.9 2.6 14.3 0 17.2-2.6-2.9-2.6-14.3 0-17.2z" /></svg>
+      <span class="app-site-language-current" lang={current?.code}>{current?.label ?? lang}</span>
+      <svg class="app-site-language-chevron" viewBox="0 0 12 8" width="10" height="7" aria-hidden="true" focusable="false"><path d="m1 1.25 5 5 5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></svg>
+    </button>
+    <div class="app-site-language-menu" id={menuId} role="menu" aria-label={label} hidden data-language-menu>
+      {locales.map((locale) => (
+        <a
+          class:list={["app-site-language-option", { "is-current": locale.code === lang }]}
+          role="menuitemradio"
+          aria-checked={locale.code === lang ? "true" : "false"}
+          tabindex="-1"
+          href={locale.href}
+          hreflang={locale.code}
+          lang={locale.code}
+          data-language-choice={locale.code}
+          data-astro-prefetch
+        >
+          <svg class="app-site-language-check" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="m3.2 8.4 3 3 6.6-6.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span>{locale.label}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+
+<script>
+  /*
+   * One delegated controller for every switcher on the page. Astro bundles a
+   * component script once per page and, with the ClientRouter, keeps it alive
+   * across navigations — so nothing here binds to a specific element, and no
+   * re-initialisation on `astro:page-load` is needed for the menus.
+   */
+  const STORAGE_KEY = "app-site-locale";
+  const COOKIE_NAME = "app_site_locale";
+  const OPTION = "[data-language-choice]";
+
+  const menuOf = (switcher: Element) => switcher.querySelector<HTMLElement>("[data-language-menu]");
+  const toggleOf = (switcher: Element) => switcher.querySelector<HTMLButtonElement>("[data-language-toggle]");
+  const optionsOf = (menu: Element) => Array.from(menu.querySelectorAll<HTMLAnchorElement>(OPTION));
+
+  const setOpen = (switcher: Element, open: boolean) => {
+    const menu = menuOf(switcher);
+    const toggle = toggleOf(switcher);
+    if (!menu || !toggle) return;
+    if ((toggle.getAttribute("aria-expanded") === "true") === open) return;
+    toggle.setAttribute("aria-expanded", String(open));
+    menu.hidden = !open;
+    switcher.classList.toggle("is-open", open);
+  };
+
+  const openSwitchers = () =>
+    Array.from(document.querySelectorAll("[data-language-switcher]")).filter(
+      (switcher) => toggleOf(switcher)?.getAttribute("aria-expanded") === "true",
+    );
+
+  const closeAll = (except?: Element | null) => {
+    for (const switcher of openSwitchers()) {
+      if (switcher !== except) setOpen(switcher, false);
+    }
+  };
+
+  const focusOption = (menu: Element, index: number) => {
+    const options = optionsOf(menu);
+    if (!options.length) return;
+    const wrapped = ((index % options.length) + options.length) % options.length;
+    options[wrapped].focus();
+  };
+
+  const openAndFocus = (switcher: Element, which: "current" | "first" | "last") => {
+    closeAll(switcher);
+    setOpen(switcher, true);
+    const menu = menuOf(switcher);
+    if (!menu) return;
+    const options = optionsOf(menu);
+    const current = options.findIndex((option) => option.getAttribute("aria-checked") === "true");
+    const index = which === "last" ? options.length - 1 : which === "first" || current < 0 ? 0 : current;
+    focusOption(menu, index);
+  };
+
+  /*
+   * The choice is remembered so a later visit can open in the same language.
+   * Both stores are written because they answer different questions: the
+   * cookie is what an edge worker could read, localStorage is what this page
+   * reads. Either may be unavailable (private mode, blocked storage), so each
+   * write is best-effort.
+   */
+  const remember = (code: string) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, code);
+    } catch {}
+    try {
+      // biome-ignore lint/suspicious/noDocumentCookie: a plain first-party preference cookie; the Cookie Store API is not available in every browser this runs in
+      document.cookie = `${COOKIE_NAME}=${encodeURIComponent(code)}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {}
+  };
+
+  const remembered = (): string | null => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return stored;
+    } catch {}
+    try {
+      const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
+      if (match) return decodeURIComponent(match[1]);
+    } catch {}
+    return null;
+  };
+
+  /*
+   * Honour a remembered language on arrival from outside the site — a search
+   * result, a shared link, a bookmark — by moving to the same page in that
+   * language. It runs once per tab session and never for in-site navigation,
+   * so a person can always browse the other language freely; picking a
+   * language in the switcher is what updates the preference. Crawlers do not
+   * run this, so every localized URL still indexes as itself.
+   */
+  const applyRemembered = () => {
+    const preferred = remembered();
+    const currentLang = document.documentElement.lang;
+    if (!preferred || preferred === currentLang) return;
+    let sameOrigin = false;
+    try {
+      sameOrigin = Boolean(document.referrer) && new URL(document.referrer).origin === location.origin;
+    } catch {}
+    if (sameOrigin) return;
+    try {
+      if (sessionStorage.getItem(`${STORAGE_KEY}-applied`)) return;
+      sessionStorage.setItem(`${STORAGE_KEY}-applied`, "1");
+    } catch {
+      return;
+    }
+    const target = document.querySelector<HTMLAnchorElement>(`${OPTION}[hreflang="${CSS.escape(preferred)}"]`);
+    if (!target) return;
+    const href = target.getAttribute("href");
+    if (!href || href === location.pathname) return;
+    location.replace(`${href}${location.search}${location.hash}`);
+  };
+
+  const bind = () => {
+    if ((document.documentElement as HTMLElement).dataset.languageSwitcherBound === "1") return;
+    (document.documentElement as HTMLElement).dataset.languageSwitcherBound = "1";
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const choice = target.closest<HTMLElement>(OPTION);
+      if (choice?.dataset.languageChoice) remember(choice.dataset.languageChoice);
+
+      const toggle = target.closest("[data-language-toggle]");
+      const switcher = target.closest("[data-language-switcher]");
+      if (toggle && switcher) {
+        const open = toggle.getAttribute("aria-expanded") === "true";
+        closeAll(switcher);
+        setOpen(switcher, !open);
+        return;
+      }
+      if (!switcher || choice) closeAll();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const switcher = target.closest("[data-language-switcher]");
+
+      if (event.key === "Escape") {
+        const open = openSwitchers();
+        if (!open.length) return;
+        event.preventDefault();
+        for (const item of open) setOpen(item, false);
+        const owner = switcher && open.includes(switcher) ? switcher : open[0];
+        toggleOf(owner)?.focus();
+        return;
+      }
+      if (!switcher) return;
+
+      const menu = menuOf(switcher);
+      const toggle = toggleOf(switcher);
+      if (!menu || !toggle) return;
+
+      if (target === toggle) {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          openAndFocus(switcher, event.key === "ArrowDown" ? "first" : "last");
+        } else if (event.key === "Enter" || event.key === " ") {
+          // Opening from the keyboard lands focus on the current language,
+          // so the menu can be read and moved through without a mouse.
+          event.preventDefault();
+          if (toggle.getAttribute("aria-expanded") === "true") setOpen(switcher, false);
+          else openAndFocus(switcher, "current");
+        }
+        return;
+      }
+
+      if (!menu.contains(target)) return;
+      const options = optionsOf(menu);
+      const index = options.indexOf(target as HTMLAnchorElement);
+      switch (event.key) {
+        case "ArrowDown":
+          event.preventDefault();
+          focusOption(menu, index + 1);
+          break;
+        case "ArrowUp":
+          event.preventDefault();
+          focusOption(menu, index - 1);
+          break;
+        case "Home":
+          event.preventDefault();
+          focusOption(menu, 0);
+          break;
+        case "End":
+          event.preventDefault();
+          focusOption(menu, options.length - 1);
+          break;
+        case " ":
+          // Space activates a menu item; links only respond to Enter natively.
+          event.preventDefault();
+          (target as HTMLAnchorElement).click();
+          break;
+        case "Tab":
+          setOpen(switcher, false);
+          break;
+      }
+    });
+
+    // Tabbing or clicking away closes the menu, without stealing focus.
+    document.addEventListener("focusin", (event) => {
+      const target = event.target;
+      const owner = target instanceof Element ? target.closest("[data-language-switcher]") : null;
+      closeAll(owner);
+    });
+  };
+
+  bind();
+  applyRemembered();
+  // Menus never survive a client-side navigation open; state lives in the DOM.
+  document.addEventListener("astro:before-swap", () => closeAll());
+</script>

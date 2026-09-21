@@ -20,22 +20,22 @@ const href = (slug: string) => `${base}/${slug}`.replaceAll("//", "/");
 const jaPageHref = (`/ja/${routePath}`.replace(/\/$/, "")) || "/ja";
 const enPageHref = `/${routePath}`.replace(/\/$/, "") || "/";
 const labels = ja
-  ? { features: "機能", how: "使い方", pricing: "料金", faq: "よくある質問", news: "ニュース" }
-  : { features: "Features", how: "How it works", pricing: "Pricing", faq: "FAQ", news: "News" };
+  ? { features: "機能", how: "使い方", sharePass: "Share Pass", faq: "よくある質問", news: "ニュース" }
+  : { features: "Features", how: "How it works", sharePass: "Share Pass", faq: "FAQ", news: "News" };
 const nav = [
   { slug: "features", label: labels.features, href: href("features") },
   { slug: "how-to", label: labels.how, href: href("how-to") },
-  { slug: "pricing", label: labels.pricing, href: href("pricing") },
+  { slug: "share-pass", label: labels.sharePass, href: href("share-pass") },
 ];
 const footerColumns = ja
   ? [
-      { title: "プロダクト", links: [{ label: "機能", href: href("features") }, { label: "使い方", href: href("how-to") }, { label: "スクリーンショット", href: href("screenshots") }, { label: "料金", href: href("pricing") }] },
+      { title: "プロダクト", links: [{ label: "機能", href: href("features") }, { label: "使い方", href: href("how-to") }, { label: "スクリーンショット", href: href("screenshots") }, { label: "Share Pass", href: href("share-pass") }] },
       { title: "サポート", links: [{ label: "よくある質問", href: href("faq") }, { label: "ニュース", href: href("news") }, { label: "アップデート情報", href: href("updates") }, { label: "お問い合わせ", href: supportHref("ja"), external: true }] },
       { title: "規約", links: [{ label: "プライバシーポリシー", href: href("privacy") }, { label: "利用規約", href: href("terms") }, { label: "特定商取引法に基づく表記", href: href("commercial-transactions") }, { label: "電気通信事業法に基づく表記", href: href("legal/telecommunications") }] },
       { title: "運営者情報", links: [{ label: "運営サイト", href: mainSiteUrl("ja"), external: true }, { label: "ほかのアプリ", href: mainSiteUrl("ja", "/products"), external: true }] },
     ]
   : [
-      { title: "Product", links: [{ label: "Features", href: href("features") }, { label: "How it works", href: href("how-to") }, { label: "Screenshots", href: href("screenshots") }, { label: "Pricing", href: href("pricing") }] },
+      { title: "Product", links: [{ label: "Features", href: href("features") }, { label: "How it works", href: href("how-to") }, { label: "Screenshots", href: href("screenshots") }, { label: "Share Pass", href: href("share-pass") }] },
       { title: "Support", links: [{ label: "FAQ", href: href("faq") }, { label: "News", href: href("news") }, { label: "App updates", href: href("updates") }, { label: "Contact", href: supportHref("en"), external: true }] },
       { title: "Legal", links: [{ label: "Privacy Policy", href: href("privacy") }, { label: "Terms of Service", href: href("terms") }, { label: "Commercial Transactions", href: href("commercial-transactions") }, { label: "Telecommunications disclosure", href: href("legal/telecommunications") }] },
       { title: "Operator", links: [{ label: "Operator site", href: mainSiteUrl("en"), external: true }, { label: "Other apps", href: mainSiteUrl("en", "/products"), external: true }] },
@@ -56,8 +56,8 @@ const mobileFooterLinks = ja
       { label: "Other apps", href: mainSiteUrl("en", "/products"), external: true },
     ];
 const metaDescription = description ?? (ja
-  ? "Remeetは、再会までをカウントダウンし、待っている日々を記録して、1人のパートナーとも共有できるiPhoneアプリです。個人利用と最初の共有は無料。"
-  : "Remeet counts down to your next reunion, keeps the waiting days, and can share one reunion with one partner. Personal use and the first shared reunion are free.");
+  ? "Remeetは、再会までをカウントダウンし、待っている日々を記録して、1人のパートナーとも共有できるiPhoneアプリです。基本機能は無料。ふたりで待つためのShare Passがあります。"
+  : "Remeet counts down to your next reunion, keeps the waiting days, and can share one reunion with one partner. The core features are free; Share Pass is for waiting together.");
 const storeLabel = ja ? "App Storeで近日公開" : "Coming soon on the App Store";
 ---
 
@@ -69,7 +69,7 @@ const storeLabel = ja ? "App Storeで近日公開" : "Coming soon on the App Sto
   brand="Remeet"
   logoImage="/assets/remeet-icon.png"
   favicon="/assets/remeet-favicon.png"
-  ogImage="/assets/og.png"
+  ogImage={ja ? "/assets/og-ja.png" : "/assets/og.png"}
   tagline={ja ? "再会までの時間を、特別な思い出に。" : "Make the wait part of your story."}
   siteUrl={appSiteUrl("remeet")}
   homeHref={ja ? "/ja" : "/"}

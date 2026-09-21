@@ -11,9 +11,13 @@ export default defineConfig({
     defaultStrategy: "viewport",
   },
   // English is now served from the root; the old /en/* URLs redirect to it.
+  // The pricing page became Share Pass. The Worker answers these with a real
+  // 301 in production; these static redirect pages cover `astro preview`.
   redirects: {
     "/en": "/",
     "/en/[page]": "/[page]",
+    "/pricing": "/share-pass",
+    "/ja/pricing": "/ja/share-pass",
   },
   vite: {
     plugins: [tailwindcss()],

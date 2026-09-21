@@ -1439,26 +1439,36 @@ body:has(.remeet-page) {
 .landing-sections .store.store-soon:hover {
   transform: none;
 }
-.plan-ad-note {
-  margin: 18px 0 0;
-  color: #7a736c;
-  font-size: 11px;
-  line-height: 1.9;
-  text-align: center;
-}
 .shot-gallery {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 36px 18px;
   justify-items: center;
+}
+.shot-gallery li {
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+.shot-gallery li > p {
+  margin: 0;
+  color: #6b645d;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
 }
 .shot-gallery .app-phone-frame {
   --phone-w: min(220px, 100%);
 }
 .shot-gallery .app-phone-frame-label {
-  color: #6b645d;
-  font-size: 11px;
-  font-weight: 600;
+  color: #3b352f;
+  font-size: 11.5px;
+  font-weight: 650;
   letter-spacing: 0.04em;
 }
 .showcase-note {
@@ -1555,16 +1565,6 @@ body:has(.remeet-page) {
 }
 .secondary-link:hover span {
   transform: translateX(4px);
-}
-.plan-message {
-  margin: 18px 0 8px;
-  text-align: center;
-}
-.plan-message p {
-  margin: 0 0 10px;
-  color: #5e5a56;
-  font-size: 13.5px;
-  line-height: 1.9;
 }
 .guide-visual-list {
   display: grid;
@@ -1803,23 +1803,6 @@ body:has(.remeet-page) {
   z-index: 2;
   filter: drop-shadow(0 15px 25px rgb(34 35 36 / 20%));
 }
-.ghost-card {
-  position: absolute;
-  width: 270px;
-  height: 470px;
-  border-radius: 25px;
-  opacity: 0.65;
-  background: url("/assets/update-showcase.png") center / cover;
-  box-shadow: 0 12px 22px rgb(50 43 38 / 10%);
-}
-.ghost-card.left {
-  left: 4%;
-  transform: rotate(-5deg);
-}
-.ghost-card.right {
-  right: 4%;
-  transform: rotate(5deg);
-}
 .screens-stage button {
   position: absolute;
   bottom: 25px;
@@ -1851,135 +1834,6 @@ body:has(.remeet-page) {
   margin: 0 auto;
   border-radius: 20px;
   box-shadow: 0 16px 36px rgb(48 44 40 / 10%);
-}
-/* Single free plan, presented quietly. */
-.plan-card {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 44px 40px 40px;
-  display: grid;
-  justify-items: center;
-  text-align: center;
-  border: 1px solid rgb(224 174 126 / 25%);
-  border-radius: 22px;
-  background: rgb(255 255 255 / 68%);
-}
-.plan-label {
-  margin: 0;
-  color: #b8895a;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-}
-.plan-price {
-  margin: 14px 0 0;
-  font:
-    400 46px / 1.1 Georgia,
-    "Yu Mincho",
-    serif;
-  letter-spacing: 0.02em;
-}
-.plan-sub {
-  margin: 14px 0 0;
-  color: #6b645d;
-  font-size: 11px;
-}
-.plan-list {
-  width: 100%;
-  margin: 32px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2px 24px;
-  text-align: left;
-}
-.plan-list li {
-  padding: 13px 0 13px 24px;
-  position: relative;
-  border-bottom: 1px solid rgb(60 48 40 / 6%);
-  color: #4a443e;
-  font-size: 10.5px;
-  line-height: 1.7;
-}
-.plan-list li::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 19px;
-  width: 9px;
-  height: 5px;
-  border-left: 1.5px solid #e0904a;
-  border-bottom: 1.5px solid #e0904a;
-  transform: rotate(-45deg);
-}
-.plan-card .orange-cta {
-  margin-top: 36px;
-}
-
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  position: relative;
-  z-index: 2;
-}
-.pricing-grid article {
-  min-height: 500px;
-  padding: 36px 32px 27px;
-  border-radius: 20px;
-  background: rgb(255 255 255 / 74%);
-  box-shadow: 0 12px 28px rgb(70 55 45 / 7%);
-}
-.pricing-grid article.premium {
-  border: 1px solid #f1c79f;
-}
-.pricing-grid h2 {
-  margin: 0 0 25px;
-  text-align: center;
-  font-size: 17px;
-}
-.pricing-grid strong {
-  display: block;
-  text-align: center;
-  font:
-    34px Georgia,
-    serif;
-}
-.pricing-grid strong small {
-  font: 9px sans-serif;
-}
-.pricing-grid ul {
-  min-height: 260px;
-  padding: 20px 0 0;
-  list-style: none;
-  font-size: 10px;
-  line-height: 3.25;
-}
-.pricing-grid li {
-  border-bottom: 1px solid rgb(53 45 40 / 5%);
-}
-.pricing-grid li::first-letter {
-  color: #ee9c4c;
-}
-.pricing-grid a {
-  min-height: 42px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 9px;
-  background: white;
-  box-shadow: 0 5px 14px rgb(60 48 40 / 7%);
-  font-size: 10px;
-}
-.pricing-grid .premium a {
-  color: white;
-  background: linear-gradient(135deg, #efa24d, #efb274);
-}
-.pricing-map {
-  width: 480px;
-  margin: -30px auto 0;
-  opacity: 0.38;
 }
 .faq-tabs {
   display: flex;
@@ -2289,16 +2143,6 @@ body:has(.remeet-page) {
   border-radius: 22px 22px 0 0;
   filter: drop-shadow(0 18px 24px rgb(48 51 55 / 15%));
 }
-.landing-sections .feature-grid .feature-shot.is-wide {
-  place-items: center;
-}
-.landing-sections .feature-grid .feature-shot.is-wide > img,
-.landing-sections .feature-grid .feature-shot.is-wide > picture img {
-  width: 100%;
-  height: auto;
-  max-height: 360px;
-  border-radius: 20px;
-}
 .landing-sections .feature-grid .feature-shot .app-phone-frame {
   filter: drop-shadow(0 18px 24px rgb(48 51 55 / 15%));
 }
@@ -2323,12 +2167,24 @@ body:has(.remeet-page) {
 }
 .widget-art {
   min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(16px, 4vw, 48px);
 }
-.landing-sections .widgets .widget-art img {
-  width: 100%;
-  height: auto;
-  border-radius: 26px;
+.widget-art .app-phone-frame {
+  --phone-w: min(220px, 42vw);
   filter: drop-shadow(0 24px 35px rgb(62 82 98 / 18%));
+}
+.widget-art .app-phone-frame:first-child {
+  margin-bottom: 34px;
+}
+.widget-art .app-phone-frame-label {
+  color: #4f5b63;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
 }
 .landing-sections .story {
   min-height: 680px;
@@ -2520,7 +2376,7 @@ body:has(.remeet-page) {
   margin: clamp(36px, 6vw, 82px) 14px 0;
   padding-block: clamp(72px, 9vw, 120px);
   display: grid;
-  grid-template-columns: minmax(260px, 0.64fr) minmax(0, 1.36fr);
+  grid-template-columns: minmax(300px, 0.55fr) minmax(0, 1.45fr);
   gap: clamp(38px, 7vw, 100px);
   align-items: center;
   overflow: hidden;
@@ -2557,8 +2413,8 @@ body:has(.remeet-page) {
 .screen-story-rail {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
-  gap: clamp(12px, 2vw, 24px);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(10px, 1.6vw, 20px);
   align-items: end;
 }
 .screen-story-rail figure {
@@ -2568,13 +2424,18 @@ body:has(.remeet-page) {
   justify-items: center;
   gap: 18px;
 }
-.screen-story-rail figure:nth-child(2),
-.screen-story-rail figure:nth-child(4) {
+.screen-story-rail figure:nth-child(even) {
   transform: translateY(42px);
 }
 .screen-story-rail .app-phone-frame {
+  /* Five frames share the rail, so each takes its column rather than its
+     nominal size; the odd/even sizes only set the ratio between them. */
+  --phone-w: 100%;
   max-width: 100%;
   filter: drop-shadow(0 18px 26px rgb(0 0 0 / 28%));
+}
+.screen-story-rail figure:nth-child(even) .app-phone-frame {
+  --phone-w: 86%;
 }
 .screen-story-rail figcaption {
   width: 100%;
@@ -2597,8 +2458,12 @@ body:has(.remeet-page) {
   }
   .screen-story-rail {
     overflow-x: auto;
-    grid-template-columns: repeat(4, minmax(190px, 1fr));
+    grid-template-columns: repeat(5, minmax(190px, 1fr));
     padding: 10px 4px 58px;
+  }
+  .screen-story-rail .app-phone-frame,
+  .screen-story-rail figure:nth-child(even) .app-phone-frame {
+    --phone-w: 100%;
     scroll-snap-type: x mandatory;
     scrollbar-width: thin;
   }
@@ -2613,10 +2478,9 @@ body:has(.remeet-page) {
   }
   .screen-story-rail {
     margin-right: -18px;
-    grid-template-columns: repeat(4, minmax(172px, 72vw));
+    grid-template-columns: repeat(5, minmax(172px, 72vw));
   }
-  .screen-story-rail figure:nth-child(2),
-  .screen-story-rail figure:nth-child(4) {
+  .screen-story-rail figure:nth-child(even) {
     transform: none;
   }
   .closing-chapter {
@@ -2683,124 +2547,283 @@ body:has(.remeet-page) {
   font-size: 13px;
   line-height: 1.95;
 }
-.widget-gallery-card img {
-  width: 100%;
-  border-radius: 22px;
-  filter: drop-shadow(0 22px 32px rgb(52 71 82 / 16%));
-}
-
-.pricing-story {
-  display: grid;
-  gap: 22px;
-}
-/* Both plans carry the same visual weight: over-selling "free" next to a paid
-   in-app purchase is what the pricing page has to avoid. */
-.plan-pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-}
-.plan-card {
-  padding: clamp(26px, 4vw, 42px);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid rgb(60 48 40 / 10%);
-  border-radius: 26px;
-  background: rgb(255 255 255 / 76%);
-  box-shadow: 0 22px 50px rgb(68 52 42 / 7%);
-}
-.plan-card--paid {
-  border-color: rgb(212 135 72 / 42%);
-  background: linear-gradient(165deg, rgb(255 248 240 / 92%), rgb(255 255 255 / 76%));
-}
-.plan-badge {
-  margin: 0 0 14px;
-  align-self: start;
-  padding: 6px 13px;
-  border-radius: 999px;
-  color: #fff;
-  background: #d48748;
-  font-size: 9.5px;
-  font-weight: 750;
-  letter-spacing: 0.14em;
-}
-.plan-card .plan-label {
-  margin: 0;
-  color: #8a7f74;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-}
-.plan-amount {
-  margin: 14px 0 0;
+.widget-gallery-screens {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(16px, 3vw, 40px);
 }
-.plan-amount strong {
+.widget-gallery-screens .app-phone-frame {
+  --phone-w: min(170px, 40vw);
+  filter: drop-shadow(0 22px 32px rgb(52 71 82 / 16%));
+}
+.widget-gallery-screens .app-phone-frame:first-child {
+  margin-bottom: 28px;
+}
+
+/* Share Pass ---------------------------------------------------------------
+   The page's job is to say "free" first and "Share Pass" second, without the
+   two ever reading as a plan comparison: free is not the small column. */
+.share-pass {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(44px, 7vw, 76px);
+}
+.pass-free {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(26px, 5vw, 56px);
+  align-items: center;
+}
+.pass-free h2,
+.pass-concept h2 {
+  margin: 0;
   font:
-    400 clamp(34px, 5vw, 50px) Georgia,
+    400 clamp(22px, 2.6vw, 29px) / 1.5 Georgia,
+    "Yu Mincho",
     serif;
+  letter-spacing: 0.03em;
 }
-.plan-amount span {
-  color: #7a736c;
-  font-size: 11px;
-}
-.plan-summary {
+.pass-free-copy > p:not(.eyebrow),
+.pass-concept-copy > p:not(.eyebrow) {
   margin: 18px 0 0;
   color: #5f5952;
   font-size: 12.5px;
-  line-height: 1.95;
+  line-height: 2;
+}
+.pass-free-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.pass-free-list li {
+  padding: 16px 18px 16px 40px;
+  position: relative;
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgb(60 48 40 / 6%);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 70%);
+}
+.pass-free-list li::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 22px;
+  width: 10px;
+  height: 5px;
+  border-left: 1.6px solid #e0904a;
+  border-bottom: 1.6px solid #e0904a;
+  transform: rotate(-45deg);
+}
+.pass-free-list strong {
+  color: #3b352f;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+.pass-free-list span {
+  color: #7a736c;
+  font-size: 10.5px;
+  line-height: 1.6;
 }
 
-/* One table states plainly what costs money and what does not. */
-.plan-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
+.pass-concept {
+  padding: clamp(26px, 4vw, 44px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(26px, 5vw, 56px);
+  align-items: center;
+  border-radius: 26px;
+  background: linear-gradient(132deg, #fdf3e8 0%, #fbf6ef 50%, #f2f5f8 100%);
 }
-.plan-table caption {
-  margin-bottom: 14px;
-  color: #8a7f74;
+.pass-concept-note {
+  color: #b8895a !important;
+  font-weight: 650;
+}
+/* The pass is a thing you hold, so the page draws one — the same ticket
+   silhouette the app's wallet uses, notches and tear line included. */
+.pass-ticket {
+  --notch: 14px;
+  margin: 0 auto;
+  width: min(100%, 320px);
+  aspect-ratio: 16 / 9;
+  padding: 22px 26px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  color: #fff;
+  background: linear-gradient(135deg, #efa24d, #e88b4b 60%, #d9793f);
+  border-radius: 18px;
+  box-shadow: 0 26px 54px rgb(214 122 60 / 30%);
+  transform: rotate(-3deg);
+  -webkit-mask:
+    radial-gradient(circle at 0 62%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 100% 62%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+  mask:
+    radial-gradient(circle at 0 62%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 100% 62%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.pass-ticket::after {
+  content: "";
+  position: absolute;
+  left: var(--notch);
+  right: var(--notch);
+  top: 62%;
+  border-top: 1.5px dashed rgb(255 255 255 / 55%);
+}
+.pass-ticket {
+  position: relative;
+}
+.pass-ticket-label {
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.28em;
+  opacity: 0.85;
+}
+.pass-ticket strong {
+  font:
+    400 clamp(22px, 3vw, 28px) / 1.3 Georgia,
+    "Yu Mincho",
+    serif;
+  letter-spacing: 0.04em;
+}
+.pass-ticket small {
+  margin-top: 14px;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-align: left;
+  letter-spacing: 0.06em;
+  opacity: 0.9;
 }
-.plan-table th,
-.plan-table td {
-  padding: 15px 16px;
-  border-bottom: 1px solid rgb(60 48 40 / 9%);
-  font-size: 12px;
-  line-height: 1.75;
-  font-weight: 400;
+
+.pass-promise-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
-.plan-table thead th {
-  color: #8a7f74;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  border-bottom-color: rgb(60 48 40 / 22%);
+.pass-promise-grid article {
+  padding: 26px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  border: 1px solid rgb(60 48 40 / 5%);
+  border-radius: 18px;
+  background: rgb(255 255 255 / 66%);
 }
-.plan-table tbody th {
-  color: #3b352f;
-}
-.plan-table td {
-  width: 34%;
-  color: #6b645d;
-  white-space: nowrap;
-}
-.pricing-summary {
+.pass-promise-grid h3 {
   margin: 0;
-  padding: 18px 20px;
-  border: 1px solid rgb(212 135 72 / 32%);
-  border-radius: 16px;
-  background: rgb(255 248 240 / 80%);
-  color: #4a443e;
-  font-size: 12.5px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+.pass-promise-grid p {
+  margin: 0;
+  color: #5f5952;
+  font-size: 11.5px;
   line-height: 1.95;
+}
+.pass-visual {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(20px, 5vw, 56px);
+}
+.pass-visual .app-phone-frame {
+  --phone-w: min(220px, 42vw);
+}
+.pass-visual .app-phone-frame-label {
+  color: #8a7f74;
+  font-size: 10.5px;
+}
+.pass-visual .app-phone-frame:nth-child(2) {
+  margin-bottom: 36px;
+}
+
+.pass-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.pass-fact {
+  padding: 26px 26px 24px;
+  border: 1px solid rgb(212 135 72 / 30%);
+  border-radius: 18px;
+  background: linear-gradient(165deg, rgb(255 248 240 / 92%), rgb(255 255 255 / 76%));
+}
+.pass-fact-figure {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.pass-fact-figure strong {
+  font:
+    400 clamp(24px, 3vw, 32px) Georgia,
+    serif;
+  letter-spacing: 0.01em;
+}
+.pass-fact-figure span {
+  color: #b8895a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.pass-fact > p:last-child {
+  margin: 12px 0 0;
+  color: #5f5952;
+  font-size: 11.5px;
+  line-height: 1.9;
+}
+.pass-fine-print {
+  margin: -26px 0 0;
+  color: #7a736c;
+  font-size: 10.5px;
+  line-height: 1.9;
+  text-align: center;
+}
+.pass-faq .faq-list {
+  max-width: 760px;
+}
+.pass-faq-more {
+  margin: 22px 0 0;
+  font-size: 11.5px;
+}
+.pass-faq-more a {
+  color: #b8895a;
+  font-weight: 650;
+  text-decoration: none;
+}
+.pass-faq-more a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .pass-free,
+  .pass-concept {
+    grid-template-columns: 1fr;
+  }
+  .pass-promise-grid,
+  .pass-facts {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .pass-free-list {
+    grid-template-columns: 1fr;
+  }
+  .pass-visual {
+    gap: 14px;
+  }
+  .pass-visual .app-phone-frame:nth-child(2) {
+    margin-bottom: 0;
+  }
 }
 
 .reveal-item {
@@ -2816,7 +2839,6 @@ body:has(.remeet-page) {
 }
 .feature-grid article,
 .step-grid article,
-.pricing-grid article,
 .feature-page-grid article,
 .step-row article,
 .faq-list details {
@@ -2828,7 +2850,6 @@ body:has(.remeet-page) {
 }
 .feature-grid article:hover,
 .step-grid article:hover,
-.pricing-grid article:hover,
 .feature-page-grid article:hover,
 .step-row article:hover,
 .faq-list details:hover {
@@ -2866,7 +2887,6 @@ body:has(.remeet-page) {
 .secondary,
 .download-badge,
 .orange-cta,
-.pricing-grid a,
 .faq-side a {
   transition:
     transform 0.26s ease,
@@ -2877,7 +2897,6 @@ body:has(.remeet-page) {
 .secondary:hover,
 .download-badge:hover,
 .orange-cta:hover,
-.pricing-grid a:hover,
 .faq-side a:hover {
   transform: translateY(-3px);
   box-shadow: 0 13px 24px rgb(88 64 45 / 15%);
@@ -2941,12 +2960,6 @@ body:has(.remeet-page) {
   .landing-sections .feature-grid .feature-shot > picture img,
   .landing-sections .feature-grid .feature-shot > img {
     height: 450px;
-  }
-  .landing-sections .feature-grid .feature-shot.is-wide > img,
-  .landing-sections .feature-grid .feature-shot.is-wide > picture img {
-    width: 100%;
-    height: auto;
-    max-height: 380px;
   }
   .step-grid {
     gap: 38px;
@@ -3129,8 +3142,7 @@ body:has(.remeet-page) {
   .step-row p,
   .how-note p,
   .guide-visual ol,
-  .faq-list p,
-  .plan-message p {
+  .faq-list p {
     font-size: 14.5px;
     line-height: 1.85;
   }
@@ -3195,8 +3207,7 @@ body:has(.remeet-page) {
     height: 70px;
     right: 62%;
   }
-  .feature-page-grid,
-  .pricing-grid {
+  .feature-page-grid {
     grid-template-columns: 1fr;
   }
   .feature-page-grid article {
@@ -3204,12 +3215,6 @@ body:has(.remeet-page) {
     gap: 14px;
   }
   .guide-grid {
-    grid-template-columns: 1fr;
-  }
-  .plan-card {
-    padding: 30px 20px 26px;
-  }
-  .plan-list {
     grid-template-columns: 1fr;
   }
   .how-help {
@@ -3246,13 +3251,6 @@ body:has(.remeet-page) {
   }
   .screens-stage > img {
     width: 280px;
-  }
-  .ghost-card {
-    display: none;
-  }
-  .pricing-map {
-    width: 100%;
-    margin-top: 20px;
   }
   .faq-tabs {
     gap: 8px;
@@ -3342,13 +3340,6 @@ body:has(.remeet-page) {
     grid-template-columns: 1fr;
     padding: 26px 20px;
   }
-  .plan-pair {
-    grid-template-columns: 1fr;
-  }
-  .plan-table td {
-    width: auto;
-    white-space: normal;
-  }
   .release-marks {
     width: 126px;
     height: 126px;
@@ -3368,12 +3359,6 @@ body:has(.remeet-page) {
     max-height: 420px;
     width: 100%;
     object-fit: contain;
-  }
-  .landing-sections .feature-grid .feature-shot.is-wide > img,
-  .landing-sections .feature-grid .feature-shot.is-wide > picture img {
-    width: 100%;
-    height: auto;
-    max-height: 280px;
   }
   .landing-sections .widgets,
   .landing-sections .story {

@@ -8,7 +8,7 @@
   },
   "exports": {
     "./AppSiteShell.astro": "./src/AppSiteShell.astro",
-    "./LocaleSwitcher.astro": "./src/LocaleSwitcher.astro",
+    "./LanguageSwitcher.astro": "./src/LanguageSwitcher.astro",
     "./AppHeroChrome.astro": "./src/AppHeroChrome.astro",
     "./AppStory.astro": "./src/AppStory.astro",
     "./AppSimpleSteps.astro": "./src/AppSimpleSteps.astro",

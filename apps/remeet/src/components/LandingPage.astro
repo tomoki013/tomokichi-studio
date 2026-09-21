@@ -22,7 +22,7 @@ const c = ja
       howTitle: "使い方はかんたん、4ステップ",
       howLink: "使い方を見る",
       screenTitle: "待つ時間が、ひとつの流れになる。",
-      screenBody: "カウントダウンから、思い出、やりたいこと、再会後のアルバムまで。実際のアプリ画面でRemeetの一連の体験をご覧ください。",
+      screenBody: "再会までを数える日々から、待っている間の記録、やりたいこと、会えた日、そして思い出のアルバムまで。実際のアプリ画面で、Remeetの一連の体験をご覧ください。",
       screenLink: "すべてのスクリーンショット",
       widgetTitle: "ウィジェットで、もっと身近に",
       widgetBody: "ホーム画面やロック画面から、再会までの日数をいつでも確認できます。",
@@ -44,7 +44,7 @@ const c = ja
       howTitle: "Simple to use in four steps",
       howLink: "See how it works",
       screenTitle: "The wait becomes one continuous story.",
-      screenBody: "From countdown to memories, wish lists, and the album after reunion. See the complete flow through screens captured from the real app.",
+      screenBody: "From counting the days, through the records and plans made while apart, to the day itself and the album afterwards. Every screen here is captured from the real app.",
       screenLink: "View all screenshots",
       widgetTitle: "Always close with widgets",
       widgetBody: "Check the days remaining at a glance from your Home Screen or Lock Screen.",
@@ -74,9 +74,9 @@ const features = ja
       ["Always close with widgets", "Keep the countdown on the Home Screen and Lock Screen."],
       ["Save reunions in albums", "Keep a reunion photo and reflection in an album you can revisit later."],
     ];
-// One real screen per feature; `null` keeps the widget illustration, since a
-// Home Screen widget cannot be captured from inside the app.
-const featureScreens = ["home", "home", "memories", "wishes", null, "album"] as const;
+// One real screen per feature. The widget one is the Home Screen with
+// Remeet's widgets on it, captured on the same simulator and fixture.
+const featureScreens = ["home", "home", "memories", "wishes", "widgets", "album"] as const;
 const steps = ja
   ? [
       ["1", "再会予定を作る", "場所と、次に会える日を設定します。"],
@@ -151,22 +151,8 @@ const jsonLd = serializeJsonLd(
               <h3>{title}</h3>
               <p>{body}</p>
             </div>
-            <figure class:list={["feature-shot", featureScreens[i] === null && "is-wide"]}>
-              {featureScreens[i] ? (
-                <AppScreen screen={featureScreens[i]} size="sm" lang={lang} />
-              ) : (
-                <picture>
-                  <source srcset="/assets/feature-widget.webp" type="image/webp" />
-                  <img
-                    src="/assets/feature-widget.png"
-                    alt={title}
-                    width="1448"
-                    height="1086"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </picture>
-              )}
+            <figure class="feature-shot">
+              <AppScreen screen={featureScreens[i]} size="sm" lang={lang} />
             </figure>
           </article>
         ))}
@@ -192,16 +178,16 @@ const jsonLd = serializeJsonLd(
 
     <section class="screen-story landing-pad" id="screens">
       <header class="screen-story-copy">
-        <p class="chapter-index">REAL APP / FOUR CHAPTERS</p>
+        <p class="chapter-index">REAL APP / FIVE CHAPTERS</p>
         <h2>{c.screenTitle}</h2>
         <p>{c.screenBody}</p>
         <a href={`${base}/screenshots`}>{c.screenLink} →</a>
       </header>
       <div class="screen-story-rail">
-        {(["home", "memories", "wishes", "album"] as const).map((screen, i) => (
+        {(["home", "memories", "wishes", "reunion", "album"] as const).map((screen, i) => (
           <figure>
-            <AppScreen screen={screen} size={i === 1 || i === 2 ? "sm" : "md"} lang={lang} />
-            <figcaption><span>0{i + 1}</span>{ja ? ["再会まで", "思い出", "やりたいこと", "アルバム"][i] : ["Countdown", "Memories", "Wish list", "Album"][i]}</figcaption>
+            <AppScreen screen={screen} size={i % 2 === 1 ? "sm" : "md"} lang={lang} />
+            <figcaption><span>0{i + 1}</span>{ja ? ["再会まで", "待っている間の記録", "やりたいこと", "再会の日", "思い出"][i] : ["Countdown", "Waiting days", "Things to do", "The reunion", "Memories"][i]}</figcaption>
           </figure>
         ))}
       </div>
@@ -210,14 +196,8 @@ const jsonLd = serializeJsonLd(
     <section class="widgets landing-pad" id="widgets">
       <div><h2>{c.widgetTitle}</h2><p>{c.widgetBody}</p></div>
       <div class="widget-art">
-        <img
-          src="/assets/widgets.png"
-          alt={ja ? "Remeetのホーム画面とウィジェット" : "Remeet home screen and widgets"}
-          width="1448"
-          height="1086"
-          loading="lazy"
-          decoding="async"
-        />
+        <AppScreen screen="widgets" size="md" lang={lang} label={ja ? "ホーム画面" : "Home Screen"} />
+        <AppScreen screen="lockscreen" size="md" lang={lang} label={ja ? "ロック画面" : "Lock Screen"} tone="graphite" />
       </div>
     </section>
 
@@ -249,14 +229,14 @@ const jsonLd = serializeJsonLd(
       </div>
       <div class="start-details">
         <div class="start-price">
-          <span>{ja ? "個人利用 + 最初の共有" : "PERSONAL + FIRST SHARE"}</span>
+          <span>{ja ? "基本機能" : "CORE FEATURES"}</span>
           <strong>{ja ? "無料" : "Free"}</strong>
-          <small>{ja ? "追加の共有はShare Pass 1枚 ¥500" : "Additional sharing: one ¥500 Share Pass"}</small>
+          <small>{ja ? "もっとふたりで待つならShare Pass（1枚 ¥500）" : "Wait together with Share Pass (¥500 each)"}</small>
         </div>
         <p class="env-note"><strong>{c.env}</strong><br />{c.envNote}</p>
         <div class="buttons">
           <span class="store store-soon" aria-disabled="true">●　{c.store}</span>
-          <a class="secondary" href={`${base}/pricing`}>{ja ? "料金の詳細" : "Pricing details"} →</a>
+          <a class="secondary" href={`${base}/share-pass`}>{ja ? "Share Passについて" : "About Share Pass"} →</a>
         </div>
       </div>
     </section>
