@@ -3,13 +3,11 @@ import { type AdminBridgeBindings, background } from "../../services/admin-bridg
 import { deliverPendingReport, enqueueReport } from "../../services/remeet/report-outbox";
 import {
   type ContentReport,
-  IMAGE_RETENTION_DAYS,
   imageObjectKey,
   parseReport,
   validateImage,
 } from "../../services/remeet/report-service";
 import type { RateLimiter, RemeetInviteBindings } from "../../services/remeet/types";
-import { sendSupportEmail } from "../../support/email";
 import type { SupportBindings } from "../../support/types";
 
 /**
@@ -28,16 +26,20 @@ import type { SupportBindings } from "../../support/types";
  *
  * `multipart/form-data` in both shapes, with or without a photo, so there is
  * one thing to validate. The photo is never base64 in JSON: a Remeet photo runs
- * to megabytes, and a body like that cannot be bounded, logged or mailed
- * sensibly.
+ * to megabytes, and a body like that cannot be bounded or logged sensibly.
+ *
+ * Where a report goes: the durable outbox in R2, then Admin Core, which holds
+ * the ticket and tells the operator — by mail and push — that a report
+ * exists, with its ticket number and nothing about it. Nothing here mails the
+ * reported text anywhere. It used to; an inbox is where a moderation queue
+ * ends up readable by everything the inbox is connected to.
  */
 export type ReportBindings = SupportBindings &
   RemeetInviteBindings &
   AdminBridgeBindings & {
-    /** Reported photos, private, with a lifecycle rule that deletes them after
-     * `IMAGE_RETENTION_DAYS`. Absent in environments that have no bucket yet,
-     * in which case a report with a photo is still accepted — the mail says the
-     * photo could not be stored rather than dropping the report. */
+    /** Reported photos and the report outbox, private, with a lifecycle rule
+     * that deletes photos after `IMAGE_RETENTION_DAYS`. Acceptance depends on
+     * it: with nowhere durable to put a report, the request is refused. */
     REMEET_REPORTS_BUCKET?: R2Bucket;
     REMEET_REPORT_LIMITER?: RateLimiter;
   };
@@ -94,15 +96,10 @@ export function registerRemeetReportRoutes(app: ReportApp): void {
       evidence = { bytes, contentType: validation.contentType };
     }
 
-    try {
-      await notifyOperator(c, report, imageKey);
-    } catch {
-      // The mail is the whole point of the request, so a failure here is a
-      // failure of the request — the app keeps what the person typed and lets
-      // them try again. Nothing about *why* is echoed back.
-      return json(c, 502, { error: "DELIVERY_FAILED" });
-    }
-
+    // Acceptance is the durable copy. `enqueueReport` throws when there is no
+    // bucket and returns nothing when there is no Admin Core; either way the
+    // report would exist nowhere, and the app keeps what the person typed and
+    // lets them try again. Nothing about *why* is echoed back.
     let pendingKey: string | undefined;
     try {
       pendingKey = await enqueueReport(
@@ -113,68 +110,12 @@ export function registerRemeetReportRoutes(app: ReportApp): void {
     } catch {
       return json(c, 502, { error: "DELIVERY_FAILED" });
     }
+    if (!pendingKey) return json(c, 502, { error: "DELIVERY_FAILED" });
     await remember(c, report);
-    if (pendingKey) background(c, deliverPendingReport(c.env, pendingKey));
+    background(c, deliverPendingReport(c.env, pendingKey));
 
     return json(c, 201, { ok: true, duplicate: false });
   });
-}
-
-/**
- * The operator's copy.
- *
- * This is the only place the reported text is allowed to appear. It is written
- * plainly, because somebody has to read it and decide — and it goes to one
- * address, the same one support mail already goes to.
- */
-async function notifyOperator(
-  c: ReportContext,
-  report: ContentReport,
-  imageKey: string | undefined,
-): Promise<void> {
-  const lines = [
-    `通報ID: ${report.reportId}`,
-    `日時: ${report.reportedAt}`,
-    `理由: ${report.reason}`,
-    "",
-    `種類: ${report.contentType}`,
-    `コンテンツID: ${report.contentId}`,
-    `再会ID: ${report.reunionId}`,
-    `投稿者: ${report.contentAuthorId ?? "不明（この種類のコンテンツは投稿者を記録していません）"}`,
-    `通報者: ${report.reporterAuthorId}`,
-    "",
-    `アプリ: ${report.appVersion} (${report.buildNumber})`,
-    `OS: ${report.osVersion ?? "-"} / ${report.locale ?? "-"}`,
-    "",
-    "--- 通報対象の本文 ---",
-    report.contentTextSnapshot ?? "(なし)",
-    "",
-    "--- 通報者のコメント ---",
-    report.details ?? "(なし)",
-  ];
-
-  if (imageKey) {
-    lines.push(
-      "",
-      "--- 添付画像 ---",
-      `R2 object: ${imageKey}`,
-      `保存期間: ${IMAGE_RETENTION_DAYS}日で自動削除`,
-    );
-  }
-
-  const text = lines.join("\n");
-  await sendSupportEmail(
-    {
-      from: c.env.SUPPORT_FROM_EMAIL,
-      to: c.env.SUPPORT_TO_EMAIL,
-      subject: `[Remeet] コンテンツ通報 (${report.reason})`,
-      text,
-      html: `<pre style="white-space:pre-wrap;font-family:ui-monospace,monospace">${escapeHtml(text)}</pre>`,
-      // Resend's own dedupe, in case this Worker is retried above our level.
-      idempotencyKey: `remeet-report-${report.reportId}`,
-    },
-    c.env.RESEND_API_KEY,
-  );
 }
 
 /**
@@ -198,7 +139,7 @@ async function storeImage(
 
 /**
  * Ids and a status. Never the text, never the photo, never the reporter's
- * comment — a report is delivered by mail and the database's only job is to
+ * comment — a report lives in Admin and this database's only job is to
  * recognise the same report arriving twice.
  */
 async function hasSeen(c: ReportContext, reportId: string): Promise<boolean> {
@@ -211,8 +152,8 @@ async function hasSeen(c: ReportContext, reportId: string): Promise<boolean> {
       .first();
     return !!row;
   } catch {
-    // A missing table must not stop a report reaching a human. Duplicate
-    // protection degrades to Resend's idempotency key.
+    // A missing table must not stop a report reaching Admin. Duplicate
+    // protection degrades to Admin Core's own check on the report id.
     return false;
   }
 }
@@ -225,10 +166,10 @@ async function remember(c: ReportContext, report: ContentReport): Promise<void> 
       .prepare(
         "INSERT OR IGNORE INTO remeet_reports (report_id, created_at, content_type, status) VALUES (?, ?, ?, ?)",
       )
-      .bind(report.reportId, new Date().toISOString(), report.contentType, "delivered")
+      .bind(report.reportId, new Date().toISOString(), report.contentType, "accepted")
       .run();
   } catch {
-    // Same reasoning as `hasSeen`: the mail has already gone.
+    // Same reasoning as `hasSeen`: the durable copy already exists.
   }
 }
 
@@ -254,12 +195,4 @@ async function withinRateLimit(c: ReportContext): Promise<boolean> {
  */
 function json(c: ReportContext, status: number, body: Record<string, unknown>) {
   return c.json(body, status as 200 | 201 | 400 | 403 | 429 | 502);
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

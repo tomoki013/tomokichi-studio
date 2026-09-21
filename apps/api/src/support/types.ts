@@ -45,7 +45,6 @@ export interface SupportBindings {
   SUPPORT_FROM_EMAIL: string;
   MAIN_SITE_ORIGIN: string;
   MAIN_SITE_WORKERS_ORIGIN: string;
-  SUPPORT_MOCK_DELIVERY?: string;
   /**
    * Turnstile's secret key, set with `wrangler secret put`. Absent means the
    * web form is not behind Turnstile and nothing is verified.

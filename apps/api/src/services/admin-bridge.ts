@@ -5,8 +5,12 @@ import {
   INTERNAL_PATHS,
 } from "@tomokichi/admin-contracts";
 
-/** Reports are delivered through the durable report outbox. Support mirroring
- * remains best-effort. Environments without Admin Core keep the mail path. */
+/**
+ * Reports are delivered through the durable report outbox; support messages
+ * are recorded directly. Admin Core is where a message *exists* — there is no
+ * longer a mail carrying it — so an environment without the binding cannot
+ * accept either, and the routes answer 502 rather than pretending.
+ */
 export interface AdminBridgeBindings {
   ADMIN_CORE?: AdminCoreStub;
 }
@@ -33,9 +37,9 @@ export function background(
 }
 
 /** Never throws, never logs content — only whether the hand-off worked. */
-async function attempt(what: string, run: () => Promise<void>): Promise<void> {
+async function attempt(what: string, run: () => Promise<boolean>): Promise<boolean> {
   try {
-    await run();
+    return await run();
   } catch (error) {
     console.log(
       JSON.stringify({
@@ -44,6 +48,7 @@ async function attempt(what: string, run: () => Promise<void>): Promise<void> {
         error: error instanceof Error ? error.name : "Unknown",
       }),
     );
+    return false;
   }
 }
 
@@ -148,8 +153,14 @@ export interface MirroredSupportMessage {
 }
 
 /**
- * Records a support-form submission in Admin so it can be answered from the
- * admin screen rather than only from the operator's inbox.
+ * Records a support-form submission in Admin. This is the submission being
+ * accepted: the only copy of what the person wrote is the row Admin Core
+ * writes, and the operator is told a ticket exists — by mail and by push,
+ * from Admin Core, with the number and nothing else — once it does.
+ *
+ * It used to be a "mirror" beside a mail that carried the full message to a
+ * personal inbox. That mail is gone: an inbox is not a support database, and
+ * anything with access to the inbox had access to every message.
  *
  * **Including the ones with no address.** This used to return early when the
  * sender had not asked for a reply, on the reasoning that a thread nobody can
@@ -159,15 +170,23 @@ export interface MirroredSupportMessage {
  * what people sent from inside the app existed only as mail and never appeared
  * on the screen the operator actually reads. Reading is an operational reason.
  * `sendReply` still refuses a thread with nowhere to write back to.
+ *
+ * Idempotent at the far end on `form-${requestId}`, so a client that retries
+ * a lost response does not make a second ticket.
+ *
+ * @returns whether the message is now recorded. False is a 502 to the sender.
  */
-export async function mirrorSupportMessage(
+export async function recordSupportMessage(
   env: AdminBridgeBindings,
   message: MirroredSupportMessage,
-): Promise<void> {
+): Promise<boolean> {
   const core = env.ADMIN_CORE;
-  if (!core) return;
+  if (!core) {
+    console.log(JSON.stringify({ event: "admin_bridge.unavailable", what: "support" }));
+    return false;
+  }
 
-  await attempt("support", async () => {
+  return await attempt("support", async () => {
     const result = await core.createSupportThread(
       {
         appSlug: message.appSlug === "other" ? undefined : message.appSlug,
@@ -186,6 +205,8 @@ export async function mirrorSupportMessage(
       console.log(
         JSON.stringify({ event: "admin_bridge.support_rejected", code: result.error.code }),
       );
+      return false;
     }
+    return true;
   });
 }

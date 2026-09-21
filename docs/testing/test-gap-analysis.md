@@ -43,7 +43,12 @@
 | S-3 | Medium | mail-ingress: `Authentication-Results` が pass でないメールは Ticket を再開しない | `apps/admin-core/tests/tickets.test.ts` | 未着手（実装 M-7 と同時） |
 | S-4 | — | Incident: DETECTED→…→RESOLVED の遷移、子 Ticket の一括関連付け、postmortem の 1:0..1 | `apps/admin-core/tests/incidents.test.ts` | 未着手（M-2 と同時） |
 | S-5 | — | RBAC: `viewer` は change/note/merge/saveMaster を拒否、`support` は署名操作を拒否 | `apps/admin-core/tests/authorization.test.ts` + `worker.test.ts` | 未着手（M-4 と同時） |
-| S-6 | Low | `apps/api` support の Core 複製が outbox 化されたら「Core 停止中の問い合わせが次の cron で届く」 | `apps/api/src/index.test.ts` | 未着手（M-6 と同時） |
+| S-6 | Low | `apps/api` support の Core 複製が outbox 化されたら「Core 停止中の問い合わせが次の cron で届く」 | `apps/api/src/index.test.ts` | 未着手（M-6 と同時）。現状は Core 不達 = 502 で送信者に再送を求める（ADR-019） |
+| S-7 | High | **通知に本文が乗らない**: 問い合わせ・通報を作り、運営メール本文と Push payload に 本文・氏名・アドレス・通報理由・通報者が含まれない。通知失敗（mail REJECTED / push throw / 410）でも Ticket は存在する。他人の購読は list / revoke / 再登録できない。監査行に endpoint が無い | `apps/admin-core/tests/notifications.test.ts` | **追加済み** |
+| S-8 | High | RFC 8291 Appendix A のベクタと暗号文がバイト一致。VAPID JWT を公開鍵で検証 | `packages/admin-push/src/push.test.ts` | **追加済み** |
+| S-9 | Medium | `apps/api`: 問い合わせは Core 不達で 502、Core 成功で 200 かつ `fetch`（Resend）が 1 回も呼ばれない。通報は outbox 成立で 201、bucket / Core 無しで 502 | `apps/api/src/index.test.ts`, `routes/remeet/reports.test.ts` | **追加済み** |
+| S-10 | Medium | admin-web: manifest / icons は無トークンで 200、`/sw.js` `/tickets/TK-…` は 401。Push 購読 API は cross-site で 403（Core 未到達）、actor は JWT 由来で body は無視 | `apps/admin-web/src/worker/worker.test.ts` | **追加済み** |
+| S-11 | Low | 通知設定画面: 権限要求はボタン押下時のみ。端末一覧に endpoint を出さない | `NotificationSettings.test.tsx` | **追加済み** |
 
 ## 4. Edge cases の扱い
 

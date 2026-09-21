@@ -4,6 +4,20 @@ import { createApp } from "./index";
 import { sendSupportEmail } from "./support/email";
 import type { SupportBindings, SupportEmail } from "./support/types";
 
+/**
+ * Where a support message goes now: Admin Core, and only there.
+ *
+ * Every test that posts a valid message supplies this stub, because the route
+ * accepts a submission by writing it to Admin — there is no mail carrying
+ * the message any more, and an environment without Admin Core refuses. What
+ * the stub records is what crosses the binding, which is what the PII tests
+ * and the "no email" tests read.
+ */
+function fakeCore(result: unknown = { ok: true, value: {} }) {
+  const createSupportThread = vi.fn().mockResolvedValue(result);
+  return { core: { createSupportThread }, createSupportThread };
+}
+
 describe("GET /api/v1/health", () => {
   it("returns the API status", async () => {
     const app = createApp();
@@ -50,16 +64,12 @@ function post(
   body: unknown,
   options: {
     origin?: string;
-    deliver?: (email: SupportEmail) => Promise<{ id: string }>;
     rate?: boolean;
-    /** Extra bindings, for the tests that care what reaches Studio Admin. */
+    /** Extra bindings. `ADMIN_CORE` defaults to a stub that accepts. */
     env?: Partial<SupportBindings & { ADMIN_CORE: unknown }>;
   } = {},
 ) {
   const app = createApp({
-    deliver: options.deliver
-      ? (email) => options.deliver?.(email) as Promise<{ id: string }>
-      : async () => ({ id: "email-id" }),
     rateLimit: async () => options.rate ?? true,
   });
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -67,7 +77,7 @@ function post(
   return app.request(
     "https://api.example.com/api/v1/support",
     { method: "POST", headers, body: JSON.stringify(body) },
-    { ...env, ...options.env },
+    { ...env, ADMIN_CORE: fakeCore().core, ...options.env },
   );
 }
 
@@ -78,36 +88,31 @@ describe("POST /api/v1/support", () => {
     expect(await response.json()).toEqual({ ok: true, requestId: validRequest.requestId });
   });
 
-  it("accepts and labels apps from the shared brand registry", async () => {
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
-    const response = await post({ ...validRequest, app: "yohaku" }, { deliver });
+  it("accepts apps from the shared brand registry and hands the slug to Admin", async () => {
+    const { core, createSupportThread } = fakeCore();
+    const response = await post({ ...validRequest, app: "yohaku" }, { env: { ADMIN_CORE: core } });
     expect(response.status).toBe(200);
-    expect(deliver.mock.calls[0]?.[0].subject).toContain("[Yohaku]");
+    expect(createSupportThread.mock.calls[0]?.[0]).toMatchObject({ appSlug: "yohaku" });
   });
 
   it("accepts a request with no email when no reply is requested", async () => {
     const { email: _email, ...withoutEmail } = validRequest;
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
-    const response = await post(withoutEmail, { deliver });
+    const { core, createSupportThread } = fakeCore();
+    const response = await post(withoutEmail, { env: { ADMIN_CORE: core } });
     expect(response.status).toBe(200);
-    expect(deliver.mock.calls[0]?.[0].replyTo).toBeUndefined();
+    expect(createSupportThread.mock.calls[0]?.[0]).toMatchObject({ requesterEmail: undefined });
   });
 
   it("accepts an empty-string email the same as an omitted one (Remeet iOS always sends the key)", async () => {
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
+    const { core, createSupportThread } = fakeCore();
     const response = await post(
       { ...validRequest, source: "remeet-ios", name: "", email: "" },
-      { deliver },
+      { env: { ADMIN_CORE: core } },
     );
     expect(response.status).toBe(200);
-    expect(deliver.mock.calls[0]?.[0].replyTo).toBeUndefined();
-    expect(deliver.mock.calls[0]?.[0].text).toContain("（未入力・返信不要）");
+    const input = createSupportThread.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(input.requesterEmail).toBeUndefined();
+    expect(input.requesterName).toBeUndefined();
   });
 
   it("accepts the Colorvia iOS source", async () => {
@@ -115,17 +120,15 @@ describe("POST /api/v1/support", () => {
     expect(response.status).toBe(200);
   });
 
-  it("silently accepts (without delivering) a honeypot-triggered submission", async () => {
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
+  it("silently accepts (without recording) a honeypot-triggered submission", async () => {
+    const { core, createSupportThread } = fakeCore();
     const response = await post(
       { ...validRequest, website: "http://spam.example.com" },
-      { deliver },
+      { env: { ADMIN_CORE: core } },
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, requestId: validRequest.requestId });
-    expect(deliver).not.toHaveBeenCalled();
+    expect(createSupportThread).not.toHaveBeenCalled();
   });
 
   it("reports missing required fields", async () => {
@@ -174,51 +177,45 @@ describe("POST /api/v1/support", () => {
     expect(await response.json()).toMatchObject({ code: "RATE_LIMITED" });
   });
 
-  it("returns 502 without exposing delivery details", async () => {
+  /**
+   * The message has one home. If Admin Core cannot write it, the sender is
+   * told to try again — a 200 here would mean a message that exists nowhere.
+   * Nothing about the upstream failure reaches the response.
+   */
+  it("returns 502 when Admin Core rejects, without exposing why", async () => {
     const response = await post(validRequest, {
-      deliver: async () => {
-        throw new Error("secret upstream response");
+      env: {
+        ADMIN_CORE: fakeCore({
+          ok: false,
+          error: { code: "INTERNAL_ERROR", message: "secret upstream response" },
+        }).core,
       },
     });
     expect(response.status).toBe(502);
     expect(JSON.stringify(await response.json())).not.toContain("secret upstream");
   });
 
-  /**
-   * The copy for Admin does not depend on the mail going out.
-   *
-   * It used to: the mirror ran after a successful send, so a provider over its
-   * quota meant the sender got a 502 and their message existed nowhere. Admin
-   * has a database, and a question is worth more than the notification about
-   * it.
-   */
-  it("records the message in Admin even when delivery fails", async () => {
-    const createSupportThread = vi.fn().mockResolvedValue({ ok: true, value: {} });
-    const response = await post(validRequest, {
-      deliver: async () => {
-        throw new Error("resend is over quota");
-      },
-      env: { ADMIN_CORE: { createSupportThread } },
-    });
-
+  it("returns 502 when Admin Core throws", async () => {
+    const createSupportThread = vi.fn().mockRejectedValue(new Error("binding is down"));
+    const response = await post(validRequest, { env: { ADMIN_CORE: { createSupportThread } } });
     expect(response.status).toBe(502);
-    expect(createSupportThread).toHaveBeenCalledTimes(1);
-    const [input] = createSupportThread.mock.calls[0] as [Record<string, unknown>];
-    expect(input.requesterEmail).toBe("user@example.com");
+    expect(JSON.stringify(await response.json())).not.toContain("binding is down");
+  });
+
+  it("refuses rather than accepts when there is no Admin Core to write to", async () => {
+    const response = await post(validRequest, { env: { ADMIN_CORE: undefined } });
+    expect(response.status).toBe(502);
   });
 
   /**
    * The reason this exists: the app asks for an address only when somebody
-   * wants an answer, so 不具合 / 要望 / その他 arrive without one. The mirror
+   * wants an answer, so 不具合 / 要望 / その他 arrive without one. The record
    * used to skip exactly those, and every inquiry sent from inside the app was
    * mail-only — invisible on the screen the operator actually reads.
    */
   it("records a message sent without a reply address", async () => {
-    const createSupportThread = vi.fn().mockResolvedValue({ ok: true, value: {} });
-    const response = await post(
-      { ...validRequest, email: "" },
-      { env: { ADMIN_CORE: { createSupportThread } } },
-    );
+    const { core, createSupportThread } = fakeCore();
+    const response = await post({ ...validRequest, email: "" }, { env: { ADMIN_CORE: core } });
 
     expect(response.status).toBe(200);
     expect(createSupportThread).toHaveBeenCalledTimes(1);
@@ -229,17 +226,31 @@ describe("POST /api/v1/support", () => {
     expect(input.bodyText).toContain("十分な長さ");
   });
 
-  it("normalizes reply-to and sets an idempotency key", async () => {
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
-    await post(validRequest, { deliver });
-    const email = deliver.mock.calls[0]?.[0];
-    expect(email?.replyTo).toBe("user@example.com");
-    expect(email?.idempotencyKey).toBe(`support-${validRequest.requestId}`);
-    expect(email?.html).toContain("&lt;script&gt;");
-    expect(email?.html).not.toContain("<script>");
-    expect(email?.text).toContain("問い合わせ内容");
+  /**
+   * The property this whole change is for. The route has no mail dependency
+   * left to assert against, so the assertion is on the surface that remains:
+   * a valid submission produces exactly one call to Admin Core, keyed on the
+   * request id so a retry cannot make a second ticket, and no `fetch` to any
+   * mail provider at all.
+   */
+  it("records the message once, keyed on the request id, and mails nobody", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("no network"));
+    try {
+      const { core, createSupportThread } = fakeCore();
+      const response = await post(validRequest, { env: { ADMIN_CORE: core } });
+      expect(response.status).toBe(200);
+      expect(createSupportThread).toHaveBeenCalledTimes(1);
+      const [input, actor] = createSupportThread.mock.calls[0] as [
+        Record<string, unknown>,
+        unknown,
+      ];
+      expect(input.providerMessageId).toBe(`form-${validRequest.requestId}`);
+      expect(input.requesterEmail).toBe("user@example.com");
+      expect(actor).toEqual({ type: "app", id: "tomokichi-api" });
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 
   it("rejects an unknown Origin", async () => {

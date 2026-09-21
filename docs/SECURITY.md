@@ -42,7 +42,8 @@
 
 | データ | 場所 | 扱い |
 |---|---|---|
-| お問い合わせ（名前・メール・本文） | Core D1 `support_threads` / `support_messages` + `tickets*` | Admin でのみ閲覧。メールは Resend 経由で運営にも届く |
+| お問い合わせ（名前・メール・本文） | Core D1 `support_threads` / `support_messages` + `tickets*` | Admin でのみ閲覧。運営へのメール / Push は Ticket 番号とリンクだけ（`support-notifications.md`） |
+| Push 購読（endpoint・p256dh・auth） | Core D1 `push_subscriptions` | endpoint は「その端末へ送れる能力」。ブラウザにも監査ログにも返さない（`assertSafeAuditMetadata` が拒否） |
 | 通報（対象本文・画像・理由・通報者/投稿者の仮名ハッシュ） | api D1 + R2 → Core D1 + R2（private） | 証跡に `expired_at`。仮名は `HASH_PEPPER` で作り、元 ID は保存しない |
 | 返信・下書き・テンプレ | Core D1 | 下書きは監査しない（`reply-service.ts` コメント: 書きかけの記録を残さない） |
 | 監査ログ | `audit_logs` / `ticket_events` | actor は Access の `sub`（メールアドレスを永久保存しない）。削除 API 無し |

@@ -4,44 +4,114 @@
     {
       "name": "main",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/main", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/main",
+        "dev"
+      ],
       "port": 4321
     },
     {
       "name": "remeet",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/remeet", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/remeet",
+        "dev"
+      ],
       "port": 4322
     },
     {
       "name": "tripory",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/tripory", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/tripory",
+        "dev"
+      ],
       "port": 4323
     },
     {
       "name": "colorvia",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/colorvia", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/colorvia",
+        "dev"
+      ],
       "port": 4324
     },
     {
       "name": "yohaku",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/yohaku", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/yohaku",
+        "dev"
+      ],
       "port": 4325
     },
     {
       "name": "quiet-solitaire",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/quiet-solitaire", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/quiet-solitaire",
+        "dev"
+      ],
       "port": 4328
     },
     {
       "name": "doodle",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@tomokichi/doodle", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/doodle",
+        "dev"
+      ],
       "port": 4330
+    },
+    {
+      "name": "admin-core",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/admin-core",
+        "exec",
+        "wrangler",
+        "dev",
+        "--port",
+        "8798"
+      ],
+      "port": 8798
+    },
+    {
+      "name": "admin-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/admin-web",
+        "exec",
+        "wrangler",
+        "dev",
+        "--port",
+        "8790"
+      ],
+      "port": 8790
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/api",
+        "exec",
+        "wrangler",
+        "dev",
+        "--port",
+        "8797"
+      ],
+      "port": 8797
     }
   ]
 }

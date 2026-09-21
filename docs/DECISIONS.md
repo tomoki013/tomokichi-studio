@@ -94,6 +94,24 @@
 
 - **Source**: README Journal。
 
+## ADR-019 運営への通知は Ticket 番号だけ。本文は Support DB と管理画面にしか置かない
+
+- **Context**: `apps/api` が問い合わせ本文・通報本文を運営の Gmail へメールしていた。Gmail に繋がる AI サービス等から本文が読める構成になる。
+- **Decision**: 本文入りメールを廃止。受付は Core への保存（問い合わせ）/ R2 outbox（通報）が成立した時点とし、通知は Core の `NotificationService` が Ticket 番号・種別・アプリ・受付日時・リンクだけをメールと Web Push で送る。通知 DTO（`TicketNotificationEvent`）に本文フィールドを持たせない。通知失敗は Ticket 作成を失敗させない。
+- **Consequences**: `ADMIN_CORE` 無しでは問い合わせ・通報を受け付けない（502）。運営は内容を必ず管理画面で読む。受信メール（`mail-ingress`）の Gmail 転送は今回の対象外で残っている。
+- **Source**: `docs/support-notifications.md`、`admin-bridge.ts` `recordSupportMessage` コメント。
+
+## ADR-020 Web Push は `web-push` npm ではなく Web Crypto で自前実装
+
+- **Context**: Core は Cloudflare Workers。`web-push` は Node の `crypto.createECDH` / `hkdfSync` に依存する。
+- **Decision**: `packages/admin-push` に RFC 8291 + RFC 8292 を `crypto.subtle` だけで実装。RFC 8291 Appendix A のベクタをテストで照合。VAPID 秘密鍵は Core の secret、公開鍵は var。
+- **Source**: `packages/admin-push/src/index.ts` コメント。
+
+## ADR-021 管理画面の Service Worker は何もキャッシュしない
+
+- **Decision**: PWA 化の目的はホーム画面起動と Push だけ。Cache Storage は使わず、オフライン時はインライン HTML の 1 画面のみ。`/manifest.webmanifest` と `/icons/*` だけ Worker の JWT ゲートを通さない（ブラウザが cookie 無しで取りに来るため）。
+- **Source**: `apps/admin-web/public/sw.js`、`worker/index.ts` `isInstallAsset`。
+
 ## 根拠が文書に無いもの
 
 | 判断 | 状態 |

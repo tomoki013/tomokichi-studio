@@ -33,8 +33,10 @@ flowchart TB
   Core -- "RemeetModeration entrypoint" --> API
   API --> D1b[("D1 REMEET_INVITES_DB")]
   API --> R2b[("R2 REMEET_REPORTS_BUCKET")]
-  API --> Resend["Resend (mail)"]
-  Core --> Resend
+  API -- "manifest 期限警告のみ" --> Resend["Resend (mail)"]
+  Core -- "受付・返信・新着通知(番号のみ)" --> Resend
+  Core -- "Web Push (VAPID, 番号のみ)" --> PushSvc(("Push services"))
+  PushSvc --> AdminWeb
   Mac(("運営 Mac\nEd25519 秘密鍵\n127.0.0.1:47831")) -. "署名" .- AdminWeb
 ```
 
@@ -50,6 +52,7 @@ flowchart TB
 | `apps/mail-ingress` | 受信メール → Core → 転送 | `src/index.ts`、`parse.ts` |
 | `packages/admin-contracts` | 境界そのもの: 型・zod・`AdminCoreApi`・エラー語彙 | `core.ts`, `tickets.ts`, `reports.ts`, `support.ts`, `reply.ts`, `apps.ts` |
 | `packages/admin-mail` | `MailProvider`（Resend / unconfigured）、HTML テンプレ | `mail.ts`, `html.ts` |
+| `packages/admin-push` | Web Push（RFC 8291 aes128gcm + RFC 8292 VAPID）を Web Crypto だけで | `encrypt.ts`, `vapid.ts`, `send.ts` |
 
 ## 3. Dependencies（方向）
 
@@ -66,9 +69,9 @@ apps/<brand> ──▶ packages/app-site
 
 ## 4. Data flow（代表 3 本）
 
-**お問い合わせ**: サイト `/support`（Turnstile）または アプリ（client key）→ `api /api/v1/support` → Resend でメール（従来経路）+ `admin-bridge` で Core に複製（best-effort）→ `support_threads` → trigger → `tickets(INQUIRY)`。
+**お問い合わせ**: サイト `/support`（Turnstile）または アプリ（client key）→ `api /api/v1/support` → `admin-bridge` で Core に保存（これが受付。Core 不達なら 502）→ `support_threads` → trigger → `tickets(INQUIRY)` → Core `NotificationService` が Ticket 番号だけをメール / Web Push で通知（`support-notifications.md`）。
 
-**通報**: Remeet → `api /remeet/v1/reports`（rate limit、client key、`external_report_id` で冪等）→ R2 に証跡 → outbox → Core `reports`（+ 任意で `support_threads` と受付メール）→ trigger → `tickets(REPORT, moderation)`。運営が「削除 / 対応なし」→ Core が操作案 → Mac が署名 → api が manifest 公開 → Core が状態更新。
+**通報**: Remeet → `api /remeet/v1/reports`（rate limit、client key、`external_report_id` で冪等）→ R2 に証跡 → outbox → Core `reports`（+ `support_threads` と受付メール）→ trigger → `tickets(REPORT, moderation)` → 運営へ番号だけの通知。本文入りの運営メールは廃止。運営が「削除 / 対応なし」→ Core が操作案 → Mac が署名 → api が manifest 公開 → Core が状態更新。
 
 **返信**: admin-web `/api/support/threads/:id/reply` → Core `ReplyService`（Message-ID / In-Reply-To / References、署名挿入、冪等キー）→ Resend → `support_reply_sends` → trigger → `ticket_messages` / `ticket_events`。受信は `mail-ingress` が `support@tmkch.io` を受け、Core が Message-ID / References / 件名の通報 ID / 送信者で既存スレッドへ繋ぐ。
 
@@ -100,7 +103,8 @@ apps/<brand> ──▶ packages/app-site
 | Cloudflare Turnstile | Web の support フォーム | `TURNSTILE_SECRET_KEY`（api）、site key は repository variable |
 | Cloudflare Rate Limiting | 公開 API 6 経路 | binding |
 | Cloudflare Email Routing | `support@tmkch.io` → `mail-ingress` | `SUPPORT_FORWARD_EMAIL` |
-| Resend | 送信（受付・返信・manifest 期限警告） | `RESEND_API_KEY`（api）、`MAIL_API_KEY`（Core） |
+| Resend | 送信（受付・返信・新着通知・manifest 期限警告） | `RESEND_API_KEY`（api）、`MAIL_API_KEY` + `NOTIFICATION_EMAIL`（Core） |
+| Web Push services（FCM / APNs / Mozilla） | 新着 Ticket の Push 通知 | `VAPID_PRIVATE_KEY`（Core secret）、`VAPID_PUBLIC_KEY` は var |
 | 運営 Mac の署名サービス | モデレーション manifest の Ed25519 署名 | Keychain。Worker には公開鍵のみ |
 | App Store Connect（MCP） | リリース同期・審査 | 別リポジトリ（Remeet） |
 
