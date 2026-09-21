@@ -3,7 +3,7 @@ export type Page =
   | "features"
   | "how-to"
   | "screenshots"
-  | "pricing"
+  | "share-pass"
   | "faq"
   | "privacy"
   | "terms"
@@ -41,7 +41,7 @@ export const titleMap: Record<Page, [string, string]> = {
   features: ["Remeetの機能", "Remeet features"],
   "how-to": ["使い方", "How to use"],
   screenshots: ["スクリーンショット", "Screenshots"],
-  pricing: ["料金", "Pricing"],
+  "share-pass": ["Share Pass", "Share Pass"],
   faq: ["よくある質問", "Frequently asked questions"],
   privacy: ["プライバシーポリシー", "Privacy Policy"],
   terms: ["利用規約", "Terms of Service"],
@@ -59,9 +59,9 @@ export const subtitleMap: Partial<Record<Page, [string, string]>> = {
     "From first setup to everyday use,\nfollow the flow of the real app screens.",
   ],
   screenshots: ["美しく、シンプルで、使いやすいデザイン。", "Beautiful, simple, and easy to use."],
-  pricing: [
-    "ひとりでも、ふたりでも。\n必要なときだけ選べる料金です。",
-    "Use it on your own or wait together.\nPay only when you need another shared reunion.",
+  "share-pass": [
+    "Remeetの基本機能は無料。\nもっとふたりで待ちたいときに。",
+    "Everything you need is free.\nFor the times you want to wait together.",
   ],
   faq: [
     "よくいただくご質問をまとめました。\n解決しないときは、お気軽にご連絡ください。",
@@ -90,9 +90,9 @@ export const pageDescriptions: Partial<Record<Page, [string, string]>> = {
     "Remeetのホーム、記録、ウィジェットなどの画面イメージです。",
     "Screen previews of Remeet’s home, records, and widgets.",
   ],
-  pricing: [
-    "Remeetの個人利用と最初の再会の共有は無料。2回目以降の共有に使うShare Passについてご案内します。",
-    "Personal use and your first shared reunion are free. Learn about Share Pass for each additional shared reunion.",
+  "share-pass": [
+    "Remeetの基本機能は無料です。Share Passは、2回目以降の再会をパートナーとふたりで待つための買い切りのアイテム。1枚で1つの再会を共有でき、その再会は広告なしになります。",
+    "Remeet’s core features are free. Share Pass is a one-time item for waiting together on a second or later reunion: one pass shares one reunion with one partner and makes it ad-free.",
   ],
   faq: [
     "アカウント不要、端末内保存、広告、ウィジェット、機種変更など、Remeetのよくある質問。",
@@ -269,11 +269,9 @@ export function steps(ja: boolean) {
 export type Guide = {
   icon: string;
   title: string;
-  /** The real app screen this step happens on. */
-  screen?: "home" | "memories" | "wishes" | "album" | "settings";
-  /** Illustration, for the widget steps that cannot be captured in-app. */
-  image?: string;
-  imageAlt?: string;
+  /** The real screen this step happens on — an app screen, or the Home /
+      Lock Screen with Remeet's widgets placed on it. */
+  screen: "home" | "memories" | "wishes" | "album" | "settings" | "widgets" | "lockscreen";
   steps: string[];
   note?: string;
 };
@@ -355,8 +353,7 @@ export function guides(ja: boolean): Guide[] {
         {
           icon: "widget",
           title: "ホーム画面ウィジェットの追加",
-          image: "/assets/feature-widget.png",
-          imageAlt: "ホーム画面に置かれたRemeetウィジェット",
+          screen: "widgets",
           steps: [
             "ホーム画面の空いている部分を長押しします。",
             "「編集」から「ウィジェットを追加」を選びます。",
@@ -366,8 +363,7 @@ export function guides(ja: boolean): Guide[] {
         {
           icon: "lock",
           title: "ロック画面ウィジェットの追加",
-          image: "/assets/widget-showcase.png",
-          imageAlt: "ロック画面向けRemeetウィジェット",
+          screen: "lockscreen",
           steps: [
             "ロック画面を長押ししてカスタマイズを開きます。",
             "ウィジェット領域をタップし、Remeetを選びます。",
@@ -492,8 +488,7 @@ export function guides(ja: boolean): Guide[] {
         {
           icon: "widget",
           title: "Add a Home Screen widget",
-          image: "/assets/feature-widget.png",
-          imageAlt: "Remeet widgets on the Home Screen",
+          screen: "widgets",
           steps: [
             "Touch and hold an empty area of the Home Screen.",
             "Choose Edit, then Add Widget.",
@@ -503,8 +498,7 @@ export function guides(ja: boolean): Guide[] {
         {
           icon: "lock",
           title: "Add a Lock Screen widget",
-          image: "/assets/widget-showcase.png",
-          imageAlt: "Remeet Lock Screen widget styles",
+          screen: "lockscreen",
           steps: [
             "Touch and hold the Lock Screen to customize it.",
             "Tap a widget area and choose Remeet.",

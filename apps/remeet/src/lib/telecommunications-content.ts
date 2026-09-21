@@ -47,7 +47,10 @@ export const remeetTelecommunicationsSections: TelecomSection[] = [
       "No proprietary account is required. Personal use and the first shared reunion are free. Additional sharing can use a Share Pass (¥500 per consumable pass) purchased through the App Store in-app purchase. You are responsible for internet access and data charges.",
     ],
     links: [
-      { label: ["料金の詳細", "Pricing details"], href: ["/ja/pricing", "/pricing"] },
+      {
+        label: ["Share Passについて", "About Share Pass"],
+        href: ["/ja/share-pass", "/share-pass"],
+      },
       {
         label: ["販売条件", "Purchase terms"],
         href: ["/ja/commercial-transactions", "/commercial-transactions"],

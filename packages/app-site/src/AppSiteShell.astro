@@ -7,7 +7,7 @@ import {
   defaultShellLabels,
   localeMeta,
 } from "./i18n";
-import LocaleSwitcher from "./LocaleSwitcher.astro";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
 import { canonicalUrl } from "./seo";
 import "./app-site-shell.css";
 
@@ -170,7 +170,7 @@ const ogType = absoluteOgImage.endsWith(".jpg") || absoluteOgImage.endsWith(".jp
           </nav>
           <div class="app-site-actions">
             {resolvedLocaleLinks.length > 1 && (
-              <LocaleSwitcher lang={lang} locales={resolvedLocaleLinks} label={labels.language} placement="header" />
+              <LanguageSwitcher lang={lang} locales={resolvedLocaleLinks} label={labels.language} placement="header" />
             )}
             {storeIsLink ? (
               <a class="app-site-store-link app-site-desktop-only" href={appStoreHref}>{appStoreLabel}</a>
@@ -211,7 +211,7 @@ const ogType = absoluteOgImage.endsWith(".jpg") || absoluteOgImage.endsWith(".jp
           </div>
           <div class="app-site-mobile-nav-meta">
             {resolvedLocaleLinks.length > 1 && (
-              <LocaleSwitcher lang={lang} locales={resolvedLocaleLinks} label={labels.language} placement="mobile" />
+              <LanguageSwitcher lang={lang} locales={resolvedLocaleLinks} label={labels.language} placement="mobile" />
             )}
             {storeIsLink ? (
               <a class="app-site-mobile-store" href={appStoreHref}>{appStoreLabel}</a>
@@ -242,7 +242,7 @@ const ogType = absoluteOgImage.endsWith(".jpg") || absoluteOgImage.endsWith(".jp
           </a>
           <p>{tagline}</p>
           {resolvedLocaleLinks.length > 1 && (
-            <LocaleSwitcher lang={lang} locales={resolvedLocaleLinks} label={labels.language} placement="footer" />
+            <LanguageSwitcher lang={lang} locales={resolvedLocaleLinks} label={labels.language} placement="footer" />
           )}
         </div>
         <div class="app-site-footer-columns">

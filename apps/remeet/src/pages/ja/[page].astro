@@ -2,9 +2,9 @@
 import ContentPage from "../../components/ContentPage.astro";
 import "../../styles/global.css";
 
-const pages = ["features", "how-to", "screenshots", "pricing", "faq", "privacy", "terms", "news", "updates"] as const;
+const pages = ["features", "how-to", "screenshots", "share-pass", "faq", "privacy", "terms", "news", "updates"] as const;
 export function getStaticPaths() {
-  return ["features", "how-to", "screenshots", "pricing", "faq", "privacy", "terms", "news", "updates"].map((page) => ({ params: { page } }));
+  return ["features", "how-to", "screenshots", "share-pass", "faq", "privacy", "terms", "news", "updates"].map((page) => ({ params: { page } }));
 }
 const { page } = Astro.params as { page: (typeof pages)[number] };
 ---

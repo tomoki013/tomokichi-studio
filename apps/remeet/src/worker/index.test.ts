@@ -87,6 +87,19 @@ describe("the Remeet Worker", () => {
     expect(await response.text()).toBe("<html>site</html>");
   });
 
+  it("redirects the old pricing page to Share Pass permanently", async () => {
+    for (const [from, to] of [
+      ["/pricing", "/share-pass/"],
+      ["/pricing/", "/share-pass/"],
+      ["/ja/pricing", "/ja/share-pass/"],
+      ["/ja/pricing/?utm_source=x", "/ja/share-pass/?utm_source=x"],
+    ]) {
+      const response = await worker.fetch(get(from), makeEnv());
+      expect(response.status).toBe(301);
+      expect(response.headers.get("Location")).toBe(`https://remeet.tmkch.io${to}`);
+    }
+  });
+
   it("leaves the rest of the site to the shared asset worker", async () => {
     const response = await worker.fetch(get("/privacy"), makeEnv());
     expect(await response.text()).toBe("<html>site</html>");

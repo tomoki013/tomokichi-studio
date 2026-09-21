@@ -1,0 +1,29 @@
+# Remeet
+
+> Remeet is an iPhone app (iOS 26 or later) that counts down to the day you meet someone again, keeps photos and notes from the time apart, lists the things you want to do together, and saves each reunion to an album. Made by Tomokichi Studio.
+
+## Pricing, in one paragraph
+
+Remeet's core features are free: creating reunions, the countdown, waiting memories, the things-to-do list, albums, notifications, and Home Screen / Lock Screen widgets. Your first reunion can be shared with one partner for free. While using it for free, ads appear on some screens. **Share Pass** is a one-time, consumable in-app purchase (¥500 per pass, tax included; never expires; not a subscription) that shares a second or later reunion with one partner through iCloud and makes that reunion ad-free for both people. Only the person sending the invitation needs a pass. There is no paid tier for removing ads during solo use.
+
+## Pages
+
+- [Home](https://remeet.tmkch.io/): what Remeet is
+- [Features](https://remeet.tmkch.io/features/): countdown, route, memories, wishes, album, widgets
+- [How it works](https://remeet.tmkch.io/how-to/): step by step, with real screens
+- [Screenshots](https://remeet.tmkch.io/screenshots/): real captures of the current app
+- [Share Pass](https://remeet.tmkch.io/share-pass/): what is free, what Share Pass adds, FAQ
+- [FAQ](https://remeet.tmkch.io/faq/)
+- [Privacy Policy](https://remeet.tmkch.io/privacy/)
+- [Terms of Service](https://remeet.tmkch.io/terms/)
+- [Commercial Transactions](https://remeet.tmkch.io/commercial-transactions/)
+- [News](https://remeet.tmkch.io/news/) and [App updates](https://remeet.tmkch.io/updates/)
+
+Japanese versions live under `/ja/` (for example https://remeet.tmkch.io/ja/share-pass/).
+
+## Facts worth getting right
+
+- No proprietary account. Personal data stays on the device; a shared reunion syncs through Apple iCloud / CloudKit with the one partner who accepts the invitation.
+- Six languages: Japanese, English, Spanish, French, Korean, Simplified Chinese.
+- Support: https://tmkch.io/support?app=remeet (email support@tmkch.io).
+- The former `/pricing` page is now `/share-pass`.

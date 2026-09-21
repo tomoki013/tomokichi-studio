@@ -44,9 +44,24 @@ export default {
   },
 };
 
+/**
+ * Pages that moved. The Worker answers these with a real 301, which is what
+ * search engines and old links need; the `redirects` in `astro.config.mjs`
+ * cover the same paths with a meta-refresh page for `astro preview`.
+ */
+const movedPages: Record<string, string> = {
+  "/pricing": "/share-pass/",
+  "/ja/pricing": "/ja/share-pass/",
+};
+
 async function handle(request: Request, env: WorkerEnv): Promise<Response> {
   {
     const url = new URL(request.url);
+
+    const moved = movedPages[url.pathname.replace(/\/+$/, "")];
+    if (moved) {
+      return Response.redirect(`${url.origin}${moved}${url.search}`, 301);
+    }
 
     if (url.pathname === "/.well-known/apple-app-site-association") {
       return new Response(
