@@ -44,7 +44,8 @@ pnpm --filter @tomokichi/mail-ingress dev   # :8789
 | `apps/api/wrangler.jsonc` | `MAIN_SITE_ORIGIN`, `MAIN_SITE_WORKERS_ORIGIN`, `SUPPORT_*_EMAIL`, cron `17 3 * * *`（招待掃除 + manifest 期限警告）と `*/5 * * * *`（通報 outbox） | vars |
 | `apps/api` secrets | `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `SUPPORT_CLIENT_KEY`, `REMEET_INVITE_CLIENT_KEY`, … | `pnpm -w cf secret put <NAME>` |
 | `apps/admin-web/wrangler.jsonc` | `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `ADMIN_ORIGIN`, `ENVIRONMENT` | vars（非秘密） |
-| `apps/admin-core` secrets | `HASH_PEPPER`（**永久。変えると仮名が繋がらない**）, `MAIL_API_KEY`（無ければ送信ボタンだけ無効）, `SUPPORT_FORWARD_EMAIL` | `wrangler secret put` |
+| `apps/admin-core` secrets | `HASH_PEPPER`（**永久。変えると仮名が繋がらない**）, `MAIL_API_KEY`（無ければ送信ボタンだけ無効）, `SUPPORT_FORWARD_EMAIL`, `NOTIFICATION_EMAIL`（新着通知の宛先）, `VAPID_PRIVATE_KEY`（Web Push。`pnpm --filter @tomokichi/admin-core run vapid:generate`） | `wrangler secret put` |
+| `apps/admin-core/wrangler.jsonc` | `ADMIN_ORIGIN`, `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT` | vars（非秘密）。`docs/support-notifications.md` |
 | `apps/mail-ingress/wrangler.jsonc` | `SUPPORT_EMAIL`, `MAX_STORED_BYTES` | vars |
 | GitHub | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`（secrets）、`CLOUDFLARE_DEPLOY_ENABLED`, `PUBLIC_TURNSTILE_SITE_KEY`（variables） | Actions |
 

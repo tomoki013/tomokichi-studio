@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../index";
 import { verifyTurnstileToken } from "./turnstile";
-import type { SupportBindings, SupportEmail } from "./types";
+import type { SupportBindings } from "./types";
 
 const webRequest = {
   requestId: "49a3999c-0ce1-4ea6-ab68-afcd6dc2e794",
@@ -30,11 +30,10 @@ function post(
   body: unknown,
   options: { secret?: string; verify?: typeof verifyTurnstileToken } = {},
 ) {
-  const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-    id: "email-id",
-  }));
+  // "Delivered" now means "recorded in Admin". The stub stands in for the
+  // binding; what the tests assert is whether the message got that far.
+  const deliver = vi.fn().mockResolvedValue({ ok: true, value: {} });
   const app = createApp({
-    deliver,
     rateLimit: async () => true,
     verifyTurnstile: options.verify,
   });
@@ -45,7 +44,11 @@ function post(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     },
-    { ...baseEnv, ...(options.secret ? { TURNSTILE_SECRET_KEY: options.secret } : {}) },
+    {
+      ...baseEnv,
+      ADMIN_CORE: { createSupportThread: deliver },
+      ...(options.secret ? { TURNSTILE_SECRET_KEY: options.secret } : {}),
+    },
   );
   return { response, deliver };
 }
@@ -182,11 +185,8 @@ describe("the client key, for sources that cannot solve a challenge", () => {
     body: unknown,
     options: { clientKey?: string; header?: string; secret?: string } = {},
   ) {
-    const deliver = vi.fn<(email: SupportEmail) => Promise<{ id: string }>>(async () => ({
-      id: "email-id",
-    }));
+    const deliver = vi.fn().mockResolvedValue({ ok: true, value: {} });
     const app = createApp({
-      deliver,
       rateLimit: async () => true,
       verifyTurnstile: async () => ({ ok: true }),
     });
@@ -197,6 +197,7 @@ describe("the client key, for sources that cannot solve a challenge", () => {
       { method: "POST", headers, body: JSON.stringify(body) },
       {
         ...baseEnv,
+        ADMIN_CORE: { createSupportThread: deliver },
         ...(options.clientKey ? { SUPPORT_CLIENT_KEY: options.clientKey } : {}),
         ...(options.secret ? { TURNSTILE_SECRET_KEY: options.secret } : {}),
       },

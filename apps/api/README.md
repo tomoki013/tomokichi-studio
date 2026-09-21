@@ -24,6 +24,20 @@ pnpm test       # vitest, in workerd
 pnpm deploy
 ```
 
+## Where a message goes
+
+A contact-form message and a Remeet report are **recorded in Studio Admin and
+nowhere else**. This Worker no longer mails their contents to anybody: a
+support message is accepted when `ADMIN_CORE.createSupportThread` has it, a
+report when its durable outbox copy is in R2 (and then delivered to Admin Core,
+retried by the `*/5` cron). Admin Core tells the operator a ticket exists —
+mail and Web Push, with the ticket number and a link and nothing else. See
+`docs/support-notifications.md`. Without the `ADMIN_CORE` binding both routes
+answer 502, because a message with nowhere to go must not be told it arrived.
+
+`RESEND_API_KEY` / `SUPPORT_TO_EMAIL` remain for one mail only: the
+moderation-manifest expiry warning, which carries no content.
+
 ## Remeet invitations
 
 The entrance to a CloudKit share, and nothing else about Remeet. The invitation

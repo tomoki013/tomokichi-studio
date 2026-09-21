@@ -1,14 +1,8 @@
 import type { Context, Hono } from "hono";
 
-import {
-  type AdminBridgeBindings,
-  background,
-  mirrorSupportMessage,
-} from "../services/admin-bridge";
-import { sendSupportEmail } from "../support/email";
-import { createSupportEmail } from "../support/template";
+import { type AdminBridgeBindings, recordSupportMessage } from "../services/admin-bridge";
 import { verifyTurnstileToken } from "../support/turnstile";
-import type { EmailDeliveryResult, SupportBindings, SupportEmail } from "../support/types";
+import type { SupportBindings } from "../support/types";
 import { validateSupportRequest } from "../support/validation";
 
 const MAX_BODY_BYTES = 20 * 1024;
@@ -20,7 +14,6 @@ type SupportApp = Hono<{ Bindings: SupportRouteBindings }>;
 type SupportContext = Context<{ Bindings: SupportRouteBindings }>;
 
 export interface SupportDependencies {
-  deliver?: (email: SupportEmail, env: SupportBindings) => Promise<EmailDeliveryResult>;
   rateLimit?: (clientId: string, env: SupportBindings) => Promise<boolean>;
   verifyTurnstile?: typeof verifyTurnstileToken;
 }
@@ -75,7 +68,6 @@ function logResult(
   request: { requestId: string; source: string; app: string; category: string } | undefined,
   status: number,
   startedAt: number,
-  emailId?: string,
   /** Why a request was turned away, when the status alone does not say. */
   reason?: string,
 ): void {
@@ -86,7 +78,6 @@ function logResult(
       app: request?.app,
       category: request?.category,
       status,
-      emailId,
       reason,
       durationMs: Date.now() - startedAt,
     }),
@@ -205,7 +196,7 @@ export function registerSupportRoute(
     }
 
     if (!fromKnownClient(c, request.source)) {
-      logResult(request, 403, startedAt, undefined, "client-key");
+      logResult(request, 403, startedAt, "client-key");
       return c.json(
         { ok: false, code: "CLIENT_NOT_ALLOWED", message: errorMessages.CLIENT_NOT_ALLOWED },
         403,
@@ -228,7 +219,7 @@ export function registerSupportRoute(
       if (!verification.ok) {
         // The sender is told to try again, not why they failed; the codes go
         // to the log, for whoever is looking at abuse.
-        logResult(request, 403, startedAt, undefined, verification.errorCodes?.join(","));
+        logResult(request, 403, startedAt, verification.errorCodes?.join(","));
         return c.json(
           { ok: false, code: "TURNSTILE_FAILED", message: errorMessages.TURNSTILE_FAILED },
           403,
@@ -237,43 +228,27 @@ export function registerSupportRoute(
       }
     }
 
-    // A copy for Studio Admin, so the message can be answered from
-    // admin.tmkch.io.
+    // The message goes to Studio Admin and nowhere else.
     //
-    // Before the mail, and deliberately not conditional on it. This used to run
-    // only after a successful send, which meant the one time it mattered most —
-    // Resend over its quota, or refusing for any other reason — the sender got
-    // a 502 and the message existed nowhere at all. Admin has a database; there
-    // is no reason for somebody's question to depend on a mail provider being
-    // up. It still runs outside the response path, so it cannot slow down or
-    // fail the request either way.
-    background(
-      c,
-      mirrorSupportMessage(c.env, {
-        requestId: request.requestId,
-        appSlug: request.app,
-        requesterEmail: request.email,
-        requesterName: request.name,
-        category: request.category,
-        message: request.message,
-        source: request.source,
-      }),
-    );
-
-    try {
-      const email = createSupportEmail(request, {
-        from: c.env.SUPPORT_FROM_EMAIL,
-        to: c.env.SUPPORT_TO_EMAIL,
-      });
-      const result = dependencies.deliver
-        ? await dependencies.deliver(email, c.env)
-        : c.env.SUPPORT_MOCK_DELIVERY === "true"
-          ? { id: "mock-email-id" }
-          : await sendSupportEmail(email, c.env.RESEND_API_KEY);
-      logResult(request, 200, startedAt, result.id);
-
-      return c.json({ ok: true, requestId: request.requestId }, 200, corsHeaders(c));
-    } catch {
+    // This used to be two things: a mail to the operator's inbox carrying the
+    // full message, and a best-effort copy for Admin. The mail is gone. The
+    // inbox was never the support database, but everything wired to the
+    // inbox could read every message; now the only copy is the ticket, and
+    // what reaches the inbox is Admin Core's "a ticket exists" alert with a
+    // number and a link. Admin Core sends that after the row is committed, so
+    // a mail or push failure there is never a failure of this request — and
+    // a failure to write the row *is*, because then the message exists
+    // nowhere and the sender must be told to try again.
+    const recorded = await recordSupportMessage(c.env, {
+      requestId: request.requestId,
+      appSlug: request.app,
+      requesterEmail: request.email,
+      requesterName: request.name,
+      category: request.category,
+      message: request.message,
+      source: request.source,
+    });
+    if (!recorded) {
       logResult(request, 502, startedAt);
       return c.json(
         { ok: false, code: "DELIVERY_FAILED", message: errorMessages.DELIVERY_FAILED },
@@ -281,5 +256,8 @@ export function registerSupportRoute(
         corsHeaders(c),
       );
     }
+
+    logResult(request, 200, startedAt);
+    return c.json({ ok: true, requestId: request.requestId }, 200, corsHeaders(c));
   });
 }

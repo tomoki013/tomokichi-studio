@@ -170,10 +170,13 @@ Workers, and only one of them is on the internet:
 - `apps/mail-ingress` — receives `support@tmkch.io`, stores the message, and
   forwards it to the address that was already receiving it.
 
-`apps/api` hands Admin a copy of each Remeet report and support-form message
-through `src/services/admin-bridge.ts`. That path is additive and best-effort:
-with no `ADMIN_CORE` binding, or with Admin Core down, reports and support mail
-behave exactly as they did before.
+`apps/api` records each Remeet report and support-form message in Admin
+through `src/services/admin-bridge.ts`, and that record is the only copy: no
+mail carries the message. Admin Core tells the operator a ticket exists — by
+mail and by Web Push, with the ticket number and a link and nothing else — once
+the row is committed (`docs/support-notifications.md`). A report is accepted
+once its durable outbox copy exists; a support message once Admin Core has it.
+Without the `ADMIN_CORE` binding neither can be accepted.
 
 Setup, the deployment order, and the Email Routing switchover are in
 [`apps/admin-core/README.md`](apps/admin-core/README.md).

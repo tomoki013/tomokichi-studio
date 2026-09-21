@@ -9,7 +9,7 @@ tmkch.io 配下のブランドサイト群・公開 API・管理基盤（Ticket 
 ## 最初に読むもの
 
 1. `docs/ARCHITECTURE.md`（3 Worker の分離、データの流れ）
-2. `docs/operations-tickets.md`（Ticket の規則）、`docs/admin-report-workflow.md`（通報と署名）
+2. `docs/operations-tickets.md`（Ticket の規則）、`docs/admin-report-workflow.md`（通報と署名）、`docs/support-notifications.md`（通知・PWA・Push）
 3. `apps/admin-core/README.md`（Cloudflare 側の設定手順）
 4. `docs/DECISIONS.md`、`docs/audit/tomokichi-studio-platform-audit.md`
 
@@ -21,6 +21,8 @@ tmkch.io 配下のブランドサイト群・公開 API・管理基盤（Ticket 
 - 通報の削除・解除は署名経路（prepare → Mac → complete）だけ。status / resolution で内容を消す道を作らない。
 - migration は `migrations/000N_*.sql` を追記。`CREATE TABLE IF NOT EXISTS`、`ALTER TABLE ADD COLUMN`、トリガの `END;` 行を単独に（harness と wrangler の splitter）。
 - 秘密は `wrangler secret`。`.dev.vars` は gitignore。`ACCESS_AUD` 等の vars は非秘密。
+- **通知（メール / Push）に本文・氏名・アドレスを入れない**。`TicketNotificationEvent` にフィールドを足さない。本文入りの運営メールを復活させない（`docs/support-notifications.md`、ADR-019）。
+- Service Worker（`admin-web/public/sw.js`）で Cache Storage を使わない（ADR-021）。
 - ブランドサイトは `AppSiteShell.astro` / `AppHeroChrome.astro` を使う。別のシェルを作らない（`AGENTS.md`）。
 
 ## Naming / Directory

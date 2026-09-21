@@ -225,6 +225,9 @@ importers:
       '@tomokichi/admin-mail':
         specifier: workspace:*
         version: link:../../packages/admin-mail
+      '@tomokichi/admin-push':
+        specifier: workspace:*
+        version: link:../../packages/admin-push
       hono:
         specifier: ^4.13.2
         version: 4.13.2
@@ -629,6 +632,15 @@ importers:
         version: 4.1.10(@types/node@24.13.3)(jsdom@28.1.0)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/admin-mail:
+    devDependencies:
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@24.13.3)(jsdom@28.1.0)(vite@8.1.5(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/admin-push:
     devDependencies:
       typescript:
         specifier: ^6.0.3
