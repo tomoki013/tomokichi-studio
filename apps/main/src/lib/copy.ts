@@ -140,6 +140,29 @@ export const home = {
     } as L,
     cta: { ja: "最近の記録を見る", en: "Read the journal" } as L,
     ctaSub: { ja: "つくったものを見る", en: "See what came of it" } as L,
+    /**
+     * The trail beside the copy: the three steps everything on this site goes
+     * through, in order. Each station shows a real artefact from that step.
+     */
+    journey: {
+      heading: { ja: "ものができるまで", en: "How things get made here" } as L,
+      notice: {
+        label: { ja: "気づく", en: "Notice" } as L,
+        note: {
+          ja: "旅先で、暮らしの中で、立ち止まる",
+          en: "Something stops me, on a trip or at home",
+        } as L,
+      },
+      write: {
+        label: { ja: "書き留める", en: "Write it down" } as L,
+        note: { ja: "問いのまま、記録に残す", en: "It stays a question, kept in the journal" } as L,
+      },
+      form: {
+        label: { ja: "形にする", en: "Give it a form" } as L,
+        note: { ja: "必要なら、アプリという形に", en: "Sometimes that form is an app" } as L,
+      },
+    },
+    scroll: { ja: "スクロール", en: "Scroll" } as L,
   },
   /** Small counters under the hero copy, filled from real content. */
   facts: {
