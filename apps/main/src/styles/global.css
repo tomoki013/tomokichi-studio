@@ -142,43 +142,26 @@ img {
 }
 
 /* Language switcher ------------------------------------------------------- */
-/* The shared `LanguageSwitcher` reads its colours from these; the main site
-   has no product accent, so the check mark and focus ring take the ink. */
-:root {
-  --app-site-ink: var(--ink);
-  --app-site-accent: var(--ink);
-  --app-site-page-background: var(--surface);
-  --app-site-header-background: var(--surface);
-  --app-site-language-border: var(--line);
-  --app-site-language-background: transparent;
-  --app-site-language-background-hover: color-mix(in srgb, var(--ink) 5%, transparent);
-  --app-site-mobile-divider: var(--line-soft);
-  --app-site-mobile-link-active: color-mix(in srgb, var(--ink) 6%, transparent);
+.lang {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: 0.06em;
 }
-.site-header .app-site-language-toggle {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+.lang a {
+  transition: color 0.2s;
+}
+.lang a:hover {
   color: var(--ink-soft);
 }
-.site-header .app-site-language-toggle:hover,
-.site-header .app-site-language-toggle[aria-expanded="true"] {
+.lang a.active {
   color: var(--ink);
 }
-.site-footer .app-site-language {
-  margin-top: 16px;
-}
-.site-footer .app-site-language-toggle {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--ink-soft);
-}
-/* The shared component folds its header trigger away at 900px, where the
-   brand sites switch to their menu; this site's menu starts at 760px. */
-@media (max-width: 900px) and (min-width: 761px) {
-  .site-header .app-site-language.is-header {
-    display: block;
-  }
+.lang span {
+  opacity: 0.5;
 }
 
 /* Arrow link -------------------------------------------------------------- */
@@ -2267,6 +2250,9 @@ a.app-card:hover,
     background: none;
     color: var(--ink);
     font-size: 18px;
+  }
+  .lang {
+    font-size: 12px;
   }
 
   .hero {
