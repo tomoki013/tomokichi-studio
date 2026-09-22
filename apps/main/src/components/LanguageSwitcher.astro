@@ -1,0 +1,19 @@
+---
+import type { Locale } from "../data/apps";
+
+interface Props {
+  lang: Locale;
+  /** Canonical path without locale prefix, e.g. "/", "/products", "/about". */
+  path: string;
+}
+const { lang, path } = Astro.props;
+const clean = path === "/" ? "" : path;
+const jaHref = `/ja${clean}` || "/ja";
+const enHref = clean || "/";
+---
+
+<div class="lang">
+  <a class:list={{ active: lang === "ja" }} href={jaHref} hreflang="ja" aria-current={lang === "ja" ? "true" : undefined}>JA</a>
+  <span aria-hidden="true">|</span>
+  <a class:list={{ active: lang === "en" }} href={enHref} hreflang="en" aria-current={lang === "en" ? "true" : undefined}>EN</a>
+</div>

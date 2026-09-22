@@ -142,43 +142,26 @@ img {
 }
 
 /* Language switcher ------------------------------------------------------- */
-/* The shared `LanguageSwitcher` reads its colours from these; the main site
-   has no product accent, so the check mark and focus ring take the ink. */
-:root {
-  --app-site-ink: var(--ink);
-  --app-site-accent: var(--ink);
-  --app-site-page-background: var(--surface);
-  --app-site-header-background: var(--surface);
-  --app-site-language-border: var(--line);
-  --app-site-language-background: transparent;
-  --app-site-language-background-hover: color-mix(in srgb, var(--ink) 5%, transparent);
-  --app-site-mobile-divider: var(--line-soft);
-  --app-site-mobile-link-active: color-mix(in srgb, var(--ink) 6%, transparent);
+.lang {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-mute);
+  font-size: 11px;
+  letter-spacing: 0.06em;
 }
-.site-header .app-site-language-toggle {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+.lang a {
+  transition: color 0.2s;
+}
+.lang a:hover {
   color: var(--ink-soft);
 }
-.site-header .app-site-language-toggle:hover,
-.site-header .app-site-language-toggle[aria-expanded="true"] {
+.lang a.active {
   color: var(--ink);
 }
-.site-footer .app-site-language {
-  margin-top: 16px;
-}
-.site-footer .app-site-language-toggle {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--ink-soft);
-}
-/* The shared component folds its header trigger away at 900px, where the
-   brand sites switch to their menu; this site's menu starts at 760px. */
-@media (max-width: 900px) and (min-width: 761px) {
-  .site-header .app-site-language.is-header {
-    display: block;
-  }
+.lang span {
+  opacity: 0.5;
 }
 
 /* Arrow link -------------------------------------------------------------- */
@@ -681,35 +664,88 @@ a.app-card:hover,
 }
 
 /* Home page --------------------------------------------------------------- */
+
+/* The hero is one tall stage: the mountain behind, the copy across the top,
+   and the trail — notice → write → form — climbing left to right beneath it.
+   The pointer tilts the trail through `--mx`/`--my` (set in HomePage.astro). */
 .hero {
-  min-height: 620px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
-  gap: clamp(28px, 4vw, 64px);
-  align-items: center;
+  --mx: 0;
+  --my: 0;
   position: relative;
+  padding-bottom: 64px;
   border-bottom: 1px solid var(--line-soft);
   overflow: hidden;
+  isolation: isolate;
 }
+
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.hero-backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+  opacity: 0.58;
+  filter: saturate(0.8);
+  /* Fades towards the copy and the section below, so the photo reads as
+     weather behind the trail rather than as a banner. */
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 34%, #000 70%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 45%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 34%, #000 70%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 45%);
+  -webkit-mask-composite: source-in;
+  transform: translate3d(calc(var(--mx) * -6px), calc(var(--my) * -4px), 0);
+  scale: 1.06;
+  animation: hero-breathe 36s ease-in-out infinite alternate;
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(50% 45% at 80% 40%, rgb(255 250 240 / 50%), transparent 70%),
+    linear-gradient(to bottom, transparent 70%, var(--surface) 100%);
+}
+@keyframes hero-breathe {
+  from {
+    scale: 1.06;
+  }
+  to {
+    scale: 1.11;
+  }
+}
+
 .hero-copy {
-  padding: 74px 0 84px;
+  padding: clamp(56px, 8vh, 88px) 0 0;
   position: relative;
   z-index: 2;
-  max-width: 540px;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  column-gap: clamp(28px, 4vw, 64px);
+  align-items: end;
 }
 .hero-eyebrow {
-  margin: 0 0 22px;
+  grid-column: 1 / -1;
+  margin: 0 0 26px;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   color: var(--ink-mute);
   font-size: 10.5px;
   font-weight: 650;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
 }
 .hero-eyebrow::before {
   content: "";
-  width: 26px;
+  width: 30px;
   height: 1px;
   background: currentColor;
   opacity: 0.6;
@@ -717,29 +753,40 @@ a.app-card:hover,
 .hero-copy h1 {
   margin: 0;
   white-space: pre-line;
-  font: 500 clamp(34px, 4.4vw, 52px) / 1.35 var(--serif);
-  letter-spacing: -0.02em;
+  font: 500 clamp(40px, 6.6vw, 82px) / 1.14 var(--serif);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+/* Japanese sets wider per character, and the copy already breaks its own
+   lines, so it takes a smaller size than the Latin heading. */
+.hero-copy h1:lang(ja) {
+  font-size: clamp(34px, 4.6vw, 58px);
+  line-height: 1.26;
+  letter-spacing: -0.01em;
+}
+.hero-copy-aside {
+  padding-bottom: 10px;
 }
 .hero-copy .lead {
-  margin: 30px 0 0;
+  margin: 0;
   white-space: pre-line;
   font-size: 13.5px;
   line-height: 2;
   color: var(--ink-soft);
 }
 .hero-actions {
-  margin-top: 40px;
+  margin-top: 28px;
   display: flex;
   align-items: center;
   gap: 30px;
 }
 .hero-facts {
-  margin: 46px 0 0;
-  padding-top: 26px;
-  border-top: 1px solid var(--line-soft);
+  margin: 32px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   display: flex;
   flex-wrap: wrap;
-  gap: 14px 40px;
+  gap: 14px 36px;
 }
 .hero-facts div {
   display: grid;
@@ -757,125 +804,272 @@ a.app-card:hover,
   font-variant-numeric: tabular-nums;
 }
 
-/* Travel frames sit in a loose stack, with the product screen tucked behind. */
-.hero-gallery {
+/* Trail ------------------------------------------------------------------- */
+.hero-trail {
   position: relative;
   z-index: 1;
-  justify-self: center;
-  width: min(100%, 520px);
-  aspect-ratio: 1 / 1.02;
+  height: 430px;
+  margin-top: clamp(28px, 5vh, 56px);
 }
-.hero-photo {
+.hero-trail-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.hero-trail-path path {
+  fill: none;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.hero-trail-line {
+  stroke: color-mix(in srgb, var(--ink) 45%, transparent);
+  stroke-width: 1.7;
+  stroke-dasharray: 2.5 7;
+}
+/* A solid line walks the trail once the hero is in view, then fades and
+   leaves only the dotted route. */
+.hero-trail-draw {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+.hero-trail.is-visible .hero-trail-draw {
+  animation: hero-trail-walk 2.8s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+}
+@keyframes hero-trail-walk {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.6;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 0.6;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.hero-stations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: absolute;
+  inset: 0;
+}
+.hero-station {
+  position: absolute;
+  display: grid;
+  gap: 12px;
+  transform: translate3d(
+    calc(var(--mx) * var(--depth, 1) * 9px),
+    calc(var(--my) * var(--depth, 1) * 7px),
+    0
+  );
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Each station waits for the walking line to reach it. */
+.hero-station > * {
+  opacity: 0;
+  translate: 0 18px;
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--station-delay, 0s),
+    translate 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--station-delay, 0s);
+}
+.hero-trail.is-visible .hero-station > * {
+  opacity: 1;
+  translate: 0 0;
+}
+.st-notice {
+  --station-delay: 0.4s;
+  left: 1%;
+  bottom: 0;
+  width: 25%;
+}
+.st-write {
+  --station-delay: 1.35s;
+  left: 39%;
+  bottom: 60px;
+  width: 26%;
+  z-index: 2;
+}
+.st-form {
+  --station-delay: 2.3s;
+  right: 3%;
+  top: 0;
+  z-index: 1;
+  grid-template-columns: auto auto;
+  align-items: end;
+  gap: 18px;
+}
+.st-form .station-label {
+  order: -1;
+  padding-bottom: 8px;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.station-visual {
+  position: relative;
+}
+.station-label {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 500 14px / 1.3 var(--serif);
+  color: var(--ink);
+}
+.station-index {
+  margin-bottom: 4px;
+  font: 650 9.5px / 1 var(--sans);
+  letter-spacing: 0.18em;
+  color: var(--ink-mute);
+}
+.station-label small {
+  max-width: 200px;
+  font: 400 11px / 1.6 var(--sans);
+  color: var(--ink-soft);
+}
+
+/* 01 — two travel frames, loosely stacked. */
+.st-notice .station-visual {
+  aspect-ratio: 4 / 3.1;
+}
+.station-photo {
   position: absolute;
   margin: 0;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--line-soft);
-  box-shadow: 0 18px 44px rgb(28 22 16 / 16%);
-  animation: hero-float 13s ease-in-out infinite;
-  animation-delay: calc(var(--photo-i, 0) * -4.2s);
+  box-shadow: 0 18px 44px rgb(28 22 16 / 18%);
   transition:
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.5s ease;
 }
-.hero-photo img {
+.station-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.hero-photo:hover {
-  z-index: 6;
-  transform: translateY(-10px) rotate(0deg) scale(1.03);
-  box-shadow: 0 26px 60px rgb(28 22 16 / 24%);
+.station-photo.a {
+  inset: 0 14% 8% 0;
+  transform: rotate(-2.5deg);
+  z-index: 1;
 }
-.hero-photo:hover img {
-  transform: scale(1.08);
-}
-.hero-photo.p1 {
-  top: 0;
+.station-photo.b {
   right: 0;
-  width: 66%;
-  aspect-ratio: 4 / 3;
-  z-index: 3;
-  transform: rotate(1.6deg);
-  --drift-x: 18px;
-}
-.hero-photo.p2 {
-  bottom: 4%;
-  left: -4%;
-  width: 58%;
-  aspect-ratio: 5 / 4;
-  z-index: 4;
-  transform: rotate(-2.4deg);
-  --drift-x: -22px;
-}
-.hero-photo.p3 {
-  top: 24%;
-  left: 2%;
-  width: 40%;
-  aspect-ratio: 1 / 1;
+  bottom: 0;
+  width: 46%;
+  aspect-ratio: 1;
+  transform: rotate(4deg);
   z-index: 2;
-  transform: rotate(3deg);
-  --drift-x: 16px;
+  outline: 4px solid var(--surface);
 }
+.st-notice:hover .station-photo.a {
+  transform: rotate(-1deg) translateY(-4px);
+}
+.st-notice:hover .station-photo.b {
+  transform: rotate(2deg) translate(4px, -6px);
+}
+
+/* 02 — the newest journal entry, as a sheet of paper on the trail. */
+.station-paper {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px 18px;
+  border-radius: 6px;
+  color: var(--ink);
+  background: linear-gradient(135deg, #fffdf8, #f7f3ea);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 80%) inset,
+    0 22px 50px rgb(28 22 16 / 18%);
+  transform: rotate(1.5deg);
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s ease;
+}
+a.station-paper:hover {
+  transform: rotate(0deg) translateY(-5px);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 80%) inset,
+    0 30px 60px rgb(28 22 16 / 24%);
+}
+.paper-meta {
+  display: flex;
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+}
+.paper-title {
+  font: 500 15.5px / 1.5 var(--serif);
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+.paper-arrow {
+  justify-self: end;
+  font-size: 13px;
+  color: var(--ink-soft);
+  transition: transform 0.3s;
+}
+a.station-paper:hover .paper-arrow {
+  transform: translateX(4px);
+}
+
+/* 03 — a shipped app, at the top of the climb. */
 .hero-device {
-  position: absolute;
-  right: -3%;
-  bottom: -2%;
-  z-index: 5;
-  filter: drop-shadow(0 18px 34px rgb(20 20 20 / 20%));
+  filter: drop-shadow(0 22px 40px rgb(20 20 20 / 24%));
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.hero-gallery:hover .hero-device {
+.st-form:hover .hero-device {
   transform: translateY(-6px);
 }
 
-@keyframes hero-float {
-  0%,
+/* Scroll cue --------------------------------------------------------------- */
+.hero-scroll {
+  position: absolute;
+  right: clamp(22px, 5.1vw, 62px);
+  bottom: 22px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-mute);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.hero-scroll-line {
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(to bottom, transparent, currentColor);
+  animation: hero-scroll-line 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes hero-scroll-line {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
   100% {
-    translate: 0 0;
+    transform: scaleY(0);
+    transform-origin: bottom;
   }
-  50% {
-    translate: var(--drift-x, 0) -9px;
-  }
-}
-
-.hero-shapes {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.hero-shapes .s {
-  position: absolute;
-  border-radius: 50%;
-}
-.hero-shapes .s1 {
-  width: 380px;
-  height: 380px;
-  right: -4%;
-  top: 4%;
-  background: #efe7db;
-  opacity: 0.75;
-}
-.hero-shapes .s2 {
-  width: 90px;
-  height: 90px;
-  right: 46%;
-  top: 12%;
-  background: #d7e0d2;
-  opacity: 0.8;
-}
-.hero-shapes .arch {
-  right: 12%;
-  bottom: -6%;
-  width: 280px;
-  height: 140px;
-  border-radius: 280px 280px 0 0;
-  background: #dfeaf0;
-  opacity: 0.7;
 }
 
 .home-apps {
@@ -2268,31 +2462,84 @@ a.app-card:hover,
     color: var(--ink);
     font-size: 18px;
   }
+  .lang {
+    font-size: 12px;
+  }
 
   .hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
+    padding-bottom: 44px;
   }
-  .hero-copy {
-    padding: 40px 0 20px;
-    max-width: none;
-  }
-  .hero-copy h1 {
-    font-size: clamp(30px, 9vw, 44px);
-  }
-  .hero-facts {
-    margin-top: 34px;
-    padding-top: 22px;
-    gap: 14px 28px;
-  }
-  .hero-gallery {
-    width: min(100%, 380px);
-    margin-bottom: 36px;
-  }
-  .hero-photo {
+  .hero-backdrop-img {
+    object-position: 50% 30%;
+    opacity: 0.4;
+    mask-image: linear-gradient(to bottom, #000 0%, transparent 60%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 60%);
+    scale: 1;
     animation: none;
   }
-  .hero-shapes {
+  .hero-copy {
+    padding-top: 44px;
+    grid-template-columns: 1fr;
+    row-gap: 24px;
+  }
+  .hero-copy h1 {
+    font-size: clamp(30px, 8.4vw, 60px);
+  }
+  /* The trail stands up: a dotted line down the left, stations in order. */
+  .hero-trail {
+    height: auto;
+    margin-top: 40px;
+  }
+  .hero-trail-path {
+    display: none;
+  }
+  .hero-stations {
+    position: static;
+    margin-left: 6px;
+    padding-left: 26px;
+    border-left: 1.5px dashed color-mix(in srgb, var(--ink) 30%, transparent);
+    display: grid;
+    gap: 40px;
+  }
+  .hero-station {
+    position: relative;
+    inset: auto;
+    width: auto;
+    transform: none;
+  }
+  .hero-station::before {
+    content: "";
+    position: absolute;
+    left: -33.5px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1.5px solid var(--ink);
+  }
+  .st-notice {
+    width: min(100%, 300px);
+  }
+  .st-write {
+    width: min(100%, 340px);
+  }
+  .st-form {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+  .station-label {
+    order: -1;
+  }
+  .st-form .station-label {
+    padding-bottom: 0;
+    text-align: left;
+    align-items: flex-start;
+  }
+  .hero-facts {
+    gap: 14px 28px;
+  }
+  .hero-scroll {
     display: none;
   }
 

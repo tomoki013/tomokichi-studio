@@ -8,7 +8,14 @@ import type { Locale } from "../data/apps";
 import { developingApps, releasedApps } from "../data/apps";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { home, principles, principlesHeading } from "../lib/copy";
-import { currentEntry, journalEntries, recentEntries } from "../lib/journal";
+import {
+  categoryLabels,
+  currentEntry,
+  entryHref,
+  formatDate,
+  journalEntries,
+  recentEntries,
+} from "../lib/journal";
 import { homeJsonLd } from "../lib/structured-data";
 import AppCard from "./AppCard.astro";
 import AppScreen from "./AppScreen.astro";
@@ -29,13 +36,12 @@ const allEntries = await journalEntries(lang);
 const available = releasedApps.slice(0, 3);
 const making = developingApps.slice(0, 5);
 
-/* The hero leads with where the questions come from, so the travel frames sit
-   in front and the product screen tucks in behind them. */
-const heroPhotos = [
-  { src: venice, className: "p1" },
-  { src: mountainLake, className: "p2" },
-  { src: santorini, className: "p3" },
-];
+/* The hero is the site's thesis drawn as a trail: something noticed on a trip,
+   written down as a question, and finally given a form. Every station is a
+   real artefact — the photos, the newest journal entry, a shipped app — and
+   the mountain behind them is the same landscape the trail climbs. */
+const journey = home.hero.journey;
+const heroNote = current ?? recent[0];
 const heroFacts = [
   { term: home.facts.based[lang], value: "Kyoto / Tokyo" },
   { term: home.facts.released[lang], value: String(releasedApps.length) },
@@ -54,55 +60,103 @@ const heroFacts = [
     <SiteHeader lang={lang} path="/" />
 
     <main>
-      <section class="hero shell">
-        <div class="hero-copy">
-          <p class="hero-eyebrow" data-reveal="fade">{home.hero.eyebrow[lang]}</p>
-          <h1 data-reveal="rise" style="--reveal-i:1">{home.hero.heading[lang]}</h1>
-          <p class="lead" data-reveal style="--reveal-i:2">{home.hero.body[lang]}</p>
-          <div class="hero-actions" data-reveal style="--reveal-i:3">
-            <ArrowLink href={p("/journal")} label={home.hero.cta[lang]} />
-            <ArrowLink href={p("/products")} label={home.hero.ctaSub[lang]} soft />
-          </div>
-          <dl class="hero-facts" data-reveal style="--reveal-i:4">
-            {heroFacts.map((fact) => (
-              <div>
-                <dt>{fact.term}</dt>
-                <dd>{fact.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-
-        <div class="hero-gallery" data-reveal="zoom" style="--reveal-i:2">
-          {heroPhotos.map((photo, i) => (
-            <figure class:list={["hero-photo", photo.className]} style={`--photo-i:${i}`}>
-              <Image
-                src={photo.src}
-                format="webp"
-                widths={[320, 520, 760]}
-                sizes="(max-width: 900px) 40vw, 300px"
-                alt=""
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-              />
-            </figure>
-          ))}
-          <AppScreen
-            class="hero-device"
-            screen="tripory-home"
-            lang={lang}
-            alt={ja ? "iPhoneで動くTripory" : "Tripory running on an iPhone"}
-            size="sm"
+      <section class="hero shell" data-hero>
+        <div class="hero-backdrop" aria-hidden="true">
+          <Image
+            class="hero-backdrop-img"
+            src={mountainLake}
+            format="webp"
+            widths={[720, 1180, 1600]}
+            sizes="(max-width: 1180px) 100vw, 1180px"
+            alt=""
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
           />
         </div>
 
-        <div class="hero-shapes" aria-hidden="true">
-          <span class="s s1"></span><span class="s s2"></span><span class="arch"></span>
+        <div class="hero-copy">
+          <p class="hero-eyebrow" data-reveal="fade">{home.hero.eyebrow[lang]}</p>
+          <h1 data-reveal="rise" style="--reveal-i:1">{home.hero.heading[lang]}</h1>
+          <div class="hero-copy-aside">
+            <p class="lead" data-reveal style="--reveal-i:2">{home.hero.body[lang]}</p>
+            <div class="hero-actions" data-reveal style="--reveal-i:3">
+              <ArrowLink href={p("/journal")} label={home.hero.cta[lang]} />
+              <ArrowLink href={p("/products")} label={home.hero.ctaSub[lang]} soft />
+            </div>
+            <dl class="hero-facts" data-reveal style="--reveal-i:4">
+              {heroFacts.map((fact) => (
+                <div>
+                  <dt>{fact.term}</dt>
+                  <dd>{fact.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
+
+        <section class="hero-trail" data-reveal="fade" style="--reveal-i:3" aria-labelledby="hero-trail-heading">
+          <h2 class="sr-only" id="hero-trail-heading">{journey.heading[lang]}</h2>
+          <svg class="hero-trail-path" viewBox="0 0 1000 380" preserveAspectRatio="none" aria-hidden="true">
+            <path class="hero-trail-line" d="M 40 318 C 200 318, 250 262, 380 250 S 620 236, 720 168 S 860 40, 940 110" />
+            <path class="hero-trail-draw" pathLength="1" d="M 40 318 C 200 318, 250 262, 380 250 S 620 236, 720 168 S 860 40, 940 110" />
+          </svg>
+
+          <ol class="hero-stations">
+            <li class="hero-station st-notice" style="--depth:1.3">
+              <div class="station-visual">
+                <figure class="station-photo a">
+                  <Image src={venice} format="webp" widths={[320, 520]} sizes="(max-width: 900px) 60vw, 260px" alt="" loading="eager" decoding="async" />
+                </figure>
+                <figure class="station-photo b">
+                  <Image src={santorini} format="webp" widths={[240, 400]} sizes="(max-width: 900px) 30vw, 130px" alt="" loading="lazy" decoding="async" />
+                </figure>
+              </div>
+              <p class="station-label"><span class="station-index">01</span>{journey.notice.label[lang]}<small>{journey.notice.note[lang]}</small></p>
+            </li>
+
+            <li class="hero-station st-write" style="--depth:0.8">
+              {heroNote ? (
+                <a class="station-visual station-paper" href={entryHref(heroNote, lang)}>
+                  <span class="paper-meta">
+                    <time datetime={heroNote.data.date.toISOString().slice(0, 10)}>{formatDate(heroNote.data.date, lang)}</time>
+                    <span aria-hidden="true">·</span>
+                    <span>{categoryLabels[heroNote.data.category][lang]}</span>
+                  </span>
+                  <span class="paper-title">{heroNote.data.title}</span>
+                  <span class="paper-arrow" aria-hidden="true">→</span>
+                </a>
+              ) : (
+                <div class="station-visual station-paper">
+                  <span class="paper-title">{journey.write.note[lang]}</span>
+                </div>
+              )}
+              <p class="station-label"><span class="station-index">02</span>{journey.write.label[lang]}<small>{journey.write.note[lang]}</small></p>
+            </li>
+
+            <li class="hero-station st-form" style="--depth:0.45">
+              <div class="station-visual">
+                <AppScreen
+                  class="hero-device"
+                  screen="tripory-home"
+                  lang={lang}
+                  alt={ja ? "iPhoneで動くTripory" : "Tripory running on an iPhone"}
+                  size="sm"
+                />
+              </div>
+              <p class="station-label"><span class="station-index">03</span>{journey.form.label[lang]}<small>{journey.form.note[lang]}</small></p>
+            </li>
+          </ol>
+        </section>
+
+        <a class="hero-scroll" href="#home-current" aria-label={home.hero.scroll[lang]}>
+          <span class="hero-scroll-line" aria-hidden="true"></span>
+          <span class="hero-scroll-text" aria-hidden="true">{home.hero.scroll[lang]}</span>
+        </a>
       </section>
 
       {current && (
-        <section class="home-current shell" data-reveal>
+        <section class="home-current shell" id="home-current" data-reveal>
           <SectionHeader title={home.currentHeading[lang]} />
           <JournalCard entry={current} lang={lang} variant="current" />
         </section>
@@ -198,6 +252,37 @@ const heroFacts = [
       </section>
     </main>
 
-    <SiteFooter lang={lang} path="/" />
+    <SiteFooter lang={lang} />
   </div>
 </BaseLayout>
+
+<script>
+  /*
+   * The trail leans a little towards the pointer, with the nearer stations
+   * moving more than the far ones. It is decoration only: touch devices and
+   * anyone who asked for less motion get the static composition.
+   */
+  const hero = document.querySelector<HTMLElement>("[data-hero]");
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches || !matchMedia("(pointer: fine)").matches;
+  if (hero && !still) {
+    let frame = 0;
+    let x = 0;
+    let y = 0;
+    const apply = () => {
+      frame = 0;
+      hero.style.setProperty("--mx", x.toFixed(3));
+      hero.style.setProperty("--my", y.toFixed(3));
+    };
+    hero.addEventListener("pointermove", (event) => {
+      const rect = hero.getBoundingClientRect();
+      x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      y = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+      if (!frame) frame = requestAnimationFrame(apply);
+    });
+    hero.addEventListener("pointerleave", () => {
+      x = 0;
+      y = 0;
+      if (!frame) frame = requestAnimationFrame(apply);
+    });
+  }
+</script>

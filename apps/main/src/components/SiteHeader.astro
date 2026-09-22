@@ -1,8 +1,7 @@
 ---
-import LanguageSwitcher from "@tomokichi/app-site/LanguageSwitcher.astro";
 import type { Locale } from "../data/apps";
 import { nav } from "../lib/copy";
-import { localeLinks } from "../lib/locale-links";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
 
 interface Props {
   lang: Locale;
@@ -14,8 +13,6 @@ interface Props {
 const { lang, path, current } = Astro.props;
 const base = lang === "ja" ? "/ja" : "";
 const href = (p: string) => `${base}${p === "/" ? "" : p}` || "/";
-const locales = localeLinks(path);
-const languageLabel = lang === "ja" ? "言語" : "Language";
 ---
 
 <!-- Header and mobile menu travel together so the menu cannot scroll out from
@@ -37,7 +34,7 @@ const languageLabel = lang === "ja" ? "言語" : "Language";
     </nav>
 
     <div class="header-actions">
-      <LanguageSwitcher lang={lang} locales={locales} label={languageLabel} placement="header" />
+      <LanguageSwitcher lang={lang} path={path} />
       <button class="header-menu" type="button" aria-label={lang === "ja" ? "メニュー" : "Menu"} aria-expanded="false" data-menu-toggle>☰</button>
     </div>
   </header>
@@ -46,9 +43,6 @@ const languageLabel = lang === "ja" ? "言語" : "Language";
     {nav.map((item) => (
       <a href={href(item.href)} class:list={{ current: current === item.match }}>{item.label[lang]}</a>
     ))}
-    <div class="mobile-nav-language">
-      <LanguageSwitcher lang={lang} locales={locales} label={languageLabel} placement="mobile" />
-    </div>
   </nav>
 </div>
 
@@ -57,7 +51,6 @@ const languageLabel = lang === "ja" ? "言語" : "Language";
   .mobile-nav a { padding: 12px 0; font-size: 14px; color: var(--ink-soft); border-bottom: 1px solid var(--line-soft); }
   .mobile-nav a:last-child { border-bottom: 0; }
   .mobile-nav a.current { color: var(--ink); }
-  .mobile-nav-language { padding-top: 16px; }
   @media (max-width: 760px) {
     .mobile-nav[data-open] { display: flex; }
   }

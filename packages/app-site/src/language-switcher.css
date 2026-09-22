@@ -1,11 +1,15 @@
 /*
  * Shared language switcher.
  *
- * Header and footer: a pill button (globe + current language + chevron) that
- * opens a menu. Mobile navigation: a standalone section with a heading and a
- * list of 48px rows. Colours come from the same `--app-site-*` properties the
- * shell uses, so each brand site restyles it through its theme rather than by
- * overriding selectors.
+ * Up to three languages: a segmented capsule. The dark pill (`::before`) sits
+ * behind the current language and slides to whichever segment is hovered,
+ * driven entirely by `--i` — no script. Header and footer show the short
+ * labels; the mobile navigation shows the full names at touch size.
+ *
+ * More than three: a compact `[ EN ▾ ]` button and a menu. Colours come from
+ * the same `--app-site-*` properties the shell uses, so each brand site
+ * restyles the switcher through its theme rather than by overriding
+ * selectors.
  */
 .app-site-language {
   position: relative;
@@ -26,68 +30,197 @@
   z-index: 2;
 }
 
-/* Trigger ------------------------------------------------------------------ */
+/* Segmented capsule -------------------------------------------------------- */
 
-.app-site-language-toggle {
-  min-height: 36px;
-  padding: 6px 10px 6px 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+.app-site-language-segments {
+  --pad: 3px;
+  --i: var(--current, 0);
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: var(--pad);
   border: 1px solid
     var(--app-site-language-border, color-mix(in srgb, currentColor 14%, transparent));
   border-radius: 999px;
-  color: inherit;
   background: var(
     --app-site-language-background,
-    color-mix(in srgb, var(--app-site-header-background, #fff) 70%, transparent)
+    color-mix(in srgb, var(--app-site-header-background, #fff) 55%, transparent)
   );
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 650;
-  letter-spacing: 0.01em;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 40%);
+  isolation: isolate;
+}
+
+/* The pill: one segment wide, moved by whole segments. */
+.app-site-language-segments::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: var(--pad);
+  bottom: var(--pad);
+  left: var(--pad);
+  width: calc((100% - 2 * var(--pad)) / var(--count, 1));
+  border-radius: 999px;
+  background: var(--app-site-language-pill, var(--app-site-ink, #242321));
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 18%),
+    0 6px 16px
+    color-mix(in srgb, var(--app-site-language-pill, var(--app-site-ink, #242321)) 28%, transparent);
+  translate: calc(var(--i) * 100%) 0;
+  transition: translate 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hovering a segment pulls the pill under it; leaving lets it settle back. */
+.app-site-language-segments:has(.app-site-language-segment:nth-child(1):hover) {
+  --i: 0;
+}
+.app-site-language-segments:has(.app-site-language-segment:nth-child(2):hover) {
+  --i: 1;
+}
+.app-site-language-segments:has(.app-site-language-segment:nth-child(3):hover) {
+  --i: 2;
+}
+
+.app-site-language-segment {
+  position: relative;
+  z-index: 1;
+  min-height: 26px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   line-height: 1;
+  text-decoration: none;
   white-space: nowrap;
-  cursor: pointer;
+  opacity: 0.62;
   transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    color 0.35s ease,
+    opacity 0.35s ease;
 }
 
-.app-site-language-toggle:hover,
-.app-site-language-toggle[aria-expanded="true"] {
-  background: var(
-    --app-site-language-background-hover,
-    color-mix(in srgb, var(--app-site-header-background, #fff) 92%, transparent)
-  );
-  border-color: color-mix(in srgb, currentColor 22%, transparent);
+.app-site-language-segment.is-current,
+.app-site-language-segment:hover {
+  color: var(--app-site-language-pill-foreground, #fff);
+  opacity: 1;
 }
 
-.app-site-language-toggle[aria-expanded="true"] {
-  box-shadow: 0 6px 18px rgb(0 0 0 / 10%);
+/* While another segment is hovered the pill has left the current one, so its
+   label goes back to the resting colour. */
+.app-site-language-segments:has(.app-site-language-segment:hover)
+.app-site-language-segment.is-current:not(:hover) {
+  color: inherit;
+  opacity: 0.62;
 }
 
+.app-site-language-segment:focus-visible,
 .app-site-language-toggle:focus-visible,
 .app-site-language-option:focus-visible {
   outline: 2px solid var(--app-site-accent, currentColor);
   outline-offset: 2px;
 }
 
-.app-site-language-globe {
-  flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.85;
+/* Mobile navigation: full names at touch size, filling the row. */
+.app-site-language--segmented.is-mobile {
+  display: grid;
+  gap: 10px;
+}
+
+.app-site-language--segmented.is-mobile .app-site-language-segments {
+  --pad: 4px;
+}
+
+.app-site-language--segmented.is-mobile .app-site-language-segment {
+  min-height: 42px;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+/* Footer: a ghost pill, so it reads on a dark footer and a light one alike. */
+.app-site-language--segmented.is-footer {
+  margin-top: 18px;
+  width: max-content;
+}
+
+.app-site-language--segmented.is-footer .app-site-language-segments {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  border-color: color-mix(in srgb, currentColor 18%, transparent);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-site-language--segmented.is-footer .app-site-language-segments::before {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  box-shadow: none;
+}
+
+.app-site-language--segmented.is-footer .app-site-language-segment.is-current,
+.app-site-language--segmented.is-footer .app-site-language-segment:hover {
+  color: inherit;
+}
+
+.app-site-language--segmented.is-footer
+  .app-site-language-segments:has(.app-site-language-segment:hover)
+  .app-site-language-segment.is-current:not(:hover) {
+  color: inherit;
+}
+
+/* Popover trigger (more than three languages) --------------------------------- */
+
+.app-site-language-toggle {
+  min-height: 32px;
+  padding: 0 10px 0 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid
+    var(--app-site-language-border, color-mix(in srgb, currentColor 14%, transparent));
+  border-radius: 999px;
+  color: inherit;
+  background: var(
+    --app-site-language-background,
+    color-mix(in srgb, var(--app-site-header-background, #fff) 55%, transparent)
+  );
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.app-site-language-toggle:hover,
+.app-site-language-toggle[aria-expanded="true"] {
+  border-color: color-mix(in srgb, currentColor 26%, transparent);
+  background: var(
+    --app-site-language-background-hover,
+    color-mix(in srgb, var(--app-site-header-background, #fff) 90%, transparent)
+  );
+}
+
+.app-site-language-toggle[aria-expanded="true"] {
+  box-shadow: 0 6px 18px rgb(0 0 0 / 10%);
 }
 
 .app-site-language-chevron {
   flex-shrink: 0;
-  opacity: 0.7;
-  transition: transform 0.2s ease;
+  opacity: 0.6;
+  transition: transform 0.25s ease;
 }
 
 .app-site-language-toggle[aria-expanded="true"] .app-site-language-chevron {
@@ -97,31 +230,44 @@
 /* Menu --------------------------------------------------------------------- */
 
 .app-site-language-menu {
-  min-width: 176px;
+  min-width: 196px;
   padding: 6px;
   position: absolute;
   z-index: 80;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
   display: grid;
-  gap: 2px;
-  border: 1px solid color-mix(in srgb, var(--app-site-ink, currentColor) 16%, transparent);
-  border-radius: 14px;
+  gap: 1px;
+  border: 1px solid color-mix(in srgb, var(--app-site-ink, currentColor) 12%, transparent);
+  border-radius: 16px;
   color: var(--app-site-ink, inherit);
   background: var(
     --app-site-language-menu-background,
-    color-mix(in srgb, var(--app-site-page-background, #fff) 98%, #fff 2%)
+    color-mix(in srgb, var(--app-site-page-background, #fff) 96%, #fff 4%)
   );
   box-shadow:
-    0 20px 56px rgb(0 0 0 / 22%),
-    0 3px 10px rgb(0 0 0 / 10%);
+    0 24px 60px rgb(0 0 0 / 18%),
+    0 2px 8px rgb(0 0 0 / 8%);
   -webkit-backdrop-filter: blur(28px) saturate(1.6);
   backdrop-filter: blur(28px) saturate(1.6);
   isolation: isolate;
+  transform-origin: top right;
+  animation: app-site-language-menu-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .app-site-language-menu[hidden] {
   display: none;
+}
+
+@keyframes app-site-language-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .app-site-language-option {
@@ -130,28 +276,41 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border-radius: 9px;
+  border-radius: 10px;
   color: inherit;
   font-size: 13.5px;
   line-height: 1.2;
   text-decoration: none;
-  opacity: 0.8;
+  opacity: 0.78;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .app-site-language-option:hover,
 .app-site-language-option:focus-visible,
 .app-site-language-option.is-current {
-  background: color-mix(in srgb, currentColor 9%, transparent);
+  background: color-mix(in srgb, currentColor 7%, transparent);
   opacity: 1;
 }
 
 .app-site-language-option.is-current {
+  font-weight: 650;
+}
+
+/* The short code leads each row, monospaced-looking and aligned. */
+.app-site-language-option-short {
+  min-width: 2.4em;
+  font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.55;
 }
 
 /* The check mark keeps its space on every row so the labels line up. */
 .app-site-language-check {
   flex-shrink: 0;
+  margin-left: auto;
   color: var(--app-site-accent, currentColor);
   visibility: hidden;
 }
@@ -160,71 +319,75 @@
   visibility: visible;
 }
 
-/* Mobile list -------------------------------------------------------------- */
+/* Mobile list (more than three languages) ------------------------------------ */
 
 .app-site-language--list {
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
 .app-site-language-heading {
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  opacity: 0.62;
+  opacity: 0.55;
 }
 
 .app-site-language-list {
   margin: 0;
-  padding: 0;
+  padding: 4px;
   display: grid;
-  gap: 4px;
+  gap: 2px;
   list-style: none;
+  border: 1px solid var(--app-site-mobile-divider, rgb(60 50 45 / 12%));
+  border-radius: 16px;
 }
 
 .app-site-language--list .app-site-language-option {
-  min-height: 48px;
+  min-height: 46px;
   padding-inline: 14px 16px;
-  border: 1px solid var(--app-site-mobile-divider, rgb(60 50 45 / 12%));
   border-radius: 12px;
   font-size: 15px;
   opacity: 0.85;
 }
 
 .app-site-language--list .app-site-language-option.is-current {
-  border-color: color-mix(in srgb, var(--app-site-accent, #e99647) 48%, transparent);
-  background: var(--app-site-mobile-link-active, rgb(233 150 71 / 14%));
-  color: var(--app-site-accent, #e99647);
+  background: var(--app-site-language-pill, var(--app-site-ink, #242321));
+  color: var(--app-site-language-pill-foreground, #fff);
   opacity: 1;
 }
 
-/* Footer ------------------------------------------------------------------- */
+.app-site-language--list .app-site-language-option.is-current .app-site-language-check {
+  color: inherit;
+}
 
-.app-site-language.is-footer {
+/* Footer popover ----------------------------------------------------------- */
+
+.app-site-language--popover.is-footer {
   margin-top: 18px;
   width: max-content;
 }
 
-.app-site-language.is-footer .app-site-language-toggle {
-  background: transparent;
-  border-color: color-mix(in srgb, currentColor 28%, transparent);
+.app-site-language--popover.is-footer .app-site-language-toggle {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border-color: color-mix(in srgb, currentColor 18%, transparent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
-.app-site-language.is-footer .app-site-language-toggle:hover,
-.app-site-language.is-footer .app-site-language-toggle[aria-expanded="true"] {
-  background: color-mix(in srgb, currentColor 10%, transparent);
+.app-site-language--popover.is-footer .app-site-language-toggle:hover,
+.app-site-language--popover.is-footer .app-site-language-toggle[aria-expanded="true"] {
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.app-site-language.is-footer .app-site-language-menu {
+.app-site-language--popover.is-footer .app-site-language-menu {
   top: auto;
   right: auto;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 10px);
   left: 0;
+  transform-origin: bottom left;
 }
 
 @media (max-width: 900px) {
@@ -234,8 +397,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .app-site-language-segments::before,
+  .app-site-language-segment,
   .app-site-language-toggle,
   .app-site-language-chevron {
     transition: none;
+  }
+  .app-site-language-menu {
+    animation: none;
   }
 }

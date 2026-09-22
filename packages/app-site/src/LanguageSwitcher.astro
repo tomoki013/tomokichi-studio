@@ -2,10 +2,16 @@
 /**
  * The language switcher every app brand site shares.
  *
- * Desktop header and footer render a `[ globe  日本語 ▾ ]` button that opens a
- * menu listing each language by its own name, with the current one checked.
- * The mobile navigation renders the same list as a standalone section, so it
- * is never a small link buried at the bottom of the menu.
+ * With up to three languages it is a segmented capsule — `[ JA | EN ]` in the
+ * header and footer, the full names in the mobile navigation — where the dark
+ * pill sits behind the current language and slides towards whichever one the
+ * pointer is over. Every language is visible at once, so switching is one
+ * click and needs no script.
+ *
+ * Beyond three languages a capsule stops fitting, so the header and footer
+ * fall back to a `[ EN ▾ ]` button that opens a menu listing each language by
+ * its own name, with the current one checked, and the mobile navigation
+ * shows the same list as a standalone section.
  *
  * Every entry links to the same logical page in that language — the hrefs come
  * from `i18n.localeLinks(page)` (or the legacy `enPageHref`/`jaPageHref`), so
@@ -30,18 +36,60 @@ const {
   placement?: "header" | "mobile" | "footer";
 };
 
-const current = locales.find((locale) => locale.code === lang) ?? locales[0];
+const currentIndex = Math.max(
+  0,
+  locales.findIndex((locale) => locale.code === lang),
+);
+const current = locales[currentIndex];
+const segmented = locales.length <= 3;
 const safeLang = lang.replace(/[^a-zA-Z0-9_-]/g, "-");
 const menuId = `app-site-language-${placement}-${safeLang}`;
 const headingId = `${menuId}-heading`;
+const segmentStyle = `--count:${locales.length};--current:${currentIndex}`;
 ---
 
-{placement === "mobile" ? (
+{segmented && placement === "mobile" ? (
+  <section class="app-site-language app-site-language--segmented is-mobile" aria-labelledby={headingId} data-language-switcher>
+    <h2 class="app-site-language-heading" id={headingId}>{label}</h2>
+    <div class="app-site-language-segments" style={segmentStyle}>
+      {locales.map((locale) => (
+        <a
+          class:list={["app-site-language-segment", { "is-current": locale.code === lang }]}
+          href={locale.href}
+          hreflang={locale.code}
+          lang={locale.code}
+          aria-current={locale.code === lang ? "true" : undefined}
+          data-language-choice={locale.code}
+          data-astro-prefetch
+        >
+          {locale.label}
+        </a>
+      ))}
+    </div>
+  </section>
+) : segmented ? (
+  <nav class:list={["app-site-language", "app-site-language--segmented", `is-${placement}`]} aria-label={label} data-language-switcher>
+    <div class="app-site-language-segments" style={segmentStyle}>
+      {locales.map((locale) => (
+        <a
+          class:list={["app-site-language-segment", { "is-current": locale.code === lang }]}
+          href={locale.href}
+          hreflang={locale.code}
+          lang={locale.code}
+          title={locale.label}
+          aria-label={locale.label}
+          aria-current={locale.code === lang ? "true" : undefined}
+          data-language-choice={locale.code}
+          data-astro-prefetch
+        >
+          {locale.shortLabel}
+        </a>
+      ))}
+    </div>
+  </nav>
+) : placement === "mobile" ? (
   <section class="app-site-language app-site-language--list" aria-labelledby={headingId} data-language-switcher>
-    <h2 class="app-site-language-heading" id={headingId}>
-      <svg class="app-site-language-globe" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6" /><path d="M3.4 12h17.2" /><path d="M12 3.4c2.6 2.9 2.6 14.3 0 17.2-2.6-2.9-2.6-14.3 0-17.2z" /></svg>
-      {label}
-    </h2>
+    <h2 class="app-site-language-heading" id={headingId}>{label}</h2>
     <ul class="app-site-language-list">
       {locales.map((locale) => (
         <li>
@@ -54,8 +102,9 @@ const headingId = `${menuId}-heading`;
             data-language-choice={locale.code}
             data-astro-prefetch
           >
-            <svg class="app-site-language-check" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="m3.2 8.4 3 3 6.6-6.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="app-site-language-option-short" aria-hidden="true">{locale.shortLabel}</span>
             <span>{locale.label}</span>
+            <svg class="app-site-language-check" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="m3.2 8.4 3 3 6.6-6.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </a>
         </li>
       ))}
@@ -72,9 +121,8 @@ const headingId = `${menuId}-heading`;
       aria-label={`${label}: ${current?.label ?? lang}`}
       data-language-toggle
     >
-      <svg class="app-site-language-globe" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.6" /><path d="M3.4 12h17.2" /><path d="M12 3.4c2.6 2.9 2.6 14.3 0 17.2-2.6-2.9-2.6-14.3 0-17.2z" /></svg>
-      <span class="app-site-language-current" lang={current?.code}>{current?.label ?? lang}</span>
-      <svg class="app-site-language-chevron" viewBox="0 0 12 8" width="10" height="7" aria-hidden="true" focusable="false"><path d="m1 1.25 5 5 5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></svg>
+      <span class="app-site-language-current" lang={current?.code}>{current?.shortLabel ?? lang}</span>
+      <svg class="app-site-language-chevron" viewBox="0 0 12 8" width="9" height="6" aria-hidden="true" focusable="false"><path d="m1 1.25 5 5 5-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></svg>
     </button>
     <div class="app-site-language-menu" id={menuId} role="menu" aria-label={label} hidden data-language-menu>
       {locales.map((locale) => (
@@ -89,8 +137,9 @@ const headingId = `${menuId}-heading`;
           data-language-choice={locale.code}
           data-astro-prefetch
         >
-          <svg class="app-site-language-check" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="m3.2 8.4 3 3 6.6-6.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="app-site-language-option-short" aria-hidden="true">{locale.shortLabel}</span>
           <span>{locale.label}</span>
+          <svg class="app-site-language-check" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="m3.2 8.4 3 3 6.6-6.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </a>
       ))}
     </div>
