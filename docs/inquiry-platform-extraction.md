@@ -3,6 +3,7 @@
 調査日: 2026-09-24。
 
 > **状態（2026-09-24）**: Phase 2 進行中。抽出先は [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform)（private、履歴付き）。デプロイ元は切替完了まで引き続き本 Repository。**切替まで `apps/admin-core` / `apps/admin-web` / `apps/mail-ingress` / `packages/admin-*` への変更は凍結**し、やむを得ない変更は inquiry-platform にも入れる。切替手順は inquiry-platform の `docs/operations/cutover.md`。
+
 対象: `apps/admin-core`、`apps/admin-web`、`apps/mail-ingress`、`apps/api`（support / reports / admin-bridge）、`packages/admin-{contracts,mail,push}`。コードは変更していない。
 
 ## 0. 結論（先に）
@@ -70,7 +71,7 @@
 
 - Ticket コアは `0006_ticket_core.sql`。旧表（`support_threads`, `reports`, `support_messages`, `report_events`, `support_reply_sends`）への INSERT を **トリガで `tickets*` に同期** する構造。旧 ID は `ticket_sources(source_type, source_id)` に保持 = 指示書 §19 の `legacyId` 相当が既にある。
 - Project 相当が 2 つある: `apps`（台帳・メール設定・リンク）と `services`（Ticket の分類。`apps` からトリガで複製）。`services` に `('studio','tmkch.io','tmkch-io')` が固定投入（`0006_ticket_core.sql:10`）。
-- 内部メモは `ticket_messages.visibility='INTERNAL'` と旧 `support_messages.direction='internal_note'`。公開面（tomokichi-api）はそもそも読み取り API を持たないため漏れ経路はない。
+- 内部メモは `ticket_messages.visibility='INTERNAL'` と旧 `support_messages.direction='internal_note'`。インターネットから読む経路はない。ただし tomokichi-api の `ADMIN_CORE` binding は `AdminCore` entrypoint 全体に届く（コード上は `createReport` / `createSupportThread` / `fetch` のみ使用）。Phase 3 で受付専用 entrypoint に絞る。
 - `audit_logs` は変更と同一 batch、`ticket_events` はトリガ。
 
 ### Auth
