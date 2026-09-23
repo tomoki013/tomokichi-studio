@@ -1,6 +1,6 @@
 # Decisions
 
-最終更新: 2026-09-21
+最終更新: 2026-09-24
 
 設計判断の索引。根拠がコードや文書にあるものだけ Decision と書く。無いものは `Reason unknown` / `Current implementation suggests …`。
 
@@ -111,6 +111,13 @@
 
 - **Decision**: PWA 化の目的はホーム画面起動と Push だけ。Cache Storage は使わず、オフライン時はインライン HTML の 1 画面のみ。`/manifest.webmanifest` と `/icons/*` だけ Worker の JWT ゲートを通さない（ブラウザが cookie 無しで取りに来るため）。
 - **Source**: `apps/admin-web/public/sw.js`、`worker/index.ts` `isInstallAsset`。
+
+## ADR-022 問い合わせ・通報管理基盤を `inquiry-platform` として独立させる
+
+- **Context**: Admin（Core / Web / mail-ingress / contracts / mail / push）は Tomokichi Studio の一部として作られたが、Remeet・Colorvia・Yohaku も同じ基盤を使う。Studio は利用者の 1 つであるべき。
+- **Decision**: 別 Repository `inquiry-platform`（GitHub private、履歴付きで切り出し）へ段階移行する。Ticket の状態・種別は現行（8 状態・7 種別・SLA）を正とし、SDK / 公開 API で簡易語彙（OPEN / IN_PROGRESS / RESOLVED / CLOSED、contact / report）に写像する。Cloudflare 資源名（Worker、D1 `tomokichi-admin`、R2、`admin.tmkch.io`）は変えず、新 Repository から同じ資源へデプロイする（データ移行なし）。資源名の中立化は独立化完了後の別作業。
+- **Approval**: Owner（tomoki013）が 2026-09-24 に承認。対象: Repository 作成（ローカル + GitHub private）、モデル方針、資源名方針。CI/CD のデプロイ元移動・Dependency 追加・Production migration は各 Phase で別途承認。
+- **Source**: [inquiry-platform-extraction.md](inquiry-platform-extraction.md)。
 
 ## 根拠が文書に無いもの
 
