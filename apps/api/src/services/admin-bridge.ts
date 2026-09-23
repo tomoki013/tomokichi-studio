@@ -1,18 +1,18 @@
-import type { AdminCoreStub } from "@tomokichi/admin-contracts";
-import {
-  ATTACHMENT_FILENAME_HEADER,
-  INTERNAL_ORIGIN,
-  INTERNAL_PATHS,
-} from "@tomokichi/admin-contracts";
+import { createInquiryClient, type IntakeBinding } from "@inquiry-platform/sdk";
 
 /**
  * Reports are delivered through the durable report outbox; support messages
- * are recorded directly. Admin Core is where a message *exists* — there is no
- * longer a mail carrying it — so an environment without the binding cannot
- * accept either, and the routes answer 502 rather than pretending.
+ * are recorded directly. The inquiry platform is where a message *exists* —
+ * there is no longer a mail carrying it — so an environment without the
+ * binding cannot accept either, and the routes answer 502 rather than
+ * pretending.
+ *
+ * `INQUIRY` is bound to the platform's `Intake` entrypoint, which can submit
+ * contacts, reports and evidence and nothing else. Which projects this Worker
+ * may submit for is fixed in the binding's `props` (`wrangler.jsonc`).
  */
 export interface AdminBridgeBindings {
-  ADMIN_CORE?: AdminCoreStub;
+  INQUIRY?: IntakeBinding;
 }
 
 /**
@@ -68,10 +68,10 @@ export interface MirroredReport {
 }
 
 /**
- * Records a Remeet report in Admin.
+ * Records a Remeet report in the inquiry platform.
  *
- * The raw author ids go over the binding and are pseudonymised **inside** Admin
- * Core, which holds the pepper this Worker does not — so the moderation
+ * The raw author ids go over the binding and are pseudonymised **inside** the
+ * platform, which holds the pepper this Worker does not — so the moderation
  * database can answer "the same author again" without holding a second copy of
  * Remeet's identity graph.
  *
@@ -81,31 +81,28 @@ export interface MirroredReport {
 export async function mirrorReport(
   env: AdminBridgeBindings,
   report: MirroredReport,
-  image?: { bytes: Uint8Array; contentType: string; createdAt?: string },
+  image?: { bytes: Uint8Array<ArrayBuffer>; contentType: string; createdAt?: string },
 ): Promise<boolean> {
-  const core = env.ADMIN_CORE;
-  if (!core) return false;
+  if (!env.INQUIRY) return false;
+  const inquiry = createInquiryClient(env.INQUIRY);
 
   try {
-    const result = await core.createReport(
-      {
-        appSlug: "remeet",
-        externalReportId: report.reportId,
-        contextExternalId: report.reunionId,
-        contentType: report.contentType,
-        contentExternalId: report.contentId,
-        reporterRefHash: report.reporterAuthorId,
-        authorRefHash: report.contentAuthorId,
-        reasonCode: report.reason,
-        reporterEmail: report.reporterEmail,
-        detail: report.details,
-        snapshotText: report.contentTextSnapshot,
-        priority: "normal",
-        evidenceExpected: Boolean(image) || report.evidenceExpected,
-        reportedAt: report.reportedAt,
-      },
-      { type: "app", id: "remeet-backend" },
-    );
+    const result = await inquiry.createReport({
+      projectSlug: "remeet",
+      externalReportId: report.reportId,
+      contextId: report.reunionId,
+      targetType: report.contentType,
+      targetId: report.contentId,
+      reporterId: report.reporterAuthorId,
+      targetOwnerId: report.contentAuthorId,
+      reason: report.reason,
+      reporterEmail: report.reporterEmail,
+      description: report.details,
+      snapshotText: report.contentTextSnapshot,
+      priority: "normal",
+      evidenceExpected: Boolean(image) || report.evidenceExpected,
+      reportedAt: report.reportedAt,
+    });
 
     if (!result.ok) {
       console.log(
@@ -113,25 +110,18 @@ export async function mirrorReport(
       );
       return false;
     }
-    // Core deduplicates evidence separately, so a metadata-only success can recover.
+    // The platform deduplicates evidence separately, so a metadata-only success can recover.
     if (!image) return !report.evidenceExpected;
 
-    const response = await core.fetch(
-      `${INTERNAL_ORIGIN}${INTERNAL_PATHS.reportAttachment(result.value.reportId)}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": image.contentType,
-          "Content-Length": String(image.bytes.byteLength),
-          [ATTACHMENT_FILENAME_HEADER]: "report-image",
-          ...(image.createdAt ? { "X-Evidence-Created-At": image.createdAt } : {}),
-        },
-        body: image.bytes,
-      },
-    );
-    if (!response.ok) {
+    const stored = await inquiry.attachReportEvidence(result.value.reportId, {
+      bytes: image.bytes,
+      contentType: image.contentType,
+      filename: "report-image",
+      createdAt: image.createdAt,
+    });
+    if (!stored.ok) {
       console.log(
-        JSON.stringify({ event: "admin_bridge.evidence_failed", status: response.status }),
+        JSON.stringify({ event: "admin_bridge.evidence_failed", code: stored.error.code }),
       );
       return false;
     }
@@ -153,10 +143,10 @@ export interface MirroredSupportMessage {
 }
 
 /**
- * Records a support-form submission in Admin. This is the submission being
- * accepted: the only copy of what the person wrote is the row Admin Core
- * writes, and the operator is told a ticket exists — by mail and by push,
- * from Admin Core, with the number and nothing else — once it does.
+ * Records a support-form submission in the inquiry platform. This is the
+ * submission being accepted: the only copy of what the person wrote is the
+ * ticket the platform writes, and the operator is told it exists — by mail and
+ * by push, from the platform, with the number and nothing else — once it does.
  *
  * It used to be a "mirror" beside a mail that carried the full message to a
  * personal inbox. That mail is gone: an inbox is not a support database, and
@@ -171,8 +161,8 @@ export interface MirroredSupportMessage {
  * on the screen the operator actually reads. Reading is an operational reason.
  * `sendReply` still refuses a thread with nowhere to write back to.
  *
- * Idempotent at the far end on `form-${requestId}`, so a client that retries
- * a lost response does not make a second ticket.
+ * Idempotent at the far end on the request id, so a client that retries a lost
+ * response does not make a second ticket.
  *
  * @returns whether the message is now recorded. False is a 502 to the sender.
  */
@@ -180,27 +170,25 @@ export async function recordSupportMessage(
   env: AdminBridgeBindings,
   message: MirroredSupportMessage,
 ): Promise<boolean> {
-  const core = env.ADMIN_CORE;
-  if (!core) {
+  if (!env.INQUIRY) {
     console.log(JSON.stringify({ event: "admin_bridge.unavailable", what: "support" }));
     return false;
   }
+  const inquiry = createInquiryClient(env.INQUIRY);
 
   return await attempt("support", async () => {
-    const result = await core.createSupportThread(
-      {
-        appSlug: message.appSlug === "other" ? undefined : message.appSlug,
-        source: "web_form",
-        requesterEmail: message.requesterEmail,
-        // Only what the person typed into the name field. Never inferred.
-        requesterName: message.requesterName,
-        subject: `[${message.category}] ${message.requestId}`,
-        bodyText: message.message,
-        providerMessageId: `form-${message.requestId}`,
-        sender: message.requesterEmail,
-      },
-      { type: "app", id: "tomokichi-api" },
-    );
+    const result = await inquiry.createContact({
+      projectSlug: message.appSlug === "other" ? undefined : message.appSlug,
+      // The request id the form minted. The platform keys the ticket on it,
+      // so a client retrying a lost response does not make a second one.
+      idempotencyKey: message.requestId,
+      subject: `[${message.category}] ${message.requestId}`,
+      message: message.message,
+      email: message.requesterEmail,
+      // Only what the person typed into the name field. Never inferred.
+      name: message.requesterName,
+      channel: "web_form",
+    });
     if (!result.ok) {
       console.log(
         JSON.stringify({ event: "admin_bridge.support_rejected", code: result.error.code }),

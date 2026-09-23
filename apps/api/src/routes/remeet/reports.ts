@@ -28,7 +28,7 @@ import type { SupportBindings } from "../../support/types";
  * one thing to validate. The photo is never base64 in JSON: a Remeet photo runs
  * to megabytes, and a body like that cannot be bounded or logged sensibly.
  *
- * Where a report goes: the durable outbox in R2, then Admin Core, which holds
+ * Where a report goes: the durable outbox in R2, then the inquiry platform, which holds
  * the ticket and tells the operator — by mail and push — that a report
  * exists, with its ticket number and nothing about it. Nothing here mails the
  * reported text anywhere. It used to; an inbox is where a moderation queue
@@ -97,7 +97,7 @@ export function registerRemeetReportRoutes(app: ReportApp): void {
     }
 
     // Acceptance is the durable copy. `enqueueReport` throws when there is no
-    // bucket and returns nothing when there is no Admin Core; either way the
+    // bucket and returns nothing when there is no inquiry binding; either way the
     // report would exist nowhere, and the app keeps what the person typed and
     // lets them try again. Nothing about *why* is echoed back.
     let pendingKey: string | undefined;
@@ -153,7 +153,7 @@ async function hasSeen(c: ReportContext, reportId: string): Promise<boolean> {
     return !!row;
   } catch {
     // A missing table must not stop a report reaching Admin. Duplicate
-    // protection degrades to Admin Core's own check on the report id.
+    // protection degrades to the platform's own check on the report id.
     return false;
   }
 }

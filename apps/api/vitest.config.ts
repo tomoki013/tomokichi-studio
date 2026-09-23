@@ -2,9 +2,9 @@ import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
 
 /**
- * A stand-in for Admin Core.
+ * A stand-in for the inquiry platform.
  *
- * `wrangler.jsonc` binds `ADMIN_CORE` to `tomokichi-admin-core`, and workerd
+ * `wrangler.jsonc` binds `INQUIRY` to `tomokichi-admin-core`, and workerd
  * refuses to start at all when a Service Binding names a Worker that is not
  * defined — so without something here every test in this Worker fails before a
  * single assertion runs.
@@ -21,7 +21,7 @@ const adminCoreStub = {
   modules: true,
   script: [
     'import { WorkerEntrypoint } from "cloudflare:workers";',
-    "export class AdminCore extends WorkerEntrypoint {}",
+    "export class Intake extends WorkerEntrypoint {}",
     "export default {",
     '  fetch: () => new Response("admin core unavailable", { status: 503 }),',
     "};",

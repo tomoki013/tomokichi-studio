@@ -17,17 +17,23 @@ describe("durable report delivery", () => {
       reporterAuthorId: crypto.randomUUID(),
       evidenceExpected: true,
     };
-    const createReport = vi
+    const submitReport = vi
       .fn()
       .mockRejectedValueOnce(new Error("offline"))
-      .mockResolvedValue({ ok: true, value: { reportId: "internal", duplicate: true } });
+      .mockResolvedValue({
+        ok: true,
+        value: { reportId: "internal", ticketNumber: "1", status: "OPEN", duplicate: true },
+      });
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(new Response(null, { status: 503 }))
-      .mockResolvedValue(new Response(null, { status: 201 }));
+      .mockResolvedValue(
+        // What the platform's Intake answers for stored evidence.
+        Response.json({ attachmentId: "a", sha256: "s", byteSize: 3 }, { status: 201 }),
+      );
     const bindings = {
       REMEET_REPORTS_BUCKET: bucket,
-      ADMIN_CORE: { createReport, fetch },
+      INQUIRY: { submitReport, fetch },
     } as unknown as ReportOutboxBindings;
     const imageKey = `reports/remeet/${reportId}/original`;
     await bucket.put(imageKey, new Uint8Array([1, 2, 3]), {
@@ -42,7 +48,7 @@ describe("durable report delivery", () => {
     expect(await bucket.head(key)).not.toBeNull();
     await retryReportOutbox(bindings);
     expect(await bucket.head(key)).toBeNull();
-    expect(createReport).toHaveBeenCalledTimes(3);
+    expect(submitReport).toHaveBeenCalledTimes(3);
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch.mock.calls[1]?.[1].headers["X-Evidence-Created-At"]).toBe(
       (await bucket.head(imageKey))?.uploaded.toISOString(),

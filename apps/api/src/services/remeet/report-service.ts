@@ -1,4 +1,8 @@
-import { reporterEmailSchema } from "@tomokichi/admin-contracts";
+import { z } from "zod";
+
+/** The inquiry platform's rule for a reporter address, kept identical so a
+ * report accepted here is never one the platform then refuses from the outbox. */
+const reporterEmailSchema = z.string().trim().email().max(320).optional();
 
 /**
  * Content reports from Remeet.

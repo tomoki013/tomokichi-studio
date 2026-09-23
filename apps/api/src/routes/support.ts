@@ -234,8 +234,8 @@ export function registerSupportRoute(
     // full message, and a best-effort copy for Admin. The mail is gone. The
     // inbox was never the support database, but everything wired to the
     // inbox could read every message; now the only copy is the ticket, and
-    // what reaches the inbox is Admin Core's "a ticket exists" alert with a
-    // number and a link. Admin Core sends that after the row is committed, so
+    // what reaches the inbox is the inquiry platform's "a ticket exists" alert
+    // with a number and a link. The platform sends that after the row is committed, so
     // a mail or push failure there is never a failure of this request — and
     // a failure to write the row *is*, because then the message exists
     // nowhere and the sender must be told to try again.
