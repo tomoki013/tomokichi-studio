@@ -15,7 +15,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.5",
     "@tomokichi/admin-contracts": "workspace:*",
-    "hono": "^4.13.2",
+    "hono": "^4.13.8",
     "jose": "^6.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -35,7 +35,7 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^7.1.11",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "wrangler": "^4.113.0"
   }
 }
