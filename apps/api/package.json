@@ -16,13 +16,13 @@
   "dependencies": {
     "@inquiry-platform/sdk": "workspace:*",
     "@tomokichi/app-site": "workspace:*",
-    "hono": "^4.13.2",
+    "hono": "^4.13.8",
     "zod": "^4.4.2"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.18.7",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "wrangler": "^4.110.0"
   }
 }

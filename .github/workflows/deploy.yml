@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       apps:
-        description: 'Apps to deploy: "all", or a comma-separated list (e.g. admin-core,admin-web).'
+        description: 'Apps to deploy: "all", or a comma-separated list (e.g. main,api).'
         required: true
         default: all
 
@@ -51,7 +51,7 @@ jobs:
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          all='["main","remeet","tripory","colorvia","yohaku","quiet-solitaire","api","admin-core","admin-web","mail-ingress"]'
+          all='["main","remeet","tripory","colorvia","yohaku","quiet-solitaire","api"]'
           if [ "$EVENT" = "workflow_run" ]; then
             apps=$(cat affected-apps.json)
             sha="$RUN_SHA"
@@ -135,49 +135,6 @@ jobs:
       ref: ${{ needs.affected.outputs.sha }}
     secrets: inherit
 
-  # Admin Core holds the bindings the other two Workers attach to, so it ships
-  # first — see the deployment order in apps/admin-core/README.md. `!cancelled()`
-  # keeps admin-web and mail-ingress deployable on a push that changed only
-  # them, where admin-core is skipped rather than run.
-  admin-core:
-    needs: affected
-    if: >-
-      vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
-      && vars.ADMIN_DEPLOY_ENABLED == 'true'
-      && contains(fromJSON(needs.affected.outputs.apps), 'admin-core')
-    uses: ./.github/workflows/deploy-worker.yml
-    with:
-      app: admin-core
-      ref: ${{ needs.affected.outputs.sha }}
-    secrets: inherit
-
-  admin-web:
-    needs: [affected, admin-core]
-    if: >-
-      !cancelled()
-      && needs.affected.result == 'success'
-      && needs.admin-core.result != 'failure'
-      && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
-      && vars.ADMIN_DEPLOY_ENABLED == 'true'
-      && contains(fromJSON(needs.affected.outputs.apps), 'admin-web')
-    uses: ./.github/workflows/deploy-worker.yml
-    with:
-      app: admin-web
-      build-filter: "@tomokichi/admin-web"
-      ref: ${{ needs.affected.outputs.sha }}
-    secrets: inherit
-
-  mail-ingress:
-    needs: [affected, admin-core]
-    if: >-
-      !cancelled()
-      && needs.affected.result == 'success'
-      && needs.admin-core.result != 'failure'
-      && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
-      && vars.ADMIN_DEPLOY_ENABLED == 'true'
-      && contains(fromJSON(needs.affected.outputs.apps), 'mail-ingress')
-    uses: ./.github/workflows/deploy-worker.yml
-    with:
-      app: mail-ingress
-      ref: ${{ needs.affected.outputs.sha }}
-    secrets: inherit
+  # admin-core, admin-web and mail-ingress are no longer deployed from this
+  # repository. They moved to tomoki013/inquiry-platform (ADR-022), which
+  # deploys the same Workers; deploying them from here too would overwrite it.

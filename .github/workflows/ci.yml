@@ -105,33 +105,9 @@ jobs:
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'
               - 'turbo.json'
-            # Deploy-only filters. The `admin` filter above is the union used by
-            # the Admin check job; deployment needs one Worker at a time because
-            # admin-core has to ship before the Workers that bind to it.
-            admin-core:
-              - 'apps/admin-core/**'
-              - 'packages/admin-contracts/**'
-              - 'packages/admin-mail/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-            admin-web:
-              - 'apps/admin-web/**'
-              - 'packages/admin-contracts/**'
-              - 'packages/admin-mail/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
-            mail-ingress:
-              - 'apps/mail-ingress/**'
-              - 'packages/admin-contracts/**'
-              - 'packages/admin-mail/**'
-              - 'package.json'
-              - 'pnpm-lock.yaml'
-              - 'pnpm-workspace.yaml'
-              - 'turbo.json'
+            # No deploy filters for admin-core / admin-web / mail-ingress: those
+            # Workers deploy from tomoki013/inquiry-platform now. The `admin`
+            # filter above only runs their checks until the code is removed.
 
       # The Deploy workflow is chained off this run with `workflow_run`, which
       # carries no file list of its own. Hand it the one computed here so that
