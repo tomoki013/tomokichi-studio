@@ -2,7 +2,7 @@
 
 調査日: 2026-09-24。
 
-> **状態（2026-09-24）**: Phase 2 進行中。抽出先は [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform)（private、履歴付き）。デプロイ元は切替完了まで引き続き本 Repository。**切替まで `apps/admin-core` / `apps/admin-web` / `apps/mail-ingress` / `packages/admin-*` への変更は凍結**し、やむを得ない変更は inquiry-platform にも入れる。切替手順は inquiry-platform の `docs/operations/cutover.md`。
+> **状態（2026-09-26）**: Phase 1〜5 完了。基盤は [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform)（private）からデプロイされ、この Repository の旧コードは削除済み。tomokichi-api は `INQUIRY` binding（基盤の `Intake`）と vendored SDK（`packages/inquiry-sdk`）で基盤を使う。以下は Phase 1 時点の棚卸しの記録で、パスは当時のもの。
 
 対象: `apps/admin-core`、`apps/admin-web`、`apps/mail-ingress`、`apps/api`（support / reports / admin-bridge）、`packages/admin-{contracts,mail,push}`。コードは変更していない。
 

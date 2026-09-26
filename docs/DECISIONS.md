@@ -1,8 +1,8 @@
 # Decisions
 
-最終更新: 2026-09-24
+最終更新: 2026-09-26
 
-設計判断の索引。根拠がコードや文書にあるものだけ Decision と書く。無いものは `Reason unknown` / `Current implementation suggests …`。
+設計判断の索引。根拠がコードや文書にあるものだけ Decision と書く。ADR-001〜021 の管理基盤に関するもの（Source のパス含む）は inquiry-platform へ移ったコードの記録で、現在の正本は同 Repository。無いものは `Reason unknown` / `Current implementation suggests …`。
 
 ## ADR-001 Admin は 3 Worker に分け、D1/R2 を持つ Core を公開しない
 
@@ -118,6 +118,7 @@
 - **Decision**: 別 Repository `inquiry-platform`（GitHub private、履歴付きで切り出し）へ段階移行する。Ticket の状態・種別は現行（8 状態・7 種別・SLA）を正とし、SDK / 公開 API で簡易語彙（OPEN / IN_PROGRESS / RESOLVED / CLOSED、contact / report）に写像する。Cloudflare 資源名（Worker、D1 `tomokichi-admin`、R2、`admin.tmkch.io`）は変えず、新 Repository から同じ資源へデプロイする（データ移行なし）。資源名の中立化は独立化完了後の別作業。
 - **Approval**: Owner（tomoki013）が 2026-09-24 に承認。対象: Repository 作成（ローカル + GitHub private）、モデル方針、資源名方針。CI/CD のデプロイ元移動・Dependency 追加・Production migration は各 Phase で別途承認。
 - **Source**: [inquiry-platform-extraction.md](inquiry-platform-extraction.md)。
+- **Status**: 完了（2026-09-26）。Phase 4 で 3 Worker のデプロイ元を inquiry-platform に切替（tomokichi-studio#77）、Phase 3 で tomokichi-api を `Intake` entrypoint + vendored SDK に（#76）、Phase 5 でこの Repository から旧コードを削除。
 
 ## 根拠が文書に無いもの
 

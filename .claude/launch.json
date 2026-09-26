@@ -72,34 +72,6 @@
       "port": 4330
     },
     {
-      "name": "admin-core",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@tomokichi/admin-core",
-        "exec",
-        "wrangler",
-        "dev",
-        "--port",
-        "8798"
-      ],
-      "port": 8798
-    },
-    {
-      "name": "admin-web",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "--filter",
-        "@tomokichi/admin-web",
-        "exec",
-        "wrangler",
-        "dev",
-        "--port",
-        "8790"
-      ],
-      "port": 8790
-    },
-    {
       "name": "api",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
