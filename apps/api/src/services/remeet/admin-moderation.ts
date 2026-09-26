@@ -1,4 +1,4 @@
-import type { ModerationProposal, ModerationRequest } from "@tomokichi/admin-contracts";
+import type { ModerationProposal, ModerationRequest } from "@inquiry-platform/sdk";
 import { CHILD_KINDS, childDigest, type ModerationTargetKind } from "./moderation-digest";
 import { buildManifestPayload } from "./moderation-service";
 import { D1ModerationStore, type ModerationActionRecord } from "./moderation-store";

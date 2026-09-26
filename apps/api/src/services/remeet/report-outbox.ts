@@ -13,7 +13,7 @@ export async function enqueueReport(
   report: MirroredReport,
   imageKey?: string,
 ): Promise<string | undefined> {
-  if (!env.ADMIN_CORE) return undefined;
+  if (!env.INQUIRY) return undefined;
   if (!env.REMEET_REPORTS_BUCKET) throw new Error("ReportOutboxUnavailable");
   const key = `${PREFIX}${report.reportId}.json`;
   // Never replace a pending report's original image reference on a retry.
@@ -26,7 +26,7 @@ export async function enqueueReport(
 
 export async function deliverPendingReport(env: ReportOutboxBindings, key: string): Promise<void> {
   const bucket = env.REMEET_REPORTS_BUCKET;
-  if (!bucket || !env.ADMIN_CORE) return;
+  if (!bucket || !env.INQUIRY) return;
   try {
     const stored = await bucket.get(key);
     if (!stored) return;
@@ -49,7 +49,7 @@ export async function deliverPendingReport(env: ReportOutboxBindings, key: strin
 
 export async function retryReportOutbox(env: ReportOutboxBindings): Promise<void> {
   const bucket = env.REMEET_REPORTS_BUCKET;
-  if (!bucket || !env.ADMIN_CORE) return;
+  if (!bucket || !env.INQUIRY) return;
   let cursor: string | undefined;
   do {
     const page = await bucket.list({ prefix: PREFIX, limit: 100, cursor });

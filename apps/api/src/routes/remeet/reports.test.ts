@@ -49,13 +49,14 @@ describe("POST /remeet/v1/reports", () => {
   it("accepts by writing the outbox, hands off to Admin Core, and mails nobody", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("no network"));
     try {
-      const createReport = vi
-        .fn()
-        .mockResolvedValue({ ok: true, value: { reportId: "r", duplicate: false } });
+      const submitReport = vi.fn().mockResolvedValue({
+        ok: true,
+        value: { reportId: "r", ticketNumber: "1", status: "OPEN", duplicate: false },
+      });
       const body = report();
       const response = await post(body, {
         REMEET_REPORTS_BUCKET: bucket,
-        ADMIN_CORE: { createReport, fetch: vi.fn() },
+        INQUIRY: { submitReport, fetch: vi.fn() },
       });
       expect(response.status).toBe(201);
       expect(await response.json()).toEqual({ ok: true, duplicate: false });
@@ -64,8 +65,8 @@ describe("POST /remeet/v1/reports", () => {
       // The hand-off runs after the response (`background`), so wait for it.
       // It carries the report to Admin Core — that is where it is read — and
       // nothing about it left this Worker any other way.
-      await vi.waitFor(() => expect(createReport).toHaveBeenCalledTimes(1));
-      const [input] = createReport.mock.calls[0] as [Record<string, unknown>];
+      await vi.waitFor(() => expect(submitReport).toHaveBeenCalledTimes(1));
+      const [input] = submitReport.mock.calls[0] as [Record<string, unknown>];
       expect(input.externalReportId).toBe(body.reportId);
       expect(input.snapshotText).toBe("通報された本文");
       // Delivered, so the durable copy is gone.
@@ -81,7 +82,7 @@ describe("POST /remeet/v1/reports", () => {
     const body = report();
     const response = await post(body, {
       REMEET_REPORTS_BUCKET: bucket,
-      ADMIN_CORE: { createReport: vi.fn().mockRejectedValue(new Error("offline")) },
+      INQUIRY: { submitReport: vi.fn().mockRejectedValue(new Error("offline")) },
     });
     expect(response.status).toBe(201);
     expect(await bucket.head(`report-outbox/${body.reportId}.json`)).not.toBeNull();
@@ -90,12 +91,12 @@ describe("POST /remeet/v1/reports", () => {
   it("refuses with 502 when there is nowhere durable to put the report", async () => {
     const withoutBucket = await post(report(), {
       REMEET_REPORTS_BUCKET: undefined,
-      ADMIN_CORE: { createReport: vi.fn() },
+      INQUIRY: { submitReport: vi.fn() },
     });
     expect(withoutBucket.status).toBe(502);
     const withoutCore = await post(report(), {
       REMEET_REPORTS_BUCKET: bucket,
-      ADMIN_CORE: undefined,
+      INQUIRY: undefined,
     });
     expect(withoutCore.status).toBe(502);
   });

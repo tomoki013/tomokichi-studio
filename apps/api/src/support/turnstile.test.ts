@@ -32,7 +32,10 @@ function post(
 ) {
   // "Delivered" now means "recorded in Admin". The stub stands in for the
   // binding; what the tests assert is whether the message got that far.
-  const deliver = vi.fn().mockResolvedValue({ ok: true, value: {} });
+  const deliver = vi.fn().mockResolvedValue({
+    ok: true,
+    value: { ticketNumber: "1", status: "OPEN", duplicate: false },
+  });
   const app = createApp({
     rateLimit: async () => true,
     verifyTurnstile: options.verify,
@@ -46,7 +49,7 @@ function post(
     },
     {
       ...baseEnv,
-      ADMIN_CORE: { createSupportThread: deliver },
+      INQUIRY: { submitContact: deliver },
       ...(options.secret ? { TURNSTILE_SECRET_KEY: options.secret } : {}),
     },
   );
@@ -185,7 +188,10 @@ describe("the client key, for sources that cannot solve a challenge", () => {
     body: unknown,
     options: { clientKey?: string; header?: string; secret?: string } = {},
   ) {
-    const deliver = vi.fn().mockResolvedValue({ ok: true, value: {} });
+    const deliver = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ticketNumber: "1", status: "OPEN", duplicate: false },
+    });
     const app = createApp({
       rateLimit: async () => true,
       verifyTurnstile: async () => ({ ok: true }),
@@ -197,7 +203,7 @@ describe("the client key, for sources that cannot solve a challenge", () => {
       { method: "POST", headers, body: JSON.stringify(body) },
       {
         ...baseEnv,
-        ADMIN_CORE: { createSupportThread: deliver },
+        INQUIRY: { submitContact: deliver },
         ...(options.clientKey ? { SUPPORT_CLIENT_KEY: options.clientKey } : {}),
         ...(options.secret ? { TURNSTILE_SECRET_KEY: options.secret } : {}),
       },

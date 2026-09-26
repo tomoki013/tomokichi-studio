@@ -92,17 +92,33 @@
     // would be the only part of this feature that looked at who was asking.
     // The operator routes are protected by a bearer token instead.
   ],
-  // Studio Admin. A Service Binding requires its target Worker to already
-  // exist in the account, so this stayed commented out until
-  // `tomokichi-admin-core` was deployed — it is bound now, and
-  // `services/admin-bridge.ts` mirrors reports and support mail into Admin.
-  // The mirror is best-effort: if Admin Core is unreachable the operator mail
-  // still goes out, which is the behaviour this Worker had before the binding.
+  // The inquiry platform (github.com/tomoki013/inquiry-platform), through its
+  // `Intake` entrypoint: submit contacts, reports and report evidence, and
+  // nothing else — no reads, no notes. `props` is what the platform checks:
+  // which projects this Worker may submit for, and that it may file a contact
+  // not about any one app (the form's "other"). `projects` must cover every
+  // app the support form offers; `src/inquiry-binding.test.ts` holds it to that.
+  // Requires a platform deployment that has `Intake` (inquiry-platform PR #2).
   "services": [
     {
-      "binding": "ADMIN_CORE",
+      "binding": "INQUIRY",
       "service": "tomokichi-admin-core",
-      "entrypoint": "AdminCore"
+      "entrypoint": "Intake",
+      "props": {
+        "caller": "tomokichi-api",
+        "projects": [
+          "remeet",
+          "tripory",
+          "colorvia",
+          "yohaku",
+          "quiet-solitaire",
+          "soonish",
+          "tana",
+          "rough-board",
+          "doodle"
+        ],
+        "allowUnassigned": true
+      }
     }
   ],
 

@@ -13,9 +13,11 @@ import type { SupportBindings, SupportEmail } from "./support/types";
  * the stub records is what crosses the binding, which is what the PII tests
  * and the "no email" tests read.
  */
-function fakeCore(result: unknown = { ok: true, value: {} }) {
-  const createSupportThread = vi.fn().mockResolvedValue(result);
-  return { core: { createSupportThread }, createSupportThread };
+function fakeCore(
+  result: unknown = { ok: true, value: { ticketNumber: "1", status: "OPEN", duplicate: false } },
+) {
+  const submitContact = vi.fn().mockResolvedValue(result);
+  return { core: { submitContact }, submitContact };
 }
 
 describe("GET /api/v1/health", () => {
@@ -65,8 +67,8 @@ function post(
   options: {
     origin?: string;
     rate?: boolean;
-    /** Extra bindings. `ADMIN_CORE` defaults to a stub that accepts. */
-    env?: Partial<SupportBindings & { ADMIN_CORE: unknown }>;
+    /** Extra bindings. `INQUIRY` defaults to a stub that accepts. */
+    env?: Partial<SupportBindings & { INQUIRY: unknown }>;
   } = {},
 ) {
   const app = createApp({
@@ -77,7 +79,7 @@ function post(
   return app.request(
     "https://api.example.com/api/v1/support",
     { method: "POST", headers, body: JSON.stringify(body) },
-    { ...env, ADMIN_CORE: fakeCore().core, ...options.env },
+    { ...env, INQUIRY: fakeCore().core, ...options.env },
   );
 }
 
@@ -89,30 +91,30 @@ describe("POST /api/v1/support", () => {
   });
 
   it("accepts apps from the shared brand registry and hands the slug to Admin", async () => {
-    const { core, createSupportThread } = fakeCore();
-    const response = await post({ ...validRequest, app: "yohaku" }, { env: { ADMIN_CORE: core } });
+    const { core, submitContact } = fakeCore();
+    const response = await post({ ...validRequest, app: "yohaku" }, { env: { INQUIRY: core } });
     expect(response.status).toBe(200);
-    expect(createSupportThread.mock.calls[0]?.[0]).toMatchObject({ appSlug: "yohaku" });
+    expect(submitContact.mock.calls[0]?.[0]).toMatchObject({ projectSlug: "yohaku" });
   });
 
   it("accepts a request with no email when no reply is requested", async () => {
     const { email: _email, ...withoutEmail } = validRequest;
-    const { core, createSupportThread } = fakeCore();
-    const response = await post(withoutEmail, { env: { ADMIN_CORE: core } });
+    const { core, submitContact } = fakeCore();
+    const response = await post(withoutEmail, { env: { INQUIRY: core } });
     expect(response.status).toBe(200);
-    expect(createSupportThread.mock.calls[0]?.[0]).toMatchObject({ requesterEmail: undefined });
+    expect(submitContact.mock.calls[0]?.[0]).toMatchObject({ email: undefined });
   });
 
   it("accepts an empty-string email the same as an omitted one (Remeet iOS always sends the key)", async () => {
-    const { core, createSupportThread } = fakeCore();
+    const { core, submitContact } = fakeCore();
     const response = await post(
       { ...validRequest, source: "remeet-ios", name: "", email: "" },
-      { env: { ADMIN_CORE: core } },
+      { env: { INQUIRY: core } },
     );
     expect(response.status).toBe(200);
-    const input = createSupportThread.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(input.requesterEmail).toBeUndefined();
-    expect(input.requesterName).toBeUndefined();
+    const input = submitContact.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(input.email).toBeUndefined();
+    expect(input.name).toBeUndefined();
   });
 
   it("accepts the Colorvia iOS source", async () => {
@@ -121,14 +123,14 @@ describe("POST /api/v1/support", () => {
   });
 
   it("silently accepts (without recording) a honeypot-triggered submission", async () => {
-    const { core, createSupportThread } = fakeCore();
+    const { core, submitContact } = fakeCore();
     const response = await post(
       { ...validRequest, website: "http://spam.example.com" },
-      { env: { ADMIN_CORE: core } },
+      { env: { INQUIRY: core } },
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, requestId: validRequest.requestId });
-    expect(createSupportThread).not.toHaveBeenCalled();
+    expect(submitContact).not.toHaveBeenCalled();
   });
 
   it("reports missing required fields", async () => {
@@ -185,7 +187,7 @@ describe("POST /api/v1/support", () => {
   it("returns 502 when Admin Core rejects, without exposing why", async () => {
     const response = await post(validRequest, {
       env: {
-        ADMIN_CORE: fakeCore({
+        INQUIRY: fakeCore({
           ok: false,
           error: { code: "INTERNAL_ERROR", message: "secret upstream response" },
         }).core,
@@ -196,14 +198,14 @@ describe("POST /api/v1/support", () => {
   });
 
   it("returns 502 when Admin Core throws", async () => {
-    const createSupportThread = vi.fn().mockRejectedValue(new Error("binding is down"));
-    const response = await post(validRequest, { env: { ADMIN_CORE: { createSupportThread } } });
+    const submitContact = vi.fn().mockRejectedValue(new Error("binding is down"));
+    const response = await post(validRequest, { env: { INQUIRY: { submitContact } } });
     expect(response.status).toBe(502);
     expect(JSON.stringify(await response.json())).not.toContain("binding is down");
   });
 
   it("refuses rather than accepts when there is no Admin Core to write to", async () => {
-    const response = await post(validRequest, { env: { ADMIN_CORE: undefined } });
+    const response = await post(validRequest, { env: { INQUIRY: undefined } });
     expect(response.status).toBe(502);
   });
 
@@ -214,16 +216,16 @@ describe("POST /api/v1/support", () => {
    * mail-only — invisible on the screen the operator actually reads.
    */
   it("records a message sent without a reply address", async () => {
-    const { core, createSupportThread } = fakeCore();
-    const response = await post({ ...validRequest, email: "" }, { env: { ADMIN_CORE: core } });
+    const { core, submitContact } = fakeCore();
+    const response = await post({ ...validRequest, email: "" }, { env: { INQUIRY: core } });
 
     expect(response.status).toBe(200);
-    expect(createSupportThread).toHaveBeenCalledTimes(1);
-    const [input] = createSupportThread.mock.calls[0] as [Record<string, unknown>];
+    expect(submitContact).toHaveBeenCalledTimes(1);
+    const [input] = submitContact.mock.calls[0] as [Record<string, unknown>];
     // The route's own validation folds an empty address into nothing at all,
     // so what reaches Admin is an absence rather than a blank string.
-    expect(input.requesterEmail).toBeUndefined();
-    expect(input.bodyText).toContain("十分な長さ");
+    expect(input.email).toBeUndefined();
+    expect(input.message).toContain("十分な長さ");
   });
 
   /**
@@ -236,17 +238,13 @@ describe("POST /api/v1/support", () => {
   it("records the message once, keyed on the request id, and mails nobody", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("no network"));
     try {
-      const { core, createSupportThread } = fakeCore();
-      const response = await post(validRequest, { env: { ADMIN_CORE: core } });
+      const { core, submitContact } = fakeCore();
+      const response = await post(validRequest, { env: { INQUIRY: core } });
       expect(response.status).toBe(200);
-      expect(createSupportThread).toHaveBeenCalledTimes(1);
-      const [input, actor] = createSupportThread.mock.calls[0] as [
-        Record<string, unknown>,
-        unknown,
-      ];
-      expect(input.providerMessageId).toBe(`form-${validRequest.requestId}`);
-      expect(input.requesterEmail).toBe("user@example.com");
-      expect(actor).toEqual({ type: "app", id: "tomokichi-api" });
+      expect(submitContact).toHaveBeenCalledTimes(1);
+      const [input] = submitContact.mock.calls[0] as [Record<string, unknown>];
+      expect(input.idempotencyKey).toBe(validRequest.requestId);
+      expect(input.email).toBe("user@example.com");
       expect(fetchSpy).not.toHaveBeenCalled();
     } finally {
       fetchSpy.mockRestore();
@@ -338,7 +336,7 @@ describe("Public API cannot read Ticket internals", () => {
   ])("has no read endpoint at %s", async (path) => {
     const core = { getTicket: vi.fn(), listTickets: vi.fn(), getSupportThread: vi.fn() };
     const response = await createApp().request(`https://tmkch.io${path}`, {}, {
-      ADMIN_CORE: core,
+      INQUIRY: core,
     } as never);
     expect(response.status).toBe(404);
     expect(core.getTicket).not.toHaveBeenCalled();

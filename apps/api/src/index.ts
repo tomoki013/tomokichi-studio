@@ -1,5 +1,5 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
-import type { ModerationRequest } from "@tomokichi/admin-contracts";
+import type { ModerationRequest } from "@inquiry-platform/sdk";
 import { type Context, Hono } from "hono";
 import {
   type ApiBindings as InviteApiBindings,
@@ -120,7 +120,8 @@ export default {
   },
 };
 
-/** Only Admin Core binds to this entrypoint. No public HTTP route. */
+/** Only the inquiry platform binds to this entrypoint (its `SIGNED_MODERATION`
+ * adapter for Remeet). No public HTTP route. */
 export class RemeetModeration extends WorkerEntrypoint<ApiBindings> {
   async prepare(input: ModerationRequest) {
     if (!this.env.REMEET_INVITES_DB) throw new Error("Moderation storage unavailable");
