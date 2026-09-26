@@ -1,5 +1,7 @@
 # Tomokichi Studio 基盤・管理システム全面監査
 
+> **記録用（2026-09-26）**: ここに出てくる管理基盤（`apps/admin-core` / `apps/admin-web` / `apps/mail-ingress` / `packages/admin-*`）は [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) に移り、この Repository からは削除した（ADR-022）。パスは執筆時点のもの。
+
 作成日: 2026-09-21
 対象: `codex/mail-theme-report-history` @ `4a5374f` + 未コミットの作業ツリー（`0007_report_author_history.sql` / `0008_report_receipt_first_response.sql` / `ReportAuthorHistory.tsx` を含む）。`main` との差分は通報者履歴とメール配色のみで、本監査の結論には影響しない。
 範囲: `apps/api`（公開 API）、`apps/admin-core`、`apps/admin-web`、`apps/mail-ingress`、`packages/admin-contracts`、`packages/admin-mail`、`docs/`、`.github/workflows/`。ブランドサイト群（`apps/main` ほか）は「管理基盤」の対象外として構成だけ確認した。

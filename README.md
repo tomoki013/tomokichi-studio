@@ -150,36 +150,26 @@ pnpm --filter @tomokichi/main exec wrangler versions list
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | monitoring, backup, incidents, restore |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | design decisions (ADR-001…) |
 | [docs/AI_INSTRUCTIONS.md](docs/AI_INSTRUCTIONS.md) | rules for coding agents |
-| [docs/operations-tickets.md](docs/operations-tickets.md) | Ticket lifecycle, priority/resolution, SLA, migration record |
-| [docs/admin-report-workflow.md](docs/admin-report-workflow.md) | reports, mail replies, signed moderation |
 | [docs/audit/tomokichi-studio-platform-audit.md](docs/audit/tomokichi-studio-platform-audit.md) | platform audit: Incident, monitoring, audit log, roles, MCP |
 | [docs/testing/test-gap-analysis.md](docs/testing/test-gap-analysis.md) | risk map and coverage |
 
-## Admin
+## Inquiry platform (admin.tmkch.io)
 
-Ticket lifecycle, priority/resolution rules, SLA settings, migration results and operations: [Operations Tickets](docs/operations-tickets.md).
+Contacts, reports, replies, notifications and the admin screen at
+`admin.tmkch.io` are **not in this repository**. They are the inquiry
+platform, [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform)
+(private), which serves every Studio app and deploys the `tomokichi-admin-core`,
+`tomokichi-admin-web` and `tomokichi-mail-ingress` Workers from there
+(ADR-022).
 
-
-`admin.tmkch.io` is the shared operations screen for every Studio app —
-moderation reports, support conversations, and the app registry. It is three
-Workers, and only one of them is on the internet:
-
-- `apps/admin-web` — React + Hono behind Cloudflare Access. Its only binding is
-  a Service Binding to Admin Core.
-- `apps/admin-core` — D1, R2 and every domain rule. No route, no `workers.dev`.
-- `apps/mail-ingress` — receives `support@tmkch.io`, stores the message, and
-  forwards it to the address that was already receiving it.
-
-`apps/api` records each Remeet report and support-form message in Admin
-through `src/services/admin-bridge.ts`, and that record is the only copy: no
-mail carries the message. Admin Core tells the operator a ticket exists — by
-mail and by Web Push, with the ticket number and a link and nothing else — once
-the row is committed (`docs/support-notifications.md`). A report is accepted
-once its durable outbox copy exists; a support message once Admin Core has it.
-Without the `ADMIN_CORE` binding neither can be accepted.
-
-Setup, the deployment order, and the Email Routing switchover are in
-[`apps/admin-core/README.md`](apps/admin-core/README.md).
+This repository is one of its users. `apps/api` hands each support-form
+message and Remeet report to the platform through the `INQUIRY` Service Binding.
+That binding reaches the platform's `Intake` entrypoint, which can only submit
+and cannot read. The calls go through the vendored SDK in
+`packages/inquiry-sdk` (`src/services/admin-bridge.ts`). The platform's record
+is the only copy, and without the binding neither route accepts anything.
+`apps/api` also still serves the platform the `RemeetModeration` entrypoint
+used for signed report decisions.
 
 ## Checks
 
@@ -203,15 +193,12 @@ GitHub ActionsのRepository secretsに `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_AC
 
 デプロイは単一の `Deploy` workflow (`.github/workflows/deploy.yml`) にまとまっており、`main`へのpushで直接起動するのではなく **CIの成功を待ってから** 起動します（`workflow_run`）。デプロイ対象はCIが算出した変更アプリ一覧をそのまま引き継ぐため、CIが赤いままデプロイが進むことはありません。
 
-Worker間の順序も同じworkflow内の `needs:` で表現されています。Admin Coreは他の2つのWorkerがService Bindingで参照する先なので、必ず先にデプロイされます。
-
 ```
 CI (成功)
  └─ 変更アプリ判定
-      ├─ main / remeet / tripory / colorvia / yohaku / quiet-solitaire / api
-      └─ admin-core
-            ├─ admin-web
-            └─ mail-ingress
+      └─ main / remeet / tripory / colorvia / yohaku / quiet-solitaire / api
 ```
 
-手動デプロイはActionsの `Deploy` → *Run workflow* から行えます。`apps` に `all`（既定）か、`admin-core,admin-web` のようなカンマ区切りのアプリ名を渡します。
+問い合わせ・通報基盤の 3 Worker は inquiry-platform からデプロイします（この workflow には含まれません）。
+
+手動デプロイはActionsの `Deploy` → *Run workflow* から行えます。`apps` に `all`（既定）か、`main,api` のようなカンマ区切りのアプリ名を渡します。

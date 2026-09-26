@@ -1,5 +1,7 @@
 # Test Gap Analysis — Tomokichi Studio（admin / api / mail-ingress）
 
+> **記録用（2026-09-26）**: ここに出てくる管理基盤（`apps/admin-core` / `apps/admin-web` / `apps/mail-ingress` / `packages/admin-*`）は [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) に移り、この Repository からは削除した（ADR-022）。パスは執筆時点のもの。
+
 作成日: 2026-09-21
 前提: `docs/audit/tomokichi-studio-platform-audit.md` の発見を「壊れたときの影響が大きい順」にテストへ落とす。Coverage は目標にしない。既存 336 テストの思想（実 migration を Miniflare D1 に流す `tests/harness.ts`、fake mail provider、Service Binding を plain object で渡す）を踏襲する。
 
