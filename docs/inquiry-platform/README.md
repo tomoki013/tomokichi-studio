@@ -81,6 +81,7 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ## 記録
 
+- 2026-10-11 v0.7.0（migration なし）: Project 管理画面向けに担当者（受付済みにした操作者）と各操作の操作者を返す。`deploy all`: core `2beb19c7`、gateway `40aa7381`、mail-ingress `ca339127`。ロールバック: `v0.6.0` に戻して `deploy all`（Zakkary API も前版 `c725450d` へ）。
 - 2026-10-11 v0.6.0（migration なし）: Project ごとの通報受付メール文面（`reportReceiptTemplate`、Zakkary は `zakkary_report_receipt`）と、お客様向けの不透明な受付ID。`deploy all`: core `89484c12`、gateway `99ddaff1`、mail-ingress `ac6bb6d1`。Studio アプリの受付メールは従来どおり。ロールバック: `v0.5.1` に戻して `deploy all`（Zakkary API も前版 `0afb0aa5` へ）。
 - 2026-10-11 v0.5.1（migration なし）: ヘッダーの無い返信も受付番号＋送信者一致で同じチケットへ。`deploy all`: core `50a45819`、gateway `40e171cc`、mail-ingress `878e84b0`。続けて `seed` で Zakkary の `fromName` を「Zakkaryカスタマーサポート」に（`app_mail_settings` 2 行）。ロールバック: `v0.5.0` に戻して `deploy all`。
 - 2026-10-11 v0.5.0（migration なし）: `ProjectOperator` に Project 所有の返信テンプレート操作を追加（Zakkary の管理画面が使う）。`deploy all`: core `ce83ece9`、gateway `e63f67e7`、mail-ingress `15895e8e`。`admin.tmkch.io` は Access へ 302 のまま。ロールバック: `apps/api` / `apps/admin` を `v0.4.0` に戻して `deploy all`（Zakkary API も前版 `7e544f60` へ）。
