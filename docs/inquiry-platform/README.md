@@ -81,7 +81,7 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ## 記録
 
-- 2026-10-11 運営画面と v0.4.0: `admin.tmkch.io` を `tomokichi-admin`（`apps/admin`、version `6810ee6c`）に付け替え、Gateway は route なし（`0e0f6492`）。続けて v0.4.0（migration なし）を `deploy all`: core `7c3c3b62`、admin `027af08e`（`ADMIN_CORE` の `props.scope.services` = remeet / colorvia / yohaku / tmkch-io）、mail-ingress `6f7b4702`。未ログインは Access へ 302 のまま。ロールバック: `apps/api/package.json` を `v0.3.4` に戻して `deploy all`（scope は無視され全件表示に戻る）。
+- 2026-10-11 運営画面と v0.4.0: `admin.tmkch.io` を `tomokichi-admin`（`apps/admin`、version `6810ee6c`）に付け替え、Gateway は route なし（`0e0f6492`）。続けて v0.4.0（migration なし）を `deploy all`: core `d3a1d3d1`、admin `857e9981`（`ADMIN_CORE` の `props.scope.services` = remeet / colorvia / yohaku / tmkch-io）、mail-ingress `56d3d322`。未ログインは Access へ 302 のまま。ロールバック: `apps/api/package.json` を `v0.3.4` に戻して `deploy all`（scope は無視され全件表示に戻る）。
 
 - 2026-09-27 v0.1.0: 事前バックアップ `tomokichi-admin-2026-09-27-pre-v0.1.0.sql`（Owner の手元）。バックアップのコピーで 0010 を予行演習（未適用は 0010 のみ、外部キー違反なし、再実行で変化なし）。本番に 0010 を適用し、`default_service_id = studio`、trigger は新形式、Ticket 23 件は不変。Worker version: core `dc5ef595`、admin `e88b6c5d`、mail-ingress `6c157e52`。`admin.tmkch.io` は Access のログインへ 302、manifest は「Tomokichi Studio Admin / Tomokichi Admin」、アイコンは `admin-assets` と同一。`tomokichi-api` は deploy workflow（`f10b151`）で反映。ロールバック先: tag `v0.0.0` が無いため、inquiry-platform `0bbd0d2` の Tomokichi 設定で再デプロイ。
 
