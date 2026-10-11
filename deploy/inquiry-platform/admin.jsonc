@@ -7,16 +7,12 @@
   // to apps/admin/ of the pinned release (deploy/inquiry-platform/run.mjs).
 
   // API only. There is no HTML, PWA, static asset, or SPA fallback in the
-  // platform release. A consumer-owned operator UI may call this gateway.
-  // `workers.dev` is off deliberately: the Access policy is attached to the
-  // custom hostname, so it must remain the only entrance.
+  // platform release. Studio's operator console (apps/admin, Worker
+  // `tomokichi-admin`) owns admin.tmkch.io and forwards `/api/*` here over a
+  // Service Binding, so this Worker has no route of its own. `workers.dev` is
+  // off deliberately: the Access policy is attached to admin.tmkch.io, which
+  // must remain the only entrance.
   "workers_dev": false,
-  "routes": [
-    {
-      "pattern": "admin.tmkch.io",
-      "custom_domain": true
-    }
-  ],
 
   "observability": {
     "enabled": true
@@ -43,7 +39,12 @@
       // wrong. Least privilege, and the reason Admin Core exists at all.
       "binding": "ADMIN_CORE",
       "service": "tomokichi-admin-core",
-      "entrypoint": "AdminCore"
+      "entrypoint": "AdminCore",
+      // This gateway serves Studio's console, so it works Studio's own brands
+      // only: Remeet, Colorvia, Yohaku and tmkch.io (the `studio` service, where
+      // contacts naming no app go). Zakkary and ともきちの旅行日記 have their own
+      // consoles and are invisible here. inquiry-platform v0.4.0+.
+      "props": { "scope": { "services": ["remeet", "colorvia", "yohaku", "tmkch-io"] } }
     }
   ]
 }

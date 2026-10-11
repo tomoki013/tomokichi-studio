@@ -1,6 +1,6 @@
 # Operations
 
-最終更新: 2026-09-27。この Repository（ブランドサイトと `tomokichi-api`）の運用の入口。問い合わせ・通報・運営 API（admin.tmkch.io）の運用、Ticket の規則、Core D1 のバックアップ・復元、障害対応は [inquiry-platform](https://github.com/tomoki013/inquiry-platform) の `docs/operations/` が正本。運営 UI は利用者側の責務。
+最終更新: 2026-10-11。この Repository（ブランドサイトと `tomokichi-api`）の運用の入口。問い合わせ・通報・運営 API（admin.tmkch.io）の運用、Ticket の規則、Core D1 のバックアップ・復元、障害対応は [inquiry-platform](https://github.com/tomoki013/inquiry-platform) の `docs/operations/` が正本。運営画面は `apps/admin`（`admin.tmkch.io`）。
 
 ## Deploy
 
@@ -12,7 +12,7 @@
 
 | 見るもの | どこ | 頻度 |
 |---|---|---|
-| 未対応 Ticket・通報 | 利用者が用意した運営 UI / API client（基盤 API は `admin.tmkch.io`） | 日次 |
+| 未対応 Ticket・通報 | 運営画面 `admin.tmkch.io`（`apps/admin`） | 日次 |
 | Worker のエラー | Cloudflare → Workers & Pages → 各 Worker → Logs。検索語: `admin_bridge.failed`, `admin_bridge.support_rejected`, `admin_bridge.report_rejected`, `request.failed` | 週次、障害時 |
 | API 疎通 | `curl https://api.tmkch.io/api/v1/health` → `{"ok":true}` | 障害時 |
 | manifest 期限 | 30 日前から日次メール（api の cron `17 3 * * *`） | 届いたら |
@@ -38,7 +38,7 @@
 
 | 症状 | 最初に疑う | 手順 |
 |---|---|---|
-| 運営 UI / API が開かない / 500 | 基盤側または利用者側 UI | inquiry-platform `docs/operations/`、利用者側の UI / BFF ログ |
+| 運営 UI / API が開かない / 500 | `tomokichi-admin`（画面）または基盤側（`/api/*`） | `tomokichi-admin` / `tomokichi-admin-web` の Workers ログ、inquiry-platform `docs/operations/` |
 | 通報が届かない | api → 基盤の outbox、`INQUIRY` binding | Logs `admin_bridge.failed` / `admin_bridge.report_rejected`、5 分待つ、R2 の `report-outbox/` |
 | 問い合わせが 502 | 基盤に届かない / 拒否された | Logs `admin_bridge.unavailable` / `admin_bridge.support_rejected` の `code` |
 | アプリからの問い合わせが 403 | `SUPPORT_CLIENT_KEY` をアプリより先に設定した | secret を削除して未強制に戻す |

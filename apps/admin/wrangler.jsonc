@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tomokichi-admin",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-07-23",
+
+  // Studio's operator console. inquiry-platform's gateway is API only, so the
+  // screen lives here and the gateway sits behind it (see src/worker/index.ts).
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // The Worker sees every request: `/api/*` goes to the gateway, the rest
+    // gets security headers on the way out of the asset store.
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  },
+
+  // The Access application is attached to this hostname, so it must be the
+  // only entrance: no workers.dev URL.
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "admin.tmkch.io",
+      "custom_domain": true
+    }
+  ],
+
+  "observability": {
+    "enabled": true
+  },
+
+  "services": [
+    {
+      // inquiry-platform's API gateway (deploy/inquiry-platform/admin.jsonc).
+      // It has no route of its own; this binding is how it is reached.
+      "binding": "GATEWAY",
+      "service": "tomokichi-admin-web"
+    }
+  ]
+}

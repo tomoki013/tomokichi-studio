@@ -157,16 +157,18 @@ pnpm --filter @tomokichi/main exec wrangler versions list
 
 Contacts, reports, replies and notifications run on
 [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform),
-a separate, public, brand-neutral project. `admin.tmkch.io` is its
-Access-protected API gateway; it does not provide an admin screen, HTML, PWA,
-or static assets. This repository holds Tomokichi's deployment configuration
+a separate, public, brand-neutral project. Its API gateway
+(`tomokichi-admin-web`) provides no admin screen, HTML, PWA or static assets.
+`admin.tmkch.io` is served by this repository's operator console, `apps/admin`
+(Worker `tomokichi-admin`, behind Cloudflare Access), which forwards `/api/*`
+to the gateway over a Service Binding. This repository holds Tomokichi's deployment configuration
 and seed for the `tomokichi-admin-core`, `tomokichi-admin-web` and
 `tomokichi-mail-ingress` Workers in `deploy/inquiry-platform/`, deployed with
 `pnpm deploy:inquiry`
 ([docs/inquiry-platform/README.md](docs/inquiry-platform/README.md), ADR-023).
 
-Any operator UI, CLI or automation is consumer-owned and uses the gateway's
-standard API. It must not copy the platform's ticket, authorization, audit or
+`apps/admin` and any other operator UI, CLI or automation are consumer-owned and
+use the gateway's standard API. It must not copy the platform's ticket, authorization, audit or
 notification rules.
 
 This repository is one of its users. `apps/api` hands each support-form
