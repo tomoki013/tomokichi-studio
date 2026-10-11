@@ -39,7 +39,12 @@
       // wrong. Least privilege, and the reason Admin Core exists at all.
       "binding": "ADMIN_CORE",
       "service": "tomokichi-admin-core",
-      "entrypoint": "AdminCore"
+      "entrypoint": "AdminCore",
+      // This gateway serves Studio's console, so it works Studio's own brands
+      // only: Remeet, Colorvia, Yohaku and tmkch.io (the `studio` service, where
+      // contacts naming no app go). Zakkary and ともきちの旅行日記 have their own
+      // consoles and are invisible here. inquiry-platform v0.4.0+.
+      "props": { "scope": { "services": ["remeet", "colorvia", "yohaku", "tmkch-io"] } }
     }
   ]
 }

@@ -43,6 +43,8 @@ pnpm deploy:inquiry deploy all            # api → admin → mail-ingress
 
 `admin.tmkch.io` は Worker `tomokichi-admin`（`apps/admin`）が持つ。Access application はこの hostname に付いたまま。`/api/*` は Service Binding `GATEWAY` で `tomokichi-admin-web` へ request をそのまま渡すので、Access の JWT（`Cf-Access-Jwt-Assertion` / cookie）と `Origin: https://admin.tmkch.io` が Gateway に届き、認証・権限・CSRF は従来どおり Gateway が判定する。それ以外は `dist/` の SPA（deep link は `index.html`）に CSP などの header を付けて返す。UI は inquiry-platform v0.1.0 の画面を基にしている。
 
+表示範囲: Studio のブランド（Remeet・Colorvia・Yohaku と、アプリ指定なしの問い合わせが入る `tmkch-io` service）だけ。`admin.jsonc` の `ADMIN_CORE` binding の `props.scope.services` で指定し、inquiry-platform v0.4.0 以降の Core が一覧・件数・ダッシュボード・監査を絞り、範囲外の Ticket・通報・問い合わせ・アプリは `NOT_FOUND` にする（Zakkary・ともきちの旅行日記はそれぞれの管理画面で扱う）。新しい Studio アプリを登録したら slug をこの配列に足す。通知（メール・Push）は範囲と無関係にデプロイ単位のまま。
+
 デプロイ（Owner が手元で、この順）:
 
 ```bash
