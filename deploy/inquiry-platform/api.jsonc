@@ -59,7 +59,9 @@
         "logo": {
           "url": "https://zakkary.app/images/zakkary-app-icon.jpg",
           "alt": "Zakkary"
-        }
+        },
+        // Zakkary's own report receipt (edited in Zakkary's admin). v0.6.0+.
+        "reportReceiptTemplate": "zakkary_report_receipt"
       }
     }
   },
