@@ -22,7 +22,7 @@ export default {
     {
       appSlug: "zakkary",
       supportEmail: "support@zakkary.app",
-      fromName: "Zakkary",
+      fromName: "Zakkaryカスタマーサポート",
       // Sender of the operator's "new ticket" alert only (number, kind and
       // a console link); nothing else on the platform sends from it.
       noreplyEmail: "notification@zakkary.app",
