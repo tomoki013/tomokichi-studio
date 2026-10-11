@@ -81,6 +81,7 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ## 記録
 
+- 2026-10-11 v0.5.1（migration なし）: ヘッダーの無い返信も受付番号＋送信者一致で同じチケットへ。`deploy all`: core `50a45819`、gateway `40e171cc`、mail-ingress `878e84b0`。続けて `seed` で Zakkary の `fromName` を「Zakkaryカスタマーサポート」に（`app_mail_settings` 2 行）。ロールバック: `v0.5.0` に戻して `deploy all`。
 - 2026-10-11 v0.5.0（migration なし）: `ProjectOperator` に Project 所有の返信テンプレート操作を追加（Zakkary の管理画面が使う）。`deploy all`: core `ce83ece9`、gateway `e63f67e7`、mail-ingress `15895e8e`。`admin.tmkch.io` は Access へ 302 のまま。ロールバック: `apps/api` / `apps/admin` を `v0.4.0` に戻して `deploy all`（Zakkary API も前版 `7e544f60` へ）。
 - 2026-10-11 運営画面と v0.4.0: `admin.tmkch.io` を `tomokichi-admin`（`apps/admin`、version `6810ee6c`）に付け替え、Gateway は route なし（`0e0f6492`）。続けて v0.4.0（migration なし）を `deploy all`: core `d3a1d3d1`、admin `857e9981`（`ADMIN_CORE` の `props.scope.services` = remeet / colorvia / yohaku / tmkch-io）、mail-ingress `56d3d322`。未ログインは Access へ 302 のまま。ロールバック: `apps/api/package.json` を `v0.3.4` に戻して `deploy all`（scope は無視され全件表示に戻る）。
 
