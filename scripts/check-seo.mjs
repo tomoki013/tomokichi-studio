@@ -20,6 +20,9 @@ const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
  * missing share image — inventing artwork for it is not this script's job.
  */
 const PUBLISHED = new Set(["main", "colorvia", "remeet", "tripory", "yohaku", "quiet-solitaire"]);
+// Not sites at all: the operator console is behind Cloudflare Access and sends
+// `noindex` on every response, so there is nothing for a crawler to find.
+const PRIVATE = new Set(["admin"]);
 const warnings = [];
 const appsRoot = join(workspaceRoot, "apps");
 const failures = [];
@@ -43,6 +46,7 @@ const isAbsolute = (url) => {
 for (const entry of readdirSync(appsRoot, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
   const app = entry.name;
+  if (PRIVATE.has(app)) continue;
   const distRoot = join(appsRoot, app, "dist");
   if (!existsSync(join(distRoot, "index.html"))) continue;
 

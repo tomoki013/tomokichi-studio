@@ -27,3 +27,8 @@ minimumReleaseAgeExclude:
 overrides:
   "miniflare>sharp": "^0.35.4"
   "miniflare>undici": "^7.29.0"
+  # apps/admin takes inquiry-platform's core from its release tag. Core's
+  # `workspace:*` dependency on the SDK only resolves inside that repository,
+  # and a git-hosted subdependency is blocked here, so it is dropped and
+  # apps/admin aliases `@inquiry-platform/sdk` to its own direct dependency.
+  "@inquiry-platform/core>@inquiry-platform/sdk": "-"

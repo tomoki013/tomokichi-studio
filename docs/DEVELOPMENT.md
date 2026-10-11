@@ -1,6 +1,6 @@
 # Development
 
-最終更新: 2026-09-27。矛盾したらコードと `package.json` が正。問い合わせ・通報基盤 API（admin.tmkch.io）の開発手順は [inquiry-platform](https://github.com/tomoki013/inquiry-platform) の `apps/api/README.md`。運営 UI はこの Repository 側で必要に応じて実装する。
+最終更新: 2026-10-11。矛盾したらコードと `package.json` が正。問い合わせ・通報基盤 API（admin.tmkch.io）の開発手順は [inquiry-platform](https://github.com/tomoki013/inquiry-platform) の `apps/api/README.md`。運営画面は `apps/admin`（ローカル起動は [docs/inquiry-platform/README.md](inquiry-platform/README.md) の「運営画面」）。
 
 ## Requirements
 
@@ -81,7 +81,7 @@ pnpm -w cf whoami            # wrangler（api を対象）
 | `wrangler: command not found` | ルートに無い。`pnpm -w cf …` か `pnpm --filter <app> exec wrangler …` |
 | 通報・問い合わせが運営 UI / API client に出ない | api の `INQUIRY` binding / outbox（5 分 cron）。`admin_bridge.failed` / `*_rejected` の `code` を検索（`FORBIDDEN` なら binding の `props.projects` に漏れ） |
 | 基盤 API の不具合 | inquiry-platform 側（同 Repository `docs/operations/`） |
-| 運営 UI / BFF の不具合 | その UI / BFF を持つ利用者側 |
+| 運営 UI / BFF の不具合 | Studio の画面は `apps/admin`、他 Project の画面はその Project |
 | アプリからの問い合わせが弾かれる | `SUPPORT_CLIENT_KEY` をアプリより先に設定した。**アプリを先に**（README Support form） |
 | テストで `duplicate column name` | harness が冪等に処理する。他のスキーマエラーは本物 |
 

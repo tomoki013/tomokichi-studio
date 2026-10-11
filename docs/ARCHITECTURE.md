@@ -11,18 +11,20 @@ Tomokichi Studio は「小さなアプリの集まり」を 1 つの monorepo �
 | **ブランドサイト**（Astro 静的） | `tomokichi-main`（tmkch.io）、`tomokichi-remeet`、`tomokichi-tripory`、`tomokichi-colorvia`、`tomokichi-yohaku`、`tomokichi-quiet-solitaire`、`review` | 各アプリの LP・法務文書・FAQ・更新情報。`packages/app-site` の共通シェル |
 | **公開 API**（Hono） | `tomokichi-api`（api.tmkch.io） | お問い合わせ・通報の受付口、Remeet の招待・モデレーション manifest |
 
-お問い合わせ・通報・返信・通知・運営 API（`admin.tmkch.io`）は **問い合わせ基盤 [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform)**（public OSS）にあり、Worker `tomokichi-admin-core` / `tomokichi-admin-web` / `tomokichi-mail-ingress` もそこからデプロイする（ADR-022 / ADR-023）。管理画面 UI は基盤に含めず、必要ならこの Repository 側で実装する。Tomokichi Studio は基盤を使う Project の 1 つ。
+お問い合わせ・通報・返信・通知・運営 API（`admin.tmkch.io`）は **問い合わせ基盤 [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform)**（public OSS）にあり、Worker `tomokichi-admin-core` / `tomokichi-admin-web` / `tomokichi-mail-ingress` もそこからデプロイする（ADR-022 / ADR-023）。管理画面 UI は基盤に含めず、この Repository の `apps/admin`（Worker `tomokichi-admin`）が `admin.tmkch.io` で配信し、`/api/*` を Service Binding で Gateway に渡す。Tomokichi Studio は基盤を使う Project の 1 つ。
 
 ```mermaid
 flowchart TB
   subgraph Studio["この Repository"]
     Sites["ブランドサイト ×7 (Astro, static assets)"]
     API["tomokichi-api (Hono)\n/api/v1/support\n/remeet/v1/{invites,reports,moderation}"]
+    Console["tomokichi-admin\nadmin.tmkch.io (Access)\n運営画面 SPA"]
   end
   subgraph Platform["inquiry-platform（別 Repository）"]
     Intake["tomokichi-admin-core#Intake\n受付のみ（読み取りなし）"]
-    Admin["admin.tmkch.io\nAPI gateway only"]
+    Admin["tomokichi-admin-web\nAPI gateway only（route なし）"]
   end
+  Console -- "/api/* → GATEWAY binding" --> Admin
   Sites -- "/support form (Turnstile)" --> API
   Apps((Remeet / Colorvia)) -- "X-Support-Client / X-Remeet-Client" --> API
   API -- "INQUIRY binding + SDK\n(reports: outbox, support: 同期)" --> Intake

@@ -1,8 +1,8 @@
 # inquiry-platform の Tomokichi 環境
 
-最終更新: 2026-09-27。
+最終更新: 2026-10-11。
 
-お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、管理画面の UI はこの Repository 側で必要になったときに実装します。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
+お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
 
 ## どこに何があるか
 
@@ -10,7 +10,8 @@
 |---|---|
 | `apps/api/package.json` の `@inquiry-platform/sdk` | 使う release tag（例 `#v0.2.0`）。SDK とデプロイする Worker の版をこの 1 行で決める |
 | `deploy/inquiry-platform/api.jsonc` | Core（`tomokichi-admin-core`）。D1 `tomokichi-admin`、R2 `tomokichi-admin-files`、アドレス、`BRANDING`、`SIGNED_MODERATION`（Remeet → `tomokichi-api#RemeetModeration`） |
-| `deploy/inquiry-platform/admin.jsonc` | API Gateway（`tomokichi-admin-web`、`admin.tmkch.io`、Access）。UI の assets は設定しない |
+| `deploy/inquiry-platform/admin.jsonc` | API Gateway（`tomokichi-admin-web`、Access の JWT 検証）。route を持たず、`apps/admin` から Service Binding で呼ばれる。UI の assets は設定しない |
+| `apps/admin` | Studio の運営画面（Worker `tomokichi-admin`、`admin.tmkch.io`）。React SPA を配信し、`/api/*` をそのまま Gateway へ渡す |
 | `deploy/inquiry-platform/mail-ingress.jsonc` | 受信メール（`tomokichi-mail-ingress`） |
 | `deploy/inquiry-platform/seed.ts`, `seed/` | アプリ・定型文・署名、`studio` service と既定値 |
 | `deploy/inquiry-platform/run.mjs` | 指定 tag を `.cache/inquiry-platform/<tag>` に取得し、基盤の `scripts/deploy.mjs` を実行 |
@@ -35,6 +36,23 @@ pnpm deploy:inquiry deploy all            # api → admin → mail-ingress
 3. マージ後、D1 を private にバックアップ（下の手順 1）、Worker version を控えて `migrate` → `deploy all` → `tomokichi-api` をデプロイ。
 
 ロールバック: 直前の tag に戻して `deploy all`。D1 は戻さない（migration は forward-only）。
+
+`apps/admin` は `@inquiry-platform/core`（型と定数）と `@inquiry-platform/sdk` を同じ tag で持つ。tag を上げるときは `apps/admin/package.json` と `pnpm-workspace.yaml` の override 説明も合わせ、`pnpm --filter @tomokichi/admin check test` を通す。core の `workspace:*` の SDK 依存は git 由来の subdependency として block されるため、override で外し、`apps/admin` の vite / tsconfig が SDK を自分の依存へ alias している。
+
+## 運営画面（apps/admin）
+
+`admin.tmkch.io` は Worker `tomokichi-admin`（`apps/admin`）が持つ。Access application はこの hostname に付いたまま。`/api/*` は Service Binding `GATEWAY` で `tomokichi-admin-web` へ request をそのまま渡すので、Access の JWT（`Cf-Access-Jwt-Assertion` / cookie）と `Origin: https://admin.tmkch.io` が Gateway に届き、認証・権限・CSRF は従来どおり Gateway が判定する。それ以外は `dist/` の SPA（deep link は `index.html`）に CSP などの header を付けて返す。UI は inquiry-platform v0.1.0 の画面を基にしている。
+
+デプロイ（Owner が手元で、この順）:
+
+```bash
+pnpm deploy:inquiry deploy gateway        # admin.jsonc に route が無い Gateway（custom domain を手放す）
+pnpm --filter @tomokichi/admin run deploy # tomokichi-admin が admin.tmkch.io を取る
+```
+
+1 と 2 の間は `admin.tmkch.io` が応答しない。2 で wrangler が「既に別 Worker に割り当て済み」と聞いてきたら付け替えてよい。ロールバック: `admin.jsonc` に `admin.tmkch.io` の custom domain を戻して `deploy gateway`（UI は無くなり API だけに戻る）。
+
+ローカル: `.cache/inquiry-platform/<tag>/apps/{api,admin}/wrangler.deployment.jsonc` を置き（`pnpm deploy:inquiry check` でコピーされる）、Gateway 側に `.dev.vars`（`ENVIRONMENT=local`、`DEV_ADMIN_EMAIL=…`、空の `ACCESS_TEAM_DOMAIN=` / `ACCESS_AUD=`）を作って、`apps/admin` で `pnpm build && pnpm exec wrangler dev --port 4331 -c wrangler.jsonc -c ../../.cache/inquiry-platform/<tag>/apps/admin/wrangler.deployment.jsonc -c ../../.cache/inquiry-platform/<tag>/apps/api/wrangler.deployment.jsonc`。D1 は `apps/admin/.wrangler/state` に入るので、migration と seed は `--local --persist-to ../../../../apps/admin/.wrangler/state` で当てる。
 
 ## v0.3.1 への移行（2026-09-29）
 
