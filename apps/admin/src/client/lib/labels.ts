@@ -129,6 +129,8 @@ export const auditActionLabels: Record<string, string> = {
   "support.app_assigned": "問い合わせのアプリを設定",
   "support.internal_note_added": "問い合わせに運営メモを追加",
   "notification.settings_updated": "通知設定を更新",
+  "ticket.settings_updated": "チケットのマスタ設定を更新",
+  "delivery.retried": "失敗した処理の再試行を予約",
   "push.subscribed": "Push通知の端末を登録",
   "push.resubscribed": "Push通知の端末を再登録",
   "push.unsubscribed": "Push通知の端末を解除",

@@ -69,6 +69,7 @@ export function Layout() {
             </Item>
             <Item to="/support/templates">返信定型文</Item>
             <Item to="/tickets/settings">運用設定</Item>
+            <Item to="/deliveries">処理の失敗</Item>
             <Item to="/settings/notifications">通知設定</Item>
           </Group>
           <Group label="スタジオ">

@@ -102,7 +102,11 @@ it("does not dismiss content that already has an active deletion", async () => {
   ).rejects.toThrow();
 });
 it("publishes a deletion of a shared item, the kind 0010 added", async () => {
-  const proposal = await prepareDecision(db, { ...input, contentType: "sharedItem" }, trustedKey.id);
+  const proposal = await prepareDecision(
+    db,
+    { ...input, contentType: "sharedItem" },
+    trustedKey.id,
+  );
   await completeDecision(db, proposal.id, await sign(proposal.payload), trustedKey);
   const row = await db
     .prepare("SELECT target_kind FROM remeet_moderation_actions")
