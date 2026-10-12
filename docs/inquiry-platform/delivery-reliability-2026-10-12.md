@@ -1,6 +1,6 @@
 # 配送・取り込みの復旧
 
-inquiry-platform v0.8.0をAPI・AdminのSDK/core参照に固定する。`deploy/inquiry-platform/mail-ingress.jsonc`にはCoreと同じ既存のprivate R2 bucketを追加する。Worker・D1・bucketを分割する変更ではない。
+inquiry-platform v0.8.1（v0.8.0の互換パッチ）をAPI・AdminのSDK/core参照に固定する。`deploy/inquiry-platform/mail-ingress.jsonc`にはCoreと同じ既存のprivate R2 bucketを追加する。Worker・D1・bucketを分割する変更ではない。
 
 反映順序はD1 private backupと現在のWorker version記録 → `pnpm deploy:inquiry check` → `pnpm deploy:inquiry migrate`（0014）→ `pnpm deploy:inquiry deploy all` → Admin UIの反映。seedは不要。
 
