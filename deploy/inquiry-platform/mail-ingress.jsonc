@@ -28,12 +28,13 @@
 
   "services": [
     {
-      // The only thing this Worker can reach. No D1, no R2.
+      // Raw-mail recovery uses Core's existing private bucket; no D1 binding.
       "binding": "ADMIN_CORE",
       "service": "tomokichi-admin-core",
       "entrypoint": "AdminCore"
     }
-  ]
+  ],
+  "r2_buckets": [{ "binding": "PRIVATE_FILES", "bucket_name": "tomokichi-admin-files" }]
 
   // SUPPORT_FORWARD_EMAIL is a Secret, not a var: it is the operator's personal
   // address and does not belong in git. Set with:

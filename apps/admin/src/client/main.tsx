@@ -6,6 +6,7 @@ import { Layout } from "./components/Layout";
 import { registerServiceWorker } from "./lib/pwa";
 import { AppDetail } from "./pages/AppDetail";
 import { Apps } from "./pages/Apps";
+import { Deliveries } from "./pages/Deliveries";
 import { NotificationSettings } from "./pages/NotificationSettings";
 import { ReplyTemplates } from "./pages/ReplyTemplates";
 import { TicketDetail } from "./pages/TicketDetail";
@@ -33,6 +34,7 @@ createRoot(document.getElementById("root") as HTMLElement).render(
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<TicketOperationsDashboard />} />
+            <Route path="deliveries" element={<Deliveries />} />
             <Route path="tickets" element={<Tickets />} />
             <Route path="tickets/settings" element={<TicketSettings />} />
             <Route path="settings/notifications" element={<NotificationSettings />} />
