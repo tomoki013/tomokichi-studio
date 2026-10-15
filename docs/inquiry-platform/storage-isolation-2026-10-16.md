@@ -55,8 +55,13 @@ Zakkary管理UIはserverのallowedStatusesに従う。Zakkary APIのSDKは既存
 | tomokichi-admin-web | e031772a-0315-4154-a31d-f3b78ea7432b |
 | tomokichi-mail-ingress | cc15796f-a692-49da-b4c5-2d5bd7530b4f |
 | tomokichi-admin | c5cf30a2-62d1-4fee-8402-22b8bd731709 |
-| tomokichi-api | 62f30fb8-83e8-4c0a-9be1-f557c7debf30 |
+| tomokichi-api | ac5c9bed-d364-4fc9-9e2e-bfe2baf60497 |
 | zakkary-admin | f0377193-7aa0-4c04-9e42-9e85dbd2c0dc |
+
+Studio最終コミット`0effc49`の[CI後の既存Deploy workflow](https://github.com/tomoki013/tomokichi-studio/actions/runs/38824092843)も全job成功。
+ロックファイル更新により既存設定どおりStudio APIとブランドサイトが再デプロイされ、APIの最終versionを上表に反映した。
+その後もStudio APIはAccessへ302、Zakkary sessionは401、Zakkary API readyは200。
+一時検証previewは終了済み。
 
 ## バックアップと復旧
 
