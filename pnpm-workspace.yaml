@@ -25,8 +25,13 @@ minimumReleaseAgeExclude:
 # bundled into a Worker. Remove once pool-workers and wrangler depend on a
 # miniflare that already ships these versions.
 overrides:
-  "miniflare>sharp": "^0.35.4"
+  "miniflare>sharp": "0.35.5"
   "miniflare>undici": "^7.29.0"
+  # Patch releases for GHSA-wq5f-xc86-pv6w, GHSA-68fv-2mgg-jv7q and
+  # GHSA-ch52-4w7c-c8xp; keep the static-site build chain patched as well.
+  "sharp": "0.35.5"
+  "source-map-js": "1.2.2"
+  "http-cache-semantics": "4.3.0"
   # apps/admin takes inquiry-platform's core from its release tag. Core's
   # `workspace:*` dependency on the SDK only resolves inside that repository,
   # and a git-hosted subdependency is blocked here, so it is dropped and

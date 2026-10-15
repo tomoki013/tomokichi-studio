@@ -6,96 +6,96 @@ import { bindings, defineConfig, triggers } from "cf/config";
 // Change both files together until those move to cf.
 
 export default defineConfig({
-	worker: {
-		name: "tomokichi-api",
-		compatibilityDate: "2026-07-23",
-		entrypoint: "src/index.ts",
-		observability: {
-			enabled: true,
-		},
-		triggers: [
-			triggers.scheduled({
-				schedule: "17 3 * * *",
-			}),
-			triggers.scheduled({
-				schedule: "*/5 * * * *",
-			}),
-		],
-		env: {
-			REMEET_INVITE_BASE_URL: bindings.text("https://remeet.tmkch.io"),
-			REMEET_INVITE_TTL_DAYS: bindings.text("7"),
-			SUPPORT_TO_EMAIL: bindings.text("gaomuyouxi81@gmail.com"),
-			SUPPORT_FROM_EMAIL: bindings.text("Tomokichi Support <support@tmkch.io>"),
-			MAIN_SITE_ORIGIN: bindings.text("https://tmkch.io"),
-			MAIN_SITE_WORKERS_ORIGIN: bindings.text("https://tomokichi-main.tomoki-ttttt.workers.dev"),
-			REMEET_INVITES_DB: bindings.d1({
-				name: "remeet-invites",
-				id: "c8f57258-616a-4d1e-a068-93394c07e465",
-			}),
-			REMEET_REPORTS_BUCKET: bindings.r2({
-				name: "remeet-reports",
-			}),
-			INQUIRY: bindings.worker({
-				worker: "tomokichi-admin-core",
-				exportName: "Intake",
-				props: {
-					caller: "tomokichi-api",
-					projects: [
-						"remeet",
-						"tripory",
-						"colorvia",
-						"yohaku",
-						"quiet-solitaire",
-						"soonish",
-						"tana",
-						"rough-board",
-						"doodle",
-					],
-					allowUnassigned: true,
-				},
-			}),
-			SUPPORT_RATE_LIMITER: bindings.rateLimit({
-				namespace: "1001",
-				simple: {
-					limit: 3,
-					period: 60,
-				},
-			}),
-			REMEET_INVITE_CREATE_LIMITER: bindings.rateLimit({
-				namespace: "2001",
-				simple: {
-					limit: 5,
-					period: 60,
-				},
-			}),
-			REMEET_INVITE_RESOLVE_LIMITER: bindings.rateLimit({
-				namespace: "2002",
-				simple: {
-					limit: 15,
-					period: 60,
-				},
-			}),
-			REMEET_INVITE_CODE_LIMITER: bindings.rateLimit({
-				namespace: "2003",
-				simple: {
-					limit: 10,
-					period: 60,
-				},
-			}),
-			REMEET_INVITE_REVOKE_LIMITER: bindings.rateLimit({
-				namespace: "2004",
-				simple: {
-					limit: 10,
-					period: 60,
-				},
-			}),
-			REMEET_REPORT_LIMITER: bindings.rateLimit({
-				namespace: "2005",
-				simple: {
-					limit: 5,
-					period: 60,
-				},
-			}),
-		},
-	},
+  worker: {
+    name: "tomokichi-api",
+    compatibilityDate: "2026-07-23",
+    entrypoint: "src/index.ts",
+    observability: {
+      enabled: true,
+    },
+    triggers: [
+      triggers.scheduled({
+        schedule: "17 3 * * *",
+      }),
+      triggers.scheduled({
+        schedule: "*/5 * * * *",
+      }),
+    ],
+    env: {
+      REMEET_INVITE_BASE_URL: bindings.text("https://remeet.tmkch.io"),
+      REMEET_INVITE_TTL_DAYS: bindings.text("7"),
+      SUPPORT_TO_EMAIL: bindings.text("gaomuyouxi81@gmail.com"),
+      SUPPORT_FROM_EMAIL: bindings.text("Tomokichi Support <support@tmkch.io>"),
+      MAIN_SITE_ORIGIN: bindings.text("https://tmkch.io"),
+      MAIN_SITE_WORKERS_ORIGIN: bindings.text("https://tomokichi-main.tomoki-ttttt.workers.dev"),
+      REMEET_INVITES_DB: bindings.d1({
+        name: "remeet-invites",
+        id: "c8f57258-616a-4d1e-a068-93394c07e465",
+      }),
+      REMEET_REPORTS_BUCKET: bindings.r2({
+        name: "remeet-reports",
+      }),
+      INQUIRY: bindings.worker({
+        worker: "tomokichi-admin-core",
+        exportName: "Intake",
+        props: {
+          caller: "tomokichi-api",
+          projects: [
+            "remeet",
+            "tripory",
+            "colorvia",
+            "yohaku",
+            "quiet-solitaire",
+            "soonish",
+            "tana",
+            "rough-board",
+            "doodle",
+          ],
+          allowUnassigned: true,
+        },
+      }),
+      SUPPORT_RATE_LIMITER: bindings.rateLimit({
+        namespace: "1001",
+        simple: {
+          limit: 3,
+          period: 60,
+        },
+      }),
+      REMEET_INVITE_CREATE_LIMITER: bindings.rateLimit({
+        namespace: "2001",
+        simple: {
+          limit: 5,
+          period: 60,
+        },
+      }),
+      REMEET_INVITE_RESOLVE_LIMITER: bindings.rateLimit({
+        namespace: "2002",
+        simple: {
+          limit: 15,
+          period: 60,
+        },
+      }),
+      REMEET_INVITE_CODE_LIMITER: bindings.rateLimit({
+        namespace: "2003",
+        simple: {
+          limit: 10,
+          period: 60,
+        },
+      }),
+      REMEET_INVITE_REVOKE_LIMITER: bindings.rateLimit({
+        namespace: "2004",
+        simple: {
+          limit: 10,
+          period: 60,
+        },
+      }),
+      REMEET_REPORT_LIMITER: bindings.rateLimit({
+        namespace: "2005",
+        simple: {
+          limit: 5,
+          period: 60,
+        },
+      }),
+    },
+  },
 });
