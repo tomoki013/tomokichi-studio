@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "projects": [
+    {
+      "slug": "unassigned",
+      "prefix": "p_product00"
+    },
+    {
+      "slug": "tmkch-io",
+      "prefix": "p_product01"
+    },
+    {
+      "slug": "remeet",
+      "prefix": "p_product02"
+    },
+    {
+      "slug": "colorvia",
+      "prefix": "p_product03"
+    },
+    {
+      "slug": "yohaku",
+      "prefix": "p_product04"
+    },
+    {
+      "slug": "tomokichi-diary",
+      "prefix": "p_product05"
+    },
+    {
+      "slug": "zakkary",
+      "prefix": "p_product06"
+    }
+  ]
+}

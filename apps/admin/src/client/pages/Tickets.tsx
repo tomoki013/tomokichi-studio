@@ -424,7 +424,9 @@ function CreateTicket({
   onClose: () => void;
   initialType?: TicketType;
 }) {
-  const [type, setType] = useState<TicketType>(initialType ?? "INQUIRY"),
+  const [type, setType] = useState<TicketType>(
+      initialType === "REPORT" ? "INQUIRY" : (initialType ?? "INQUIRY"),
+    ),
     defaultProjectId = useSession().data?.profile.defaultProjectId,
     [service, setService] = useState(
       masters.services.find((s) => s.id === defaultProjectId)?.id ?? masters.services[0]?.id ?? "",
@@ -470,11 +472,13 @@ function CreateTicket({
             value={type}
             onChange={(e) => setType(e.target.value as TicketType)}
           >
-            {ticketTypes.map((t) => (
-              <option key={t} value={t}>
-                {ticketTypeLabels[t]}
-              </option>
-            ))}
+            {ticketTypes
+              .filter((t) => t !== "REPORT")
+              .map((t) => (
+                <option key={t} value={t}>
+                  {ticketTypeLabels[t]}
+                </option>
+              ))}
           </select>
         </Field>
         <Field label="サービス">

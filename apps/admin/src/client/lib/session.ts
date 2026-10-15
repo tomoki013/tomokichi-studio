@@ -5,6 +5,7 @@ import { api } from "./api";
 export interface Session {
   email?: string;
   role: string;
+  permissions?: string[];
   mailConfigured: boolean;
   profile: ConsoleProfile;
 }

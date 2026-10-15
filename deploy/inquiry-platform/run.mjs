@@ -33,12 +33,17 @@ function run(cwd, bin, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-const checkout = join(repo, ".cache/inquiry-platform", tag);
+// An explicit local checkout is useful for offline storage SQL generation and
+// staging rehearsals before a release is published.
+// biome-ignore lint/suspicious/noUndeclaredEnvVars: direct operator script, never a cached Turbo task.
+const checkout = process.env.INQUIRY_PLATFORM_CHECKOUT
+  ? resolve(process.env["INQUIRY_PLATFORM_CHECKOUT"])
+  : join(repo, ".cache/inquiry-platform", tag);
 if (!existsSync(join(checkout, "package.json"))) {
   console.log(`Fetching inquiry-platform ${tag}`);
   run(repo, "git", ["clone", "--quiet", "--depth", "1", "--branch", tag, REMOTE, checkout]);
   run(checkout, "pnpm", ["install", "--frozen-lockfile"]);
 }
 
-console.log(`inquiry-platform ${tag} (${checkout})`);
+console.error(`inquiry-platform ${tag} (${checkout})`);
 run(checkout, "node", ["scripts/deploy.mjs", here, ...process.argv.slice(2)]);

@@ -22,6 +22,7 @@ import { ReplyComposer } from "../components/ReplyComposer";
 import { ReportAuthorHistory } from "../components/ReportAuthorHistory";
 import { api } from "../lib/api";
 import { reportStatusLabels } from "../lib/labels";
+import { useSession } from "../lib/session";
 
 /**
  * One report, and everything that has happened to it.
@@ -34,6 +35,12 @@ import { reportStatusLabels } from "../lib/labels";
 export function ReportDetail() {
   const { id = "" } = useParams();
   const client = useQueryClient();
+  const session = useSession();
+  const canDecide =
+    session.data?.permissions?.includes("moderation:decide") ?? session.data?.role === "admin";
+  const canReview =
+    session.data?.permissions?.includes("moderation:review") ??
+    ["admin", "operator"].includes(session.data?.role ?? "");
   const report = useQuery({
     queryKey: ["report", id],
     queryFn: () => api.get<Report>(`/api/reports/${id}`),
@@ -48,7 +55,10 @@ export function ReportDetail() {
   };
 
   const changeStatus = useMutation({
-    mutationFn: (to: ReportStatus) => api.post<Report>(`/api/reports/${id}/status`, { to }),
+    mutationFn: (to: ReportStatus) =>
+      to === "reviewing"
+        ? api.post<Report>(`/api/reports/${id}/review`, {})
+        : api.post<Report>(`/api/reports/${id}/status`, { to }),
     onSuccess: onChanged,
   });
   const addNote = useMutation({
@@ -167,7 +177,12 @@ export function ReportDetail() {
             </Section>
 
             {data.signedModeration ? (
-              <ContentActions key={data.id} report={data} onChanged={onChanged} />
+              <ContentActions
+                key={data.id}
+                report={data}
+                onChanged={onChanged}
+                canDecide={canDecide}
+              />
             ) : null}
             <ReportConversation threadId={data.supportThreadId} />
 
@@ -183,7 +198,9 @@ export function ReportDetail() {
                     <Button
                       key={to}
                       variant={to === "closed" ? "default" : "primary"}
-                      disabled={changeStatus.isPending}
+                      disabled={
+                        changeStatus.isPending || !(to === "reviewing" ? canReview : canDecide)
+                      }
                       onClick={() => changeStatus.mutate(to)}
                     >
                       {reportStatusLabels[to]}にする
@@ -231,7 +248,7 @@ export function ReportDetail() {
                 </label>
                 <div className="mt-2">
                   <Button
-                    disabled={note.trim().length === 0 || addNote.isPending}
+                    disabled={!canReview || note.trim().length === 0 || addNote.isPending}
                     onClick={() => addNote.mutate()}
                   >
                     追加
@@ -246,11 +263,13 @@ export function ReportDetail() {
                 「対応記録済み」は運営が行った対応を記録した、という意味です。
                 アプリ内のコンテンツが必ず削除されたことを意味しません。
               </p>
-              <ResolutionEditor
-                key={data.id + data.updatedAt}
-                report={data}
-                onChanged={onChanged}
-              />
+              {!data.signedModeration && canDecide && (
+                <ResolutionEditor
+                  key={data.id + data.updatedAt}
+                  report={data}
+                  onChanged={onChanged}
+                />
+              )}
             </Section>
           </div>
         ) : null}
@@ -332,9 +351,11 @@ function short(value: string | undefined): string {
 export function ContentActions({
   report,
   onChanged,
+  canDecide = false,
 }: {
   report: Report;
   onChanged: (report: Report) => void;
+  canDecide?: boolean;
 }) {
   const [decision, setDecision] = useState<"delete" | "dismiss" | null>(null);
   const [pending, setPending] = useState<{ id: string; envelope: string } | null>(null);
@@ -381,7 +402,9 @@ export function ContentActions({
       </p>
       <div className="flex flex-wrap gap-2">
         <Button
-          disabled={!["open", "reviewing"].includes(report.status) || action.isPending}
+          disabled={
+            !canDecide || !["open", "reviewing"].includes(report.status) || action.isPending
+          }
           onClick={() => {
             setPending(null);
             action.reset();
@@ -391,7 +414,9 @@ export function ContentActions({
           コンテンツを削除
         </Button>
         <Button
-          disabled={!["open", "reviewing"].includes(report.status) || action.isPending}
+          disabled={
+            !canDecide || !["open", "reviewing"].includes(report.status) || action.isPending
+          }
           onClick={() => {
             setPending(null);
             action.reset();

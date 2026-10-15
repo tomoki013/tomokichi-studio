@@ -62,6 +62,13 @@ beforeEach(() => {
       method = init?.method ?? "GET",
       body = JSON.parse(String(init?.body ?? "{}"));
     requests.push({ url, method, body });
+    if (url.includes("/api/reports/"))
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: { id: "report-1", status: "open", attachments: [], events: [] },
+        }),
+      );
     if (url.endsWith("/ack"))
       detail.ticket = { ...detail.ticket, status: "ACKNOWLEDGED", revision: 1 };
     if (method === "PATCH")
@@ -148,4 +155,25 @@ it("shows internal messages and resolution history in the same timeline", async 
   expect(await screen.findByText("内部調査のメモ")).toBeVisible();
   expect(screen.getByText("処理結果: — → FIXED")).toBeVisible();
   expect(requests.every((r) => r.method === "GET")).toBe(true);
+});
+
+it("keeps report final decisions out of the general ticket editor", async () => {
+  detail.ticket = {
+    ...detail.ticket,
+    type: "REPORT",
+    report_id: "report-1",
+    status: "IN_PROGRESS",
+  };
+  mount();
+  const select = await screen.findByRole("combobox", { name: "状態" });
+  expect([...select.querySelectorAll("option")].map((option) => option.value)).not.toContain(
+    "RESOLVED",
+  );
+  expect([...select.querySelectorAll("option")].map((option) => option.value)).not.toContain(
+    "CLOSED",
+  );
+  expect(screen.getByRole("link", { name: "通報の管理画面" })).toHaveAttribute(
+    "href",
+    "/reports/report-1",
+  );
 });

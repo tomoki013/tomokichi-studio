@@ -133,7 +133,8 @@ export function TicketDetail() {
   });
   const session = useQuery({
     queryKey: ["session"],
-    queryFn: () => api.get<{ mailConfigured: boolean }>("/api/session"),
+    queryFn: () =>
+      api.get<{ mailConfigured: boolean; role?: string; permissions?: string[] }>("/api/session"),
   });
   const report = useQuery({
     queryKey: ["tickets", "report", t?.report_id],
@@ -232,7 +233,16 @@ export function TicketDetail() {
                         </a>
                       ))}
                     </div>
-                    {!t.merged_into && <ContentActions report={report.data} onChanged={refresh} />}
+                    {!t.merged_into && (
+                      <ContentActions
+                        report={report.data}
+                        onChanged={refresh}
+                        canDecide={
+                          session.data?.permissions?.includes("moderation:decide") ??
+                          session.data?.role === "admin"
+                        }
+                      />
+                    )}
                   </div>
                 )}
                 <h2 className="ops-section-title">
@@ -349,7 +359,11 @@ export function TicketDetail() {
                   <summary>
                     対応期限 <TicketBadge value={t.sla_state} />
                   </summary>
-                  <SlaPanel ticket={t} />
+                  {t.report_id ? (
+                    <p className="text-xs text-ink-soft">通報は審査の状態で管理します。</p>
+                  ) : (
+                    <SlaPanel ticket={t} />
+                  )}
                 </details>
                 <details className="ops-panel ops-secondary">
                   <summary>関連チケット</summary>
@@ -440,9 +454,18 @@ function TicketEditor({
       }}
     >
       <fieldset disabled={disabled} className="space-y-3">
-        {t.status === "CLOSED" && (
+        {!t.report_id && t.status === "CLOSED" && (
           <p className="text-xs text-ink-soft">
             編集するには状態を「対応中」に変更して再開してください。
+          </p>
+        )}
+        {t.report_id && (
+          <p className="text-xs text-ink-soft">
+            判定・再審査は{" "}
+            <Link className="text-accent" to={`/reports/${t.report_id}`}>
+              通報の管理画面
+            </Link>{" "}
+            で行います。
           </p>
         )}
         <Field label="状態">
@@ -453,14 +476,22 @@ function TicketEditor({
             onChange={(e) => setStatus(e.target.value as typeof status)}
           >
             <option value={t.status}>{ticketStatusLabels[t.status]}</option>
-            {ticketTransitions[t.status].map((s) => (
-              <option key={s} value={s}>
-                {ticketStatusLabels[s]}
-              </option>
-            ))}
+            {ticketTransitions[t.status]
+              .filter(
+                (s) =>
+                  !t.report_id ||
+                  (!["RESOLVED", "CLOSED"].includes(s) &&
+                    !["RESOLVED", "CLOSED"].includes(t.status)),
+              )
+              .map((s) => (
+                <option key={s} value={s}>
+                  {ticketStatusLabels[s]}
+                </option>
+              ))}
           </select>
         </Field>
-        {["RESOLVED", "CLOSED"].includes(status) &&
+        {!t.report_id &&
+          ["RESOLVED", "CLOSED"].includes(status) &&
           select(
             "resolution",
             "処理結果",
@@ -483,11 +514,13 @@ function TicketEditor({
             value={type}
             onChange={(e) => setType(e.target.value as typeof type)}
           >
-            {ticketTypes.map((id) => (
-              <option key={id} value={id}>
-                {ticketTypeLabels[id]}
-              </option>
-            ))}
+            {ticketTypes
+              .filter((id) => (id === "REPORT") === (t.type === "REPORT"))
+              .map((id) => (
+                <option key={id} value={id}>
+                  {ticketTypeLabels[id]}
+                </option>
+              ))}
           </select>
         </Field>
         <Field label="Service">
@@ -497,11 +530,13 @@ function TicketEditor({
             value={service}
             onChange={(e) => setService(e.target.value)}
           >
-            {m.services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
+            {m.services
+              .filter((s) => s.id === t.service_id)
+              .map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
           </select>
         </Field>
         <div key={service}>
@@ -705,7 +740,10 @@ function Relations({ data, onChanged }: { data: Detail; onChanged: () => void })
             <Button disabled={!target || relation.isPending} onClick={() => relation.mutate()}>
               関連を追加
             </Button>
-            <Button disabled={!target || load.isPending} onClick={() => load.mutate()}>
+            <Button
+              disabled={Boolean(t.report_id) || !target || load.isPending}
+              onClick={() => load.mutate()}
+            >
               統合を確認
             </Button>
           </div>

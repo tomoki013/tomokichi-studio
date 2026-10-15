@@ -23,7 +23,18 @@ function setup(fail = false, overrides: Record<string, unknown> = {}) {
     events: [],
     ...overrides,
   };
-  vi.stubGlobal("fetch", async (_: unknown, init?: RequestInit) => {
+  vi.stubGlobal("fetch", async (input: unknown, init?: RequestInit) => {
+    if (String(input).endsWith("/api/session"))
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          data: {
+            role: "admin",
+            mailConfigured: false,
+            permissions: ["moderation:review", "moderation:decide"],
+          },
+        }),
+      );
     if (init?.method === "POST") {
       writes.push(JSON.parse(String(init.body)));
       if (fail)
@@ -99,7 +110,8 @@ it("offers label-only status changes when the app has no signed moderation", asy
 
 it("withholds label-only closing when the app acts through signed moderation", async () => {
   setup(false, { signedModeration: true });
-  await screen.findByLabelText("対応コード");
+  await screen.findByRole("button", { name: "確認中にする" });
+  expect(screen.queryByLabelText("対応コード")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "確認中にする" })).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "クローズにする" })).not.toBeInTheDocument();
 });
