@@ -1,8 +1,14 @@
 # inquiry-platform の Tomokichi 環境
 
-最終更新: 2026-10-11。
+最終更新: 2026-10-16。
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
+
+## v0.9.0: 専用テーブルへの移行済み
+
+2026-10-16に全Projectを専用テーブルへ切替・sealした。[実行記録](storage-isolation-2026-10-16.md)と
+[移行・新Project追加手順](../../deploy/inquiry-platform/STORAGE-MIGRATION.md)を参照。
+**以後の障害は前進修復する。下記の旧タグへの書込rollback手順はv0.9.0には適用しない。**
 
 ## どこに何があるか
 

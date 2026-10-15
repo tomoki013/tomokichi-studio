@@ -36,8 +36,9 @@ function run(cwd, bin, args) {
 // An explicit local checkout is useful for offline storage SQL generation and
 // staging rehearsals before a release is published.
 // biome-ignore lint/suspicious/noUndeclaredEnvVars: direct operator script, never a cached Turbo task.
-const checkout = process.env.INQUIRY_PLATFORM_CHECKOUT
-  ? resolve(process.env["INQUIRY_PLATFORM_CHECKOUT"])
+const localCheckout = process.env.INQUIRY_PLATFORM_CHECKOUT;
+const checkout = localCheckout
+  ? resolve(localCheckout)
   : join(repo, ".cache/inquiry-platform", tag);
 if (!existsSync(join(checkout, "package.json"))) {
   console.log(`Fetching inquiry-platform ${tag}`);

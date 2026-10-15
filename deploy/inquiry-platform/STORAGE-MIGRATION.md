@@ -1,26 +1,55 @@
 # 共通D1のProject専用テーブルへの移行
 
-`storage-plan.json` がこのデプロイの識別子の許可リスト。slug からテーブル名を生成しない。
-既存seedにある5 Projectと既定service、unassignedを含む。実DBに追加のserviceがあれば、承認された
-読み取りで棚卸しし、計画にも追加する。基盤コードに運営固有の値を置かない。
+2026-10-16にv0.9.0（基盤79375dd）で本番適用済み。
+結果と復旧上の注意は [実行記録](../../docs/inquiry-platform/storage-isolation-2026-10-16.md)。
 
-移行対応releaseのCore/gateway/mail-ingressを先に検証する。SDKの受付・ProjectOperatorの公開契約は維持される。
-この作業では本番DB操作・デプロイを実行しない。
+`storage-plan.json` がこのデプロイのslugとprefixの許可リスト。slugをテーブル名に変換しない。
+`storage-migrations/0020..0042` は基盤のオフラインgeneratorから生成し、レビューしたSQL。
+0020だけは復旧用serviceと、過去の結合の所有者を整合させるデプロイ固有の前進修復。
+基盤の共有migrationに実在のProject名を入れない。
 
-SQL生成はオフラインでできる（例のパスは実際のローカルcheckoutに合わせる）。
+## 再現手順
+
+バックアップ・復元リハーサル後、基盤0015〜0019 → 対応Core/gateway/mail-ingress → 古い返信RPCのドレイン
+→ 次の各段階、の順。各段階の結果を確認して次へ進む。すでに適用済みの段階は再適用しない。
 
 ```sh
-INQUIRY_PLATFORM_CHECKOUT=/path/to/inquiry-platform node deploy/inquiry-platform/storage-plan.mjs prepare remeet > prepare.sql
-INQUIRY_PLATFORM_CHECKOUT=/path/to/inquiry-platform node deploy/inquiry-platform/storage-plan.mjs copy remeet > copy.sql
-INQUIRY_PLATFORM_CHECKOUT=/path/to/inquiry-platform node deploy/inquiry-platform/storage-plan.mjs verify remeet > verify.sql
-INQUIRY_PLATFORM_CHECKOUT=/path/to/inquiry-platform node deploy/inquiry-platform/storage-plan.mjs cutover remeet > cutover.sql
+export INQUIRY_PLATFORM_CHECKOUT=/path/to/verified/inquiry-platform-v0.9.0
+node deploy/inquiry-platform/storage-apply.mjs apply preflight
+node deploy/inquiry-platform/storage-apply.mjs apply prepare
+node deploy/inquiry-platform/storage-apply.mjs apply copy
+STORAGE_VERIFICATION_OUTPUT=/private/path/verification.json node deploy/inquiry-platform/storage-apply.mjs verify
+node deploy/inquiry-platform/storage-apply.mjs apply cutover
+# 切替後の読取、スコープ、受信/送信経路、配送ジョブを確認してからseal
+node deploy/inquiry-platform/storage-apply.mjs apply seal
 ```
 
-出力はデプロイ側で番号付きSQLとしてversion管理する。prepareとcopyは段階的に適用し、全列照合結果を保存する。
-cutoverは全チェックとstate更新を必ず1つのD1 migration/batchで適用する。全serviceの切替後に基盤generatorの
-`seal` を使って旧保存先へのfallbackを禁止する。生成結果を本番に適用する前に、バックアップ、復旧bookmark、
-previewでの件数・FK・メール・署名操作・ID照合、移行中の再送を確認し、明示的な承認を得る。
+ランナーは適用履歴を照会し、各SQLとその`d1_migrations`マーカーを1つのD1 file importで原子的に適用する。
+prepareは約115KBなので、100KBのinline query上限を避けてfile importを使う。
+cutoverの全53statementも分割しない。[Cloudflareのimport/export仕様](https://developers.cloudflare.com/d1/best-practices/import-export-data/)を参照。
+applyは適用済みmigrationをスキップする。未適用ファイルの失敗は当該ファイル全体を戻し、原因を修復して再実行する。
 
-詳細は対応releaseの `docs/operations/project-storage.md`。実際のデータ量に応じてcopyを表ごとに分割する。
-新Projectはapps登録・seed・storage-plan追加・prepare/copy/verify/cutoverの順。新Workerや別D1は増やさない。
-切替後は旧releaseに戻して書き込まず、専用表を正に前進修復する。R2の既存オブジェクトは移動しない。
+copy後に新着の親子追従が保留されて照合が失敗した場合、copying状態のProjectだけにgeneratorの表別copyを再実行する。
+生成SQL自体は冪等で、activeのProjectでは何もコピーしない。履歴マーカーは書き直さない。
+`verify`は切替前の照合用。active後の正は専用表なので、新着があれば旧表と一致しなくてよい。
+
+SQL生成はオフラインでもできる。
+
+```sh
+node deploy/inquiry-platform/storage-plan.mjs prepare remeet > prepare.sql
+node deploy/inquiry-platform/storage-plan.mjs copy remeet support_threads 1000 > copy-threads.sql
+node deploy/inquiry-platform/storage-plan.mjs verify remeet > verify.sql
+node deploy/inquiry-platform/storage-plan.mjs cutover remeet > cutover.sql
+```
+
+新Projectはapps/service登録、seed、許可リストと新しいprefix、次の未使用migration番号で
+prepare/copy/verify/cutover、Binding props登録の順。seal後は未準備Projectへの受付を拒否する。
+既存migrationを編集・再利用せず、基盤のschema変更も全active prefixへforward-onlyで適用する。
+
+## 復旧
+
+active後は専用表を正として前進修復する。旧releaseへの書込rollback、stateをcopyingへ戻す操作、旧表からの上書きをしない。
+DB全体をTime Travelで戻すと全Projectを巻き戻す。全受付・ジョブを止め、移行後の変更を保全してから別途復旧計画を作る。
+R2の既存オブジェクトは移動・削除していない。旧`reports/`の30日lifecycleも維持し、新しい証跡はCoreの保持処理で管理する。
+
+詳細は対応releaseの`docs/operations/project-storage.md`。
