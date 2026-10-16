@@ -1,0 +1,9 @@
+# Private storage rollout (2026-10-16)
+
+Core and mail-ingress run inquiry-platform `v0.9.1` (`dc6802830c00344245fb54c07ca966cbdc2ebd17`). Both require `PII_REQUIRED=true` and the same `PII_ENCRYPTION_KEYS` Secret; Core additionally uses an independent `PII_HASH_KEY`. Key values are outside this repository. Preserve matching key backups with database/file backups.
+
+`deploy/inquiry-platform/release.json` pins this compatible Worker security patch independently of the unchanged `v0.9.0` SDK contracts. `run.mjs` verifies the exact compatible SDK tag before selecting it. This avoids changing the shared dependency graph and redeploying unrelated app sites. Review/update the override when upgrading the SDK; omitting the file restores the SDK-tag default. Zakkary's SDK wire contract remains compatible.
+
+Applied forward migration `0020_private_push_index.sql`. The private Core backfill encrypted the requested project's active and retained legacy tables, their case/event copies, and shared private notification settings. Subsequent plaintext writes are rejected on private columns; legacy write fences remain installed. New attachments/raw mail are encrypted and bound to their object keys. A repeat backfill returned zero rows/files and done=true. The temporary caller was removed after private reads/decryption were verified, without sending user mail.
+
+Operational details and rotation/retention limits are in the pinned platform's `docs/operations/private-storage.md`. Do not roll back to a plaintext writer after sealing. Existing backups/Time Travel and other projects' retained rows are separate scopes. Public contact addresses/signatures and routing IDs remain deployment settings. Private notification recipients should use a Secret fallback; raw seed overrides of notification_email are rejected after sealing.

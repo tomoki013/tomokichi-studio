@@ -21,6 +21,7 @@
   },
 
   "vars": {
+    "PII_REQUIRED": "true",
     // Addresses live here, not in code, so a Workspace migration is a config
     // change. The operator's own forwarding address is a Secret, not a var.
     "SUPPORT_EMAIL": "support@tmkch.io",

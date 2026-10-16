@@ -7,10 +7,10 @@
 //   node deploy/inquiry-platform/run.mjs seed [--dry-run]
 //   node deploy/inquiry-platform/run.mjs deploy <api|gateway|mail-ingress|all> [--dry-run]
 //
-// The release is the tag `apps/api` pins `@inquiry-platform/sdk` to, so the
-// Workers and the SDK the public API talks to them with are always the same
-// version: bumping that one line is how the platform is upgraded. The release
-// is cloned into `.cache/inquiry-platform/<tag>` once and reused.
+// Without an override the Workers follow apps/api's SDK tag. release.json
+// may pin a compatible Worker patch and must record its exact compatible SDK.
+// Review that pin together with any SDK upgrade. The selected release is
+// cloned into .cache/inquiry-platform/<tag> once and reused.
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -22,8 +22,17 @@ const REMOTE = "https://github.com/tomoki013/inquiry-platform.git";
 
 const pkg = JSON.parse(readFileSync(join(repo, "apps/api/package.json"), "utf8"));
 const spec = pkg.dependencies?.["@inquiry-platform/sdk"] ?? "";
-const tag = /#([^&]+)/.exec(spec)?.[1];
-if (!tag) {
+const sdkTag = /#([^&]+)/.exec(spec)?.[1];
+// A compatible Worker security patch can be pinned independently without
+// rebuilding unrelated sites or changing their SDK dependency graph.
+const releasePath = join(here, "release.json");
+const release = existsSync(releasePath) ? JSON.parse(readFileSync(releasePath, "utf8")) : null;
+if (release && (release.compatibleSdk !== sdkTag || !/^v\d+\.\d+\.\d+$/.test(release.tag))) {
+  console.error("The platform release pin does not match the current SDK; review release.json together with the SDK upgrade.");
+  process.exit(1);
+}
+const tag = release?.tag ?? sdkTag;
+if (!sdkTag || !tag) {
   console.error(`Cannot read a release tag from @inquiry-platform/sdk ("${spec}") in apps/api.`);
   process.exit(1);
 }

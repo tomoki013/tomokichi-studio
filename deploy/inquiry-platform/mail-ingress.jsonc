@@ -17,6 +17,7 @@
   },
 
   "vars": {
+    "PII_REQUIRED": "true",
     "SUPPORT_EMAIL": "support@tmkch.io",
     // Inbound addresses are project-scoped. The legacy address remains the
     // fallback for Studio mail that has no route entry.
