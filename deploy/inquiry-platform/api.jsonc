@@ -65,9 +65,7 @@
           "alt": "Zakkary"
         },
         // Zakkary's own report receipt (edited in Zakkary's admin). v0.6.0+.
-        "reportReceiptTemplate": "zakkary_report_receipt",
-        // No automatic receipt for Zakkary's inquiries. v0.10.0+.
-        "inquiryReceipt": false
+        "reportReceiptTemplate": "zakkary_report_receipt"
       }
     }
   },
