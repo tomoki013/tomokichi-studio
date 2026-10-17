@@ -6,8 +6,8 @@ import { useSession } from "../lib/session";
 /**
  * The frame.
  *
- * Three groups, in the order somebody actually uses them: what needs attention,
- * what is being operated, and the console itself. Nothing here is a placeholder
+ * Groups in the order somebody actually uses them: answering people,
+ * operating the system, settings, and the console itself. Nothing here is a placeholder
  * link to a 404 — every entry goes to a screen that exists.
  */
 export function Layout() {
@@ -48,7 +48,7 @@ export function Layout() {
           <NavLink to="/" end>
             ホーム
           </NavLink>
-          <NavLink to="/tickets">チケット</NavLink>
+          <NavLink to="/support">問い合わせ</NavLink>
           <NavLink to="/reports">通報</NavLink>
         </div>
 
@@ -58,18 +58,22 @@ export function Layout() {
               ダッシュボード
             </Item>
           </Group>
-          <Group label="運用">
-            <Item to="/tickets" end>
-              チケット
-            </Item>
-            <Item to="/reports">通報</Item>
-            <Item to="/incidents">障害</Item>
+          <Group label="対応">
             <Item to="/support" end>
               問い合わせ
             </Item>
+            <Item to="/reports">通報</Item>
             <Item to="/support/templates">返信定型文</Item>
-            <Item to="/tickets/settings">運用設定</Item>
+          </Group>
+          <Group label="運用">
+            <Item to="/tickets" end>
+              すべてのチケット
+            </Item>
+            <Item to="/incidents">障害</Item>
             <Item to="/deliveries">処理の失敗</Item>
+          </Group>
+          <Group label="設定">
+            <Item to="/tickets/settings">運用設定</Item>
             <Item to="/settings/notifications">通知設定</Item>
           </Group>
           <Group label="スタジオ">

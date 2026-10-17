@@ -39,10 +39,16 @@ export function ReplyComposer({
   thread,
   mailConfigured,
   ticketId,
+  onSent: notifySent,
+  sendOptions,
 }: {
   ticketId?: string;
   thread: SupportThreadDetail;
   mailConfigured: boolean;
+  /** Told after a provider accepted the mail — never for a draft or a note. */
+  onSent?: () => void;
+  /** Shown beside the send button, e.g. what should happen to the ticket after. */
+  sendOptions?: React.ReactNode;
 }) {
   const client = useQueryClient();
   const [mode, setMode] = useState<Mode>(thread.requesterEmail ? "reply" : "note");
@@ -164,6 +170,7 @@ export function ReplyComposer({
     void client.invalidateQueries({ queryKey: ["support-threads"] });
     void client.invalidateQueries({ queryKey: ["dashboard"] });
     void client.invalidateQueries({ queryKey: ["tickets"] });
+    notifySent?.();
   };
 
   const send = useMutation({
@@ -288,27 +295,30 @@ export function ReplyComposer({
                     ? "下書きを保存できませんでした"
                     : ""}
             </p>
-            <Button
-              variant="primary"
-              disabled={!canSend}
-              title={
-                !mailConfigured
-                  ? "メール送信機能が設定されていません"
-                  : !hasReplyAddress
-                    ? "返信先のアドレスがありません"
-                    : isSpam
-                      ? "迷惑メールに分類されています。先に解除してください。"
-                      : undefined
-              }
-              onClick={() => {
-                setSendError(null);
-                // A resolved thread is reopened only after somebody says so.
-                if (thread.status === "resolved") setConfirmReopen(true);
-                else send.mutate(false);
-              }}
-            >
-              {send.isPending ? "送信中…" : "送信"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-3">
+              {sendOptions}
+              <Button
+                variant="primary"
+                disabled={!canSend}
+                title={
+                  !mailConfigured
+                    ? "メール送信機能が設定されていません"
+                    : !hasReplyAddress
+                      ? "返信先のアドレスがありません"
+                      : isSpam
+                        ? "迷惑メールに分類されています。先に解除してください。"
+                        : undefined
+                }
+                onClick={() => {
+                  setSendError(null);
+                  // A resolved thread is reopened only after somebody says so.
+                  if (thread.status === "resolved") setConfirmReopen(true);
+                  else send.mutate(false);
+                }}
+              >
+                {send.isPending ? "送信中…" : "送信"}
+              </Button>
+            </div>
           </div>
 
           {!mailConfigured ? (

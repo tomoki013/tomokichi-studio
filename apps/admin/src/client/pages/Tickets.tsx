@@ -47,30 +47,43 @@ export function TicketBadge({ value }: { value: string }) {
   );
 }
 function age(at: string) {
-  const h = Math.max(0, Math.floor((Date.now() - Date.parse(at)) / 3600000));
-  return h < 24 ? `${h}時間` : `${Math.floor(h / 24)}日`;
+  const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(at)) / 60000));
+  if (minutes < 60) return `${minutes}分前`;
+  const h = Math.floor(minutes / 60);
+  return h < 24 ? `${h}時間前` : `${Math.floor(h / 24)}日前`;
 }
+/** Only the priorities that should change what gets opened first. */
+const urgent = (t: Ticket) => t.priority === "P1" || t.priority === "P2";
+/**
+ * One row per ticket, read left to right the way a mail client is: where it
+ * stands, what it is about and who sent it, then when. The whole row opens the
+ * ticket; the subject stays a real link for keyboards and middle-clicks.
+ */
 export function TicketTable({ items, masters }: { items: Ticket[]; masters?: TicketMasters }) {
+  const navigate = useNavigate();
+  const assignee = (t: Ticket) =>
+    t.assignee_id ? (masters?.assignees.find((a) => a.id === t.assignee_id)?.name ?? null) : null;
   return (
     <>
       <div className="ops-cards">
         {items.map((t) => (
           <Link key={t.id} to={`/tickets/${t.id}`} className="ops-card">
             <div className="ops-card-top">
-              <span className="ops-ticket-number">{t.ticket_number}</span>
-              <TicketBadge value={t.priority} />
               <TicketBadge value={t.status} />
+              {urgent(t) && <TicketBadge value={t.priority} />}
+              {t.sla_state !== "OK" && <TicketBadge value={t.sla_state} />}
+              <span className="ops-ticket-number">{age(t.updated_at)}</span>
             </div>
             <h3>{t.subject}</h3>
             <div className="ops-card-meta">
+              <span>{t.requester_email ?? "返信先なし"}</span>
               <span>
                 {t.service_name} · {ticketTypeLabels[t.type]}
               </span>
-              <span>{age(t.created_at)}</span>
             </div>
             {t.next_action && (
               <p className="ops-card-next">
-                {t.next_action}
+                次: {t.next_action}
                 {t.next_action_at && (
                   <>
                     {" "}
@@ -79,11 +92,6 @@ export function TicketTable({ items, masters }: { items: Ticket[]; masters?: Tic
                 )}
               </p>
             )}
-            {t.sla_state !== "OK" && (
-              <div className="ops-card-alert">
-                <TicketBadge value={t.sla_state} />
-              </div>
-            )}
           </Link>
         ))}
       </div>
@@ -91,38 +99,41 @@ export function TicketTable({ items, masters }: { items: Ticket[]; masters?: Tic
         <table className="ops-table">
           <thead>
             <tr>
-              {[
-                "Ticket",
-                "優先度",
-                "サービス / 種別",
-                "件名・次の対応",
-                "状態",
-                "担当",
-                "SLA",
-                "経過",
-                "更新",
-              ].map((x) => (
+              {["状態", "件名", "サービス", "受付", "更新"].map((x) => (
                 <th key={x}>{x}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {items.map((t) => (
-              <tr key={t.id}>
+              <tr
+                key={t.id}
+                className="ops-row"
+                onClick={(e) => {
+                  // Selecting text in a row is not a request to open it.
+                  if (window.getSelection()?.toString()) return;
+                  if (e.metaKey || e.ctrlKey) window.open(`/tickets/${t.id}`, "_blank");
+                  else navigate(`/tickets/${t.id}`);
+                }}
+              >
                 <td>
-                  <Link className="text-accent font-mono" to={`/tickets/${t.id}`}>
-                    {t.ticket_number}
+                  <TicketBadge value={t.status} />
+                  {(urgent(t) || t.sla_state !== "OK") && (
+                    <div className="ops-row-flags">
+                      {urgent(t) && <TicketBadge value={t.priority} />}
+                      {t.sla_state !== "OK" && <TicketBadge value={t.sla_state} />}
+                    </div>
+                  )}
+                </td>
+                <td>
+                  <Link to={`/tickets/${t.id}`} onClick={(e) => e.stopPropagation()}>
+                    {t.subject}
                   </Link>
-                </td>
-                <td>
-                  <TicketBadge value={t.priority} />
-                </td>
-                <td>
-                  {t.service_name}
-                  <small>{ticketTypeLabels[t.type]}</small>
-                </td>
-                <td>
-                  <Link to={`/tickets/${t.id}`}>{t.subject}</Link>
+                  <small>
+                    {t.requester_email ?? "返信先なし"}
+                    <span className="ops-row-number">{t.ticket_number}</span>
+                    {assignee(t) && <span className="ops-row-number">担当: {assignee(t)}</span>}
+                  </small>
                   {t.next_action && (
                     <small
                       className={
@@ -142,20 +153,13 @@ export function TicketTable({ items, masters }: { items: Ticket[]; masters?: Tic
                   )}
                 </td>
                 <td>
-                  <TicketBadge value={t.status} />
+                  {t.service_name}
+                  <small>{ticketTypeLabels[t.type]}</small>
                 </td>
                 <td>
-                  {masters?.assignees.find((a) => a.id === t.assignee_id)?.name ??
-                    t.assignee_id ??
-                    "未割当"}
+                  <Timestamp value={t.created_at} />
                 </td>
-                <td>
-                  <TicketBadge value={t.sla_state} />
-                </td>
-                <td>{age(t.created_at)}</td>
-                <td>
-                  <Timestamp value={t.updated_at} />
-                </td>
+                <td title={new Date(t.updated_at).toLocaleString("ja-JP")}>{age(t.updated_at)}</td>
               </tr>
             ))}
           </tbody>
@@ -194,8 +198,8 @@ export function Tickets({ type }: { type?: TicketType }) {
   const quickViews = [
     { label: "未完了", queue: "OPEN", status: "" },
     { label: "未確認", queue: "UNACKNOWLEDGED", status: "" },
-    { label: "対応中", queue: "", status: "IN_PROGRESS" },
     { label: "返信待ち", queue: "", status: "WAITING_CUSTOMER" },
+    { label: "解決済み", queue: "", status: "RESOLVED" },
     { label: "クローズ済み", queue: "", status: "CLOSED" },
     { label: "すべて", queue: "", status: "" },
   ];
@@ -209,7 +213,6 @@ export function Tickets({ type }: { type?: TicketType }) {
   };
   const filterCount = [
     "priority",
-    "service_id",
     "component_id",
     "type",
     "category_id",
@@ -223,7 +226,6 @@ export function Tickets({ type }: { type?: TicketType }) {
   const filters: Array<[string, string, Array<{ id: string; name: string }>]> = [
     ["status", "状態", ticketStatuses.map((id) => ({ id, name: ticketStatusLabels[id] }))],
     ["priority", "優先度", ticketPriorities.map((id) => ({ id, name: id }))],
-    ["service_id", "サービス", masters.data?.services ?? []],
     [
       "component_id",
       "機能",
@@ -301,6 +303,20 @@ export function Tickets({ type }: { type?: TicketType }) {
           onChange={(e) => set("query", e.target.value)}
           placeholder="件名・メール・チケット番号で検索"
         />
+        {/* The one filter used every day, out of the panel. */}
+        <select
+          aria-label="サービスで絞り込む"
+          className={inputClass}
+          value={search.get("service_id") ?? ""}
+          onChange={(e) => set("service_id", e.target.value)}
+        >
+          <option value="">すべてのサービス</option>
+          {(masters.data?.services ?? []).map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+        </select>
       </div>
       <details className="ops-filter-panel">
         <summary>

@@ -227,7 +227,7 @@ body {
   }
   .ops-detail {
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
   .ops-metrics {
     grid-template-columns: repeat(2, 1fr);
@@ -462,7 +462,7 @@ body {
   }
   .ops-detail {
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
     gap: 20px;
   }
   .ops-sidebar {
@@ -517,6 +517,167 @@ body {
   }
   .ops-timeline article::before {
     left: -20px;
+  }
+}
+
+/* Lists: the whole row opens the ticket. */
+.ops-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 8px;
+}
+.ops-row {
+  cursor: pointer;
+}
+.ops-row td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+.ops-row-flags {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.ops-row-number {
+  margin-left: 10px;
+  color: var(--color-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ticket detail: the conversation is the page; settings are a click away. */
+.ops-status-bar {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -8px 0 24px;
+  font-size: 13px;
+}
+.ops-status-bar > span {
+  color: var(--color-ink-soft);
+  margin-right: 4px;
+}
+.ops-status-bar button {
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+.ops-status-bar button[aria-pressed="true"] {
+  color: white;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+.ops-status-bar button:disabled:not([aria-pressed="true"]) {
+  opacity: 0.5;
+}
+.conv {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 16px 0 24px;
+}
+.conv-msg {
+  max-width: 88%;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--color-surface);
+}
+.conv-msg header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--color-ink-soft);
+}
+.conv-msg header strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.conv-msg pre {
+  font-family: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.conv-in {
+  align-self: flex-start;
+}
+.conv-out {
+  align-self: flex-end;
+  background: var(--color-accent-soft);
+  border-color: oklch(0.9 0.03 245);
+}
+.conv-note {
+  align-self: stretch;
+  max-width: none;
+  background: var(--color-warn-soft);
+  border-style: dashed;
+}
+.conv-auto {
+  align-self: flex-end;
+  background: var(--color-line-soft);
+}
+.conv-auto pre {
+  font-size: 12px;
+  color: var(--color-ink-soft);
+}
+.conv-event {
+  align-self: center;
+  max-width: 100%;
+  font-size: 12px;
+  color: var(--color-ink-faint);
+  text-align: center;
+}
+.conv-event > div {
+  display: inline;
+}
+.conv-event p {
+  display: inline;
+  margin-left: 6px;
+}
+.conv-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.conv-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-ink-soft);
+}
+.ops-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  font-size: 13px;
+}
+.ops-facts dt {
+  color: var(--color-ink-faint);
+  white-space: nowrap;
+}
+.ops-facts dd {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  .ops-search {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .conv-msg {
+    max-width: 100%;
   }
 }
 
