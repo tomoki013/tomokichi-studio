@@ -1,8 +1,16 @@
 # inquiry-platform の Tomokichi 環境
 
-最終更新: 2026-10-16。
+最終更新: 2026-10-17。
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
+
+## v0.10.0: 自動受付メール・1スレッド化・全員に返信・結び
+
+- 新しい問い合わせ（Webフォーム、新規メール）に受付番号つきの自動受付メールを送る（Zakkary を含む）。文面は返信定型文 `inquiry_receipt` / `inquiry_receipt_<slug>` で上書きできる。
+- 返信ごとに Message-ID を付けて保存するので、1件のやりとりは相手のメールソフトで1つの会話になり、相手の返信も同じチケットに入る。
+- 返信は全員に返信（相手の最新メールの差出人と To/Cc を CC。自分たちのアドレスは除く）。
+- `BRANDING.replyClosing`（「以上、よろしくお願いいたします。」）を全メールの署名の直前に付ける。
+- migration の追加はない。
 
 ## v0.9.0: 専用テーブルへの移行済み
 

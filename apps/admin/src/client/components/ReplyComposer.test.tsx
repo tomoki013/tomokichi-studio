@@ -4,7 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ReplyComposer } from "./ReplyComposer";
+import { ReplyComposer, replyAllPreview } from "./ReplyComposer";
 
 /**
  * The composer, from the operator's side.
@@ -292,5 +292,37 @@ describe("sending", () => {
         true,
       );
     });
+  });
+});
+
+describe("replyAllPreview", () => {
+  const message = (direction: "inbound" | "outbound", sender: string, recipient: string) => ({
+    id: crypto.randomUUID(),
+    threadId: "thread-1",
+    direction,
+    sender,
+    recipient,
+    bodyText: "",
+    createdAt: "2026-08-29T00:00:00.000Z",
+    attachments: [],
+  });
+  it("copies everybody on the latest inbound mail except the person and us", () => {
+    const withMail = {
+      ...thread,
+      messages: [
+        message("inbound", "someone@example.com", "support@tmkch.io, old@corp.example"),
+        message("outbound", "support@tmkch.io", "someone@example.com"),
+        message(
+          "inbound",
+          "hanako@corp.example",
+          "support@tmkch.io, someone@example.com, Boss@corp.example, report@tmkch.io",
+        ),
+      ],
+    };
+    expect(replyAllPreview(withMail, "support@tmkch.io")).toEqual([
+      "hanako@corp.example",
+      "boss@corp.example",
+    ]);
+    expect(replyAllPreview(thread, "support@tmkch.io")).toEqual([]);
   });
 });

@@ -14,7 +14,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings --strict-vars=false"
   },
   "dependencies": {
-    "@inquiry-platform/sdk": "github:tomoki013/inquiry-platform#v0.9.0&path:/packages/sdk",
+    "@inquiry-platform/sdk": "github:tomoki013/inquiry-platform#v0.10.0&path:/packages/sdk",
     "@tomokichi/app-site": "workspace:*",
     "hono": "^4.13.9",
     "zod": "^4.4.2"
