@@ -99,6 +99,11 @@ export function ReplyComposer({
     profile?.defaultSignature.trim() ||
     "";
 
+  // Mirrors how Core picks the reply-all Cc: everybody on the person's latest
+  // mail except them and us. Core decides; this only previews it.
+  const cc = replyAllPreview(thread, profile?.replyFromAddress);
+  const closing = profile?.replyClosing?.trim() ?? "";
+
   const templates = useQuery({
     queryKey: ["reply-templates", thread.appId ?? "default"],
     queryFn: () =>
@@ -244,6 +249,7 @@ export function ReplyComposer({
         <>
           <dl className="mb-4 grid gap-x-6 gap-y-1 text-xs sm:grid-cols-3">
             <Meta label="宛先">{thread.requesterEmail ?? "返信先なし"}</Meta>
+            {cc.length > 0 && <Meta label="CC（全員に返信）">{cc.join(", ")}</Meta>}
             <Meta label="差出人">{profile?.replyFromAddress ?? ""}</Meta>
             <Meta label="件名">{appliedTemplate?.subject ?? replySubjectFor(thread)}</Meta>
           </dl>
@@ -281,7 +287,12 @@ export function ReplyComposer({
           </label>
 
           <div className="mt-4 border-l-2 border-accent pl-4">
-            <p className="mb-2 text-xs text-ink-faint">送信時に自動挿入される署名</p>
+            <p className="mb-2 text-xs text-ink-faint">
+              送信時に自動挿入される{closing ? "結びと" : ""}署名
+            </p>
+            {closing && !body.trimEnd().endsWith(closing) ? (
+              <p className="mb-3 text-xs whitespace-pre-wrap text-ink-soft">{closing}</p>
+            ) : null}
             <p className="text-xs whitespace-pre-wrap text-ink-soft">{signature}</p>
           </div>
 
@@ -461,4 +472,22 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
       <dd className="truncate text-ink">{children}</dd>
     </div>
   );
+}
+
+export function replyAllPreview(thread: SupportThreadDetail, from: string | undefined): string[] {
+  const latest = [...thread.messages].reverse().find((m) => m.direction === "inbound");
+  if (!latest) return [];
+  const own = (from ?? "").trim().toLowerCase();
+  const ownDomain = own.split("@")[1];
+  const person = thread.requesterEmail?.trim().toLowerCase();
+  const found = [latest.sender ?? "", ...(latest.recipient ?? "").split(",")]
+    .map((a) => a.trim().toLowerCase())
+    .filter(
+      (a) =>
+        /^[^\s@<>,]+@[^\s@<>,]+$/.test(a) &&
+        a !== person &&
+        a !== own &&
+        (!ownDomain || a.split("@")[1] !== ownDomain),
+    );
+  return [...new Set(found)].slice(0, 10);
 }
