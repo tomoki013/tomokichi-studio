@@ -112,14 +112,171 @@ function EventBody({ event }: { event: TicketEvent }) {
     </div>
   );
 }
+type TimelineItem = Detail["timeline"][number];
+type TicketStatus = Ticket["status"];
+
+/**
+ * The shortest way through `ticketTransitions` to `to`, never through a state
+ * `allowed` refuses. NEW cannot jump straight to 返信待ち; somebody clicking
+ * 返信待ち should not have to know that.
+ */
+export function statusPath(
+  from: TicketStatus,
+  to: TicketStatus,
+  allowed: (s: TicketStatus) => boolean = () => true,
+): TicketStatus[] | null {
+  if (from === to) return [];
+  const previous = new Map<TicketStatus, TicketStatus>();
+  const queue: TicketStatus[] = [from];
+  while (queue.length) {
+    const at = queue.shift() as TicketStatus;
+    for (const next of ticketTransitions[at]) {
+      if (next === from || previous.has(next) || !allowed(next)) continue;
+      previous.set(next, at);
+      if (next === to) {
+        const path: TicketStatus[] = [to];
+        let step = at;
+        while (step !== from) {
+          path.unshift(step);
+          step = previous.get(step) as TicketStatus;
+        }
+        return path;
+      }
+      queue.push(next);
+    }
+  }
+  return null;
+}
+
+/** The handful of states an operator actually moves a ticket between. */
+const quickStatuses: Array<{ status: TicketStatus; label: string; also?: TicketStatus[] }> = [
+  { status: "ACKNOWLEDGED", label: "確認済み", also: ["TRIAGE"] },
+  { status: "IN_PROGRESS", label: "対応中", also: ["WAITING_INTERNAL"] },
+  { status: "WAITING_CUSTOMER", label: "返信待ち" },
+  { status: "RESOLVED", label: "解決", also: ["CLOSED"] },
+];
+
+function useMoveStatus(ticket: Ticket | undefined, onChanged: () => void) {
+  return useMutation({
+    mutationFn: async (to: TicketStatus) => {
+      if (!ticket) return;
+      // Reports are finished by the moderation decision, never from here.
+      const allowed = (s: TicketStatus) => !ticket.report_id || !["RESOLVED", "CLOSED"].includes(s);
+      // ACK has its own endpoint, which also records who acknowledged it.
+      if (to === "ACKNOWLEDGED" && ["NEW", "TRIAGE"].includes(ticket.status)) {
+        await api.post(`/api/tickets/${ticket.id}/ack`, {});
+        return;
+      }
+      const path = statusPath(ticket.status, to, allowed);
+      if (!path) throw new Error("この状態には変更できません。");
+      let revision = ticket.revision;
+      for (const status of path) {
+        const changed = await api.patch<Detail>(`/api/tickets/${ticket.id}`, {
+          id: ticket.id,
+          revision,
+          status,
+          ...(status === "RESOLVED" ? { resolution: ticket.resolution ?? "RESOLVED" } : {}),
+        });
+        revision = changed.ticket.revision;
+      }
+    },
+    onSettled: onChanged,
+  });
+}
+
+function StatusBar({ ticket: t, onChanged }: { ticket: Ticket; onChanged: () => void }) {
+  const move = useMoveStatus(t, onChanged);
+  const options = quickStatuses.filter(
+    (o) => !t.report_id || !["RESOLVED", "CLOSED"].includes(o.status),
+  );
+  const current = (o: (typeof quickStatuses)[number]) =>
+    o.status === t.status || Boolean(o.also?.includes(t.status));
+  return (
+    <>
+      <fieldset className="ops-status-bar">
+        <legend className="sr-only">状態を変更</legend>
+        <span aria-hidden="true">状態</span>
+        {t.status === "NEW" && (
+          <button type="button" aria-pressed="true" disabled>
+            未確認
+          </button>
+        )}
+        {options.map((o) => (
+          <button
+            type="button"
+            key={o.status}
+            aria-pressed={current(o)}
+            disabled={move.isPending || current(o) || Boolean(t.merged_into)}
+            onClick={() => move.mutate(o.status)}
+          >
+            {o.label}
+          </button>
+        ))}
+        {t.status === "CLOSED" && (
+          <button type="button" aria-pressed="true" disabled>
+            クローズ
+          </button>
+        )}
+      </fieldset>
+      {move.error && (
+        <p role="alert" className="text-danger text-sm -mt-4 mb-4">
+          {move.error.message}
+        </p>
+      )}
+    </>
+  );
+}
+
+function MessageBubble({ item }: { item: Extract<TimelineItem, { kind: "message" }> }) {
+  const m = item.value;
+  const kind =
+    m.visibility === "INTERNAL"
+      ? "conv-note"
+      : m.direction === "INBOUND"
+        ? "conv-in"
+        : m.is_automatic
+          ? "conv-auto"
+          : "conv-out";
+  const label =
+    m.visibility === "INTERNAL"
+      ? "内部メモ（送信なし）"
+      : m.direction === "INBOUND"
+        ? (m.sender ?? "ユーザー")
+        : m.is_automatic
+          ? "自動受付メール"
+          : "運営から送信";
+  return (
+    <article className={`conv-msg ${kind}`}>
+      <header>
+        <strong>{label}</strong>
+        <Timestamp value={m.created_at} />
+        {m.direction !== "INBOUND" && m.recipient && <span>→ {m.recipient}</span>}
+      </header>
+      <pre>{m.body}</pre>
+      {m.legacy_message_id && m.attachments?.length ? (
+        <p className="mt-2">
+          {m.attachments.map((a) => (
+            <a
+              className="text-accent text-xs mr-3"
+              key={a.id}
+              href={`/api/support/messages/${m.legacy_message_id}/attachments/${a.id}`}
+            >
+              {a.originalFilename ?? "添付ファイル"}
+            </a>
+          ))}
+        </p>
+      ) : null}
+    </article>
+  );
+}
+
 export function TicketDetail() {
   const { id = "" } = useParams(),
     client = useQueryClient(),
     masters = useTicketMasters();
   const [offset, setOffset] = useState(0);
-  const [operationsOpen, setOperationsOpen] = useState(
-    () => window.matchMedia("(min-width: 900px)").matches,
-  );
+  const [showEvents, setShowEvents] = useState(false);
+  const [waitAfterReply, setWaitAfterReply] = useState(true);
   const detail = useQuery({
     queryKey: ["tickets", "detail", id, offset],
     refetchOnWindowFocus: false,
@@ -144,10 +301,15 @@ export function TicketDetail() {
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["tickets"] });
   };
-  const ack = useMutation({
-    mutationFn: () => api.post(`/api/tickets/${id}/ack`, {}),
-    onSuccess: refresh,
-  });
+  const afterReply = useMoveStatus(t, refresh);
+  const backTo =
+    t?.type === "REPORT" ? "/reports" : t?.type === "INQUIRY" ? "/support" : "/tickets";
+  // The API pages newest first; a conversation reads oldest first.
+  const timeline = [...(detail.data?.timeline ?? [])]
+    .reverse()
+    .filter((item) => showEvents || item.kind === "message");
+  const hiddenEvents = (detail.data?.timeline ?? []).filter((i) => i.kind === "event").length;
+  const open = Boolean(t && !t.merged_into && t.status !== "CLOSED");
   return (
     <section className="ops-page">
       <DataState loading={detail.isLoading} error={detail.error} empty={false} emptyMessage="">
@@ -155,7 +317,7 @@ export function TicketDetail() {
           <>
             <header className="ops-header">
               <div>
-                <Link className="text-accent text-xs" to="/tickets">
+                <Link className="text-accent text-xs" to={backTo}>
                   ← 一覧
                 </Link>
                 <p className="ops-eyebrow mt-4">
@@ -163,22 +325,13 @@ export function TicketDetail() {
                 </p>
                 <h1>{t.subject}</h1>
                 <div className="flex gap-2 mt-3">
-                  <TicketBadge value={t.priority} />
                   <TicketBadge value={t.status} />
-                  <TicketBadge value={t.sla_state} />
+                  {["P1", "P2"].includes(t.priority) && <TicketBadge value={t.priority} />}
+                  {t.sla_state !== "OK" && !t.report_id && <TicketBadge value={t.sla_state} />}
                 </div>
               </div>
-              {["NEW", "TRIAGE"].includes(t.status) && !t.merged_into && (
-                <Button variant="primary" disabled={ack.isPending} onClick={() => ack.mutate()}>
-                  確認済みにする
-                </Button>
-              )}
             </header>
-            {ack.error && (
-              <p role="alert" className="text-danger">
-                {ack.error.message}
-              </p>
-            )}
+            {!t.merged_into && <StatusBar ticket={t} onChanged={refresh} />}
             {t.merged_into && (
               <p className="ops-panel mb-5">
                 このTicketは統合済みです。履歴は保持しています。{" "}
@@ -245,82 +398,79 @@ export function TicketDetail() {
                     )}
                   </div>
                 )}
-                <h2 className="ops-section-title">
-                  履歴{" "}
-                  <span className="text-xs text-ink-faint">
-                    新しい順 · {detail.data.totalTimeline}件
-                  </span>
-                </h2>
-                <div className="ops-timeline">
-                  {detail.data.timeline.map((item) => (
-                    <article key={`${item.kind}:${item.value.id}`}>
-                      <header>
+                <div className="conv-toolbar">
+                  <h2 className="ops-section-title !m-0">
+                    やりとり{" "}
+                    <span className="text-xs text-ink-faint font-normal">
+                      {detail.data.totalTimeline}件
+                    </span>
+                  </h2>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={showEvents}
+                      onChange={(e) => setShowEvents(e.target.checked)}
+                    />
+                    操作履歴も表示{!showEvents && hiddenEvents ? `（${hiddenEvents}件）` : ""}
+                  </label>
+                </div>
+                {offset + 50 < detail.data.totalTimeline && (
+                  <div className="mt-3">
+                    <Button onClick={() => setOffset(offset + 50)}>さらに前を表示</Button>
+                  </div>
+                )}
+                <div className="conv">
+                  {timeline.map((item) =>
+                    item.kind === "message" ? (
+                      <MessageBubble key={`message:${item.value.id}`} item={item} />
+                    ) : (
+                      <div key={`event:${item.value.id}`} className="conv-event">
                         <strong>
-                          {item.kind === "message"
-                            ? item.value.visibility === "INTERNAL"
-                              ? "内部メモ・送信なし"
-                              : item.value.direction === "INBOUND"
-                                ? "ユーザーから受信"
-                                : item.value.is_automatic
-                                  ? "自動受付メール"
-                                  : "運営から送信"
-                            : (eventLabels[item.value.event_type] ?? item.value.event_type)}
-                        </strong>
+                          {eventLabels[item.value.event_type] ?? item.value.event_type}
+                        </strong>{" "}
                         <Timestamp value={item.value.created_at} />
-                        {item.kind === "event" && item.value.actor_id && (
-                          <span>by {item.value.actor_id}</span>
-                        )}
-                      </header>
-                      {item.kind === "message" ? (
-                        <>
-                          <p className="text-xs text-ink-faint mb-2">
-                            {item.value.sender}
-                            {item.value.recipient ? ` → ${item.value.recipient}` : ""}
-                          </p>
-                          <pre
-                            className={item.value.visibility === "INTERNAL" ? "ops-internal" : ""}
-                          >
-                            {item.value.body}
-                          </pre>
-                          {item.value.legacy_message_id && (
-                            <span>
-                              {item.value.attachments?.map((a) => (
-                                <a
-                                  className="text-accent text-xs mr-3"
-                                  key={a.id}
-                                  href={`/api/support/messages/${item.value.legacy_message_id}/attachments/${a.id}`}
-                                >
-                                  {a.originalFilename ?? "添付ファイル"}
-                                </a>
-                              ))}
-                            </span>
-                          )}
-                        </>
-                      ) : (
+                        {item.value.actor_id && <span> · {item.value.actor_id}</span>}
                         <EventBody event={item.value} />
-                      )}
-                    </article>
-                  ))}
+                      </div>
+                    ),
+                  )}
+                  {!timeline.length && (
+                    <p className="text-sm text-ink-faint">
+                      {showEvents ? "履歴はありません。" : "メッセージはまだありません。"}
+                    </p>
+                  )}
                 </div>
-                <div className="ops-pagination">
-                  <Button disabled={!offset} onClick={() => setOffset(Math.max(0, offset - 50))}>
-                    新しい履歴
-                  </Button>
-                  <Button
-                    disabled={offset + 50 >= detail.data.totalTimeline}
-                    onClick={() => setOffset(offset + 50)}
-                  >
-                    過去の履歴
-                  </Button>
-                </div>
-                {!t.merged_into && t.status !== "CLOSED" && (
-                  <div className="ops-panel mt-6">
+                {offset > 0 && (
+                  <div className="mb-6">
+                    <Button onClick={() => setOffset(Math.max(0, offset - 50))}>
+                      新しいやりとりに戻る
+                    </Button>
+                  </div>
+                )}
+                {open && (
+                  <div>
                     {context.data ? (
                       <ReplyComposer
                         key={t.id}
                         thread={context.data}
                         ticketId={t.id}
                         mailConfigured={session.data?.mailConfigured ?? false}
+                        onSent={() => {
+                          if (waitAfterReply && t.status !== "WAITING_CUSTOMER")
+                            afterReply.mutate("WAITING_CUSTOMER");
+                        }}
+                        sendOptions={
+                          t.status !== "WAITING_CUSTOMER" ? (
+                            <label className="inline-flex items-center gap-2 text-xs text-ink-soft">
+                              <input
+                                type="checkbox"
+                                checked={waitAfterReply}
+                                onChange={(e) => setWaitAfterReply(e.target.checked)}
+                              />
+                              送信後「返信待ち」にする
+                            </label>
+                          ) : null
+                        }
                       />
                     ) : t.thread_id ? (
                       <DataState
@@ -332,28 +482,73 @@ export function TicketDetail() {
                         {null}
                       </DataState>
                     ) : (
-                      <StandaloneNote id={t.id} onChanged={refresh} />
+                      <div className="ops-panel">
+                        <StandaloneNote id={t.id} onChanged={refresh} />
+                      </div>
+                    )}
+                    {afterReply.error && (
+                      <p role="alert" className="text-danger text-xs mt-2">
+                        送信しましたが、状態を変更できませんでした: {afterReply.error.message}
+                      </p>
                     )}
                   </div>
                 )}
               </div>
               <aside className="ops-sidebar">
-                <details
-                  className="ops-panel"
-                  open={operationsOpen}
-                  onToggle={(e) => setOperationsOpen(e.currentTarget.open)}
-                >
-                  <summary className="font-medium cursor-pointer mb-4">
-                    状態・担当・次の対応
-                  </summary>
-                  {masters.data && (
-                    <TicketEditor
-                      key={`${t.id}:${t.revision}`}
-                      ticket={t}
-                      masters={masters.data}
-                      onChanged={refresh}
-                    />
-                  )}
+                <section className="ops-panel">
+                  <h2 className="font-medium mb-3">情報</h2>
+                  <dl className="ops-facts">
+                    <dt>差出人</dt>
+                    <dd>{t.requester_email ?? "返信先なし"}</dd>
+                    <dt>サービス</dt>
+                    <dd>{t.service_name}</dd>
+                    <dt>種別</dt>
+                    <dd>{ticketTypeLabels[t.type]}</dd>
+                    <dt>受付</dt>
+                    <dd>
+                      <Timestamp value={t.created_at} />
+                    </dd>
+                    <dt>更新</dt>
+                    <dd>
+                      <Timestamp value={t.updated_at} />
+                    </dd>
+                    {t.assignee_id && (
+                      <>
+                        <dt>担当</dt>
+                        <dd>
+                          {masters.data?.assignees.find((a) => a.id === t.assignee_id)?.name ??
+                            t.assignee_id}
+                        </dd>
+                      </>
+                    )}
+                    {t.next_action && (
+                      <>
+                        <dt>次の対応</dt>
+                        <dd>
+                          {t.next_action}
+                          {t.next_action_at && (
+                            <>
+                              {" "}
+                              · <Timestamp value={t.next_action_at} />
+                            </>
+                          )}
+                        </dd>
+                      </>
+                    )}
+                  </dl>
+                </section>
+                <details className="ops-panel ops-secondary">
+                  <summary>詳細設定（分類・優先度・担当・次の対応）</summary>
+                  <div className="mt-4">
+                    {masters.data && (
+                      <TicketEditor
+                        key={`${t.id}:${t.revision}`}
+                        ticket={t}
+                        masters={masters.data}
+                        onChanged={refresh}
+                      />
+                    )}
+                  </div>
                 </details>
                 <details className="ops-panel ops-secondary">
                   <summary>
@@ -461,11 +656,7 @@ function TicketEditor({
         )}
         {t.report_id && (
           <p className="text-xs text-ink-soft">
-            判定・再審査は{" "}
-            <Link className="text-accent" to={`/reports/${t.report_id}`}>
-              通報の管理画面
-            </Link>{" "}
-            で行います。
+            判定・再審査は、この画面の「通報対象」にある「コンテンツへの対応」で行います。
           </p>
         )}
         <Field label="状態">

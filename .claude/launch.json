@@ -48,6 +48,32 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@tomokichi/api", "exec", "wrangler", "dev", "--port", "8797"],
       "port": 8797
+    },
+    {
+      "name": "admin-stack",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@tomokichi/admin",
+        "exec",
+        "wrangler",
+        "dev",
+        "--port",
+        "8790",
+        "-c",
+        "wrangler.jsonc",
+        "-c",
+        "../../.cache/inquiry-platform/v0.9.1/apps/admin/wrangler.deployment.jsonc",
+        "-c",
+        "../../.cache/inquiry-platform/v0.9.1/apps/api/wrangler.deployment.jsonc"
+      ],
+      "port": 8790
+    },
+    {
+      "name": "admin",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@tomokichi/admin", "dev"],
+      "port": 4330
     }
   ]
 }

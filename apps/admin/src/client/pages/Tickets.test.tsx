@@ -38,8 +38,8 @@ it("defaults to open tickets and switches queues without retaining a closed stat
   await user.click(screen.getByRole("button", { name: "未確認" }));
   await waitFor(() => expect(requests.at(-1)?.get("queue")).toBe("UNACKNOWLEDGED"));
   expect(requests.at(-1)?.has("status")).toBe(false);
-  await user.click(screen.getByRole("button", { name: "対応中" }));
-  await waitFor(() => expect(requests.at(-1)?.get("status")).toBe("IN_PROGRESS"));
+  await user.click(screen.getByRole("button", { name: "返信待ち" }));
+  await waitFor(() => expect(requests.at(-1)?.get("status")).toBe("WAITING_CUSTOMER"));
   expect(requests.at(-1)?.has("queue")).toBe(false);
   await user.click(screen.getByRole("button", { name: "すべて" }));
   await waitFor(() => expect(requests.at(-1)?.has("status")).toBe(false));

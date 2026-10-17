@@ -4,7 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { TicketDetail } from "./TicketDetail";
+import { statusPath, TicketDetail } from "./TicketDetail";
 
 const ticket: Ticket = {
   id: "ticket-1",
@@ -100,15 +100,19 @@ function mount() {
 it("ACKs through the dedicated API and refreshes the lifecycle", async () => {
   mount();
   const u = userEvent.setup();
-  await u.click(await screen.findByRole("button", { name: "確認済みにする" }));
+  await u.click(await screen.findByRole("button", { name: "確認済み" }));
   await waitFor(() =>
-    expect(screen.queryByRole("button", { name: "確認済みにする" })).not.toBeInTheDocument(),
+    expect(screen.getByRole("button", { name: "確認済み" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    ),
   );
   expect(requests.some((r) => r.url.endsWith("/ack") && r.method === "POST")).toBe(true);
 });
 it("persists lifecycle and resolution with optimistic revision", async () => {
   mount();
   const u = userEvent.setup();
+  await u.click(await screen.findByText(/詳細設定/));
   await u.selectOptions(await screen.findByRole("combobox", { name: "状態" }), "RESOLVED");
   await u.selectOptions(screen.getByRole("combobox", { name: "処理結果" }), "SPAM");
   await u.click(screen.getByRole("button", { name: "運用情報を保存" }));
@@ -153,6 +157,9 @@ it("shows internal messages and resolution history in the same timeline", async 
   detail.totalTimeline = 2;
   mount();
   expect(await screen.findByText("内部調査のメモ")).toBeVisible();
+  // Operations stay out of the conversation until asked for.
+  expect(screen.queryByText("処理結果: — → FIXED")).not.toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole("checkbox", { name: /操作履歴も表示/ }));
   expect(screen.getByText("処理結果: — → FIXED")).toBeVisible();
   expect(requests.every((r) => r.method === "GET")).toBe(true);
 });
@@ -165,6 +172,7 @@ it("keeps report final decisions out of the general ticket editor", async () => 
     status: "IN_PROGRESS",
   };
   mount();
+  await userEvent.setup().click(await screen.findByText(/詳細設定/));
   const select = await screen.findByRole("combobox", { name: "状態" });
   expect([...select.querySelectorAll("option")].map((option) => option.value)).not.toContain(
     "RESOLVED",
@@ -172,8 +180,46 @@ it("keeps report final decisions out of the general ticket editor", async () => 
   expect([...select.querySelectorAll("option")].map((option) => option.value)).not.toContain(
     "CLOSED",
   );
-  expect(screen.getByRole("link", { name: "通報の管理画面" })).toHaveAttribute(
-    "href",
-    "/reports/report-1",
+  // No quick action can finish a report either.
+  expect(screen.queryByRole("button", { name: "解決" })).not.toBeInTheDocument();
+  expect(screen.getByText(/コンテンツへの対応」で行います/)).toBeInTheDocument();
+});
+
+it("walks the allowed transitions when one click skips states", async () => {
+  mount();
+  const u = userEvent.setup();
+  await u.click(await screen.findByRole("button", { name: "返信待ち" }));
+  await waitFor(() =>
+    expect(requests.filter((r) => r.method === "PATCH").map((r) => r.body.status)).toEqual([
+      "ACKNOWLEDGED",
+      "IN_PROGRESS",
+      "WAITING_CUSTOMER",
+    ]),
   );
+  expect(requests.filter((r) => r.method === "PATCH").map((r) => r.body.revision)).toEqual([
+    0, 1, 2,
+  ]);
+});
+
+it("resolves with a resolution in one click", async () => {
+  detail.ticket = { ...detail.ticket, status: "IN_PROGRESS" };
+  mount();
+  await userEvent.setup().click(await screen.findByRole("button", { name: "解決" }));
+  await waitFor(() =>
+    expect(requests.find((r) => r.method === "PATCH")?.body).toMatchObject({
+      status: "RESOLVED",
+      resolution: "RESOLVED",
+    }),
+  );
+});
+
+it("finds the shortest legal path and refuses forbidden ones", () => {
+  expect(statusPath("NEW", "WAITING_CUSTOMER")).toEqual([
+    "ACKNOWLEDGED",
+    "IN_PROGRESS",
+    "WAITING_CUSTOMER",
+  ]);
+  expect(statusPath("CLOSED", "WAITING_CUSTOMER")).toEqual(["IN_PROGRESS", "WAITING_CUSTOMER"]);
+  expect(statusPath("NEW", "RESOLVED", (s) => s !== "RESOLVED")).toBeNull();
+  expect(statusPath("IN_PROGRESS", "IN_PROGRESS")).toEqual([]);
 });
