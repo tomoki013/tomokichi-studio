@@ -47,6 +47,9 @@
         "────────────────────────\nTomokichi Studio\n髙木 友喜\n\nWeb: https://tmkch.io\nEmail: support@tmkch.io\nTEL: 080-6648-1475\n────────────────────────"
       ],
       "mailLogo": { "url": "https://tmkch.io/assets/mail-logo.png", "alt": "Tomokichi Studio" },
+      // Every mail to a customer ends with this line, above the signature
+      // (inquiry-platform v0.10.0+; ignored by earlier releases).
+      "replyClosing": "以上、よろしくお願いいたします。",
       "defaultProjectId": "studio"
     },
     // Projects whose reported content is acted on by a signed decision through
