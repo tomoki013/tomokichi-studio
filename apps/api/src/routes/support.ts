@@ -204,7 +204,7 @@ export function registerSupportRoute(
       );
     }
 
-    // Turnstile, for the web form only: the Remeet and Colorvia apps post here
+    // Turnstile, for the web form only: the Remeet, Colorvia and Yohaku apps post here
     // too and have no browser to solve a challenge in. With no secret set,
     // nothing is verified and the form behaves exactly as it did before.
     if (c.env.TURNSTILE_SECRET_KEY && request.source === "main-web") {
