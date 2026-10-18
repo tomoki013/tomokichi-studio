@@ -13,8 +13,8 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings --strict-vars=false"
   },
   "dependencies": {
-    "@inquiry-platform/core": "github:tomoki013/inquiry-platform#v0.10.0&path:/packages/core",
-    "@inquiry-platform/sdk": "github:tomoki013/inquiry-platform#v0.10.0&path:/packages/sdk",
+    "@inquiry-platform/core": "github:tomoki013/inquiry-platform#v0.11.0&path:/packages/core",
+    "@inquiry-platform/sdk": "github:tomoki013/inquiry-platform#v0.11.0&path:/packages/sdk",
     "@tanstack/react-query": "^5.90.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
