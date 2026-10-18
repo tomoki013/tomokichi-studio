@@ -116,6 +116,35 @@ describe("POST /api/v1/support", () => {
     expect(response.status).toBe(200);
   });
 
+  // What Yohaku iOS sends: no subject field, the subject folded into the
+  // message, and an empty email when no reply is wanted. Builds already in
+  // people's hands post to the legacy path, newer ones to v1.
+  it.each(["/api/support", "/api/v1/support"])(
+    "accepts the Yohaku iOS source on %s",
+    async (path) => {
+      const { core, submitContact } = fakeCore();
+      const response = await createApp({ rateLimit: async () => true }).request(
+        `https://api.example.com${path}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...validRequest,
+            source: "yohaku-ios",
+            app: "yohaku",
+            category: "question",
+            name: "",
+            email: "",
+            message: "件名: 使い方\n\nこれは十分な長さの問い合わせ内容です。",
+          }),
+        },
+        { ...env, INQUIRY: core },
+      );
+      expect(response.status).toBe(200);
+      expect(submitContact.mock.calls[0]?.[0]).toMatchObject({ projectSlug: "yohaku" });
+    },
+  );
+
   it("silently accepts (without recording) a honeypot-triggered submission", async () => {
     const { core, submitContact } = fakeCore();
     const response = await post(

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../index";
 import { verifyTurnstileToken } from "./turnstile";
-import type { SupportBindings } from "./types";
+import { type SupportBindings, supportSources } from "./types";
 
 const webRequest = {
   requestId: "49a3999c-0ce1-4ea6-ab68-afcd6dc2e794",
@@ -209,6 +209,20 @@ describe("the client key, for sources that cannot solve a challenge", () => {
       header: "shared-key",
     });
     expect((await response).status).toBe(200);
+  });
+
+  // Every app source is gated by the same key; none may be left out of the
+  // list (Yohaku was, and every in-app message from it was refused).
+  const appSources = supportSources.filter((source) => source !== "main-web");
+  it.each(appSources)("applies the key to %s", async (source) => {
+    const accepted = postWithHeaders(
+      { ...appRequest, source },
+      { clientKey: "shared-key", header: "shared-key" },
+    );
+    expect((await accepted.response).status).toBe(200);
+
+    const refused = postWithHeaders({ ...appRequest, source }, { clientKey: "shared-key" });
+    expect((await refused.response).status).toBe(403);
   });
 
   it("turns away an app request with no key, or the wrong one", async () => {
