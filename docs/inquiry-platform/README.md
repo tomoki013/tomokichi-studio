@@ -1,8 +1,16 @@
 # inquiry-platform の Tomokichi 環境
 
-最終更新: 2026-10-17。
+最終更新: 2026-10-18。
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
+
+## v0.11.0: 受付メールを Project ごとに設定
+
+- 自動受付メールを送るかどうかと文面のテンプレートを、seed の `mailSettings[]` の `inquiryReceipt` / `inquiryReceiptTemplate` で Project ごとに決める（D1 の `app_mail_settings`）。メールルート（`PROJECT_MAIL_PROVIDERS`）の同名項目より優先される。
+- Zakkary は `zakkary_auto_ack`（Zakkary の管理画面で編集する全文）で基盤が送る。Zakkary の Worker はもう送らない（zakkaya-discovery #37）。
+- Diary は送らない。読者には Gmail から返信するので、基盤の受付メールへの返信が Gmail に届かなくなるのを避けるため。
+- 受付メールのテンプレートでは `{{receiptId}}` と件名が使え、`{{userName|お客様}}` のように値が無いときの語を書ける。
+- migration `0021_inquiry_receipt_settings.sql` を追加（`app_mail_settings` に列を追加）。デプロイは `migrate` → `seed` → `deploy api` の順。
 
 ## v0.10.0: 自動受付メール・1スレッド化・全員に返信・結び
 
