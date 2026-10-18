@@ -29,6 +29,10 @@ export default {
       notificationEmail: "zakkary001@gmail.com",
       // Zakkary's own admin; its inquiry screen lives under /admin/support.
       ticketUrlTemplate: "https://admin.zakkary.app/admin/support?ticket={ticketNumber}",
+      // The receipt a new inquiry gets is sent by the platform, written whole
+      // by Zakkary's own template (edited in Zakkary's admin; opening and
+      // closing included). inquiry-platform v0.11.0+.
+      inquiryReceiptTemplate: "zakkary_auto_ack",
     },
     {
       // The travel blog. Its own name on replies and its own inbox for
@@ -41,6 +45,10 @@ export default {
       // here), so the platform's "new ticket" mail would be a second one.
       // Push still goes. inquiry-platform v0.3.3+.
       notifyByEmail: false,
+      // Readers are answered from that inbox, not from the platform, so no
+      // automatic receipt either: a reply to one would land here instead of
+      // in the inbox. inquiry-platform v0.11.0+.
+      inquiryReceipt: false,
       // Managed from the blog's own admin, not from the platform's gateway.
       ticketUrlTemplate: "https://admin.tomokichidiary.com/#/inquiries/{ticketNumber}",
     },
