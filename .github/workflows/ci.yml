@@ -118,7 +118,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/main check
       - run: pnpm --filter @tomokichi/main test
@@ -133,7 +133,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/remeet check
       - run: pnpm --filter @tomokichi/remeet test
@@ -148,7 +148,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/tripory check
       - run: pnpm --filter @tomokichi/tripory test
@@ -163,7 +163,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/colorvia check
       - run: pnpm --filter @tomokichi/colorvia build
@@ -177,7 +177,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/yohaku check
       - run: pnpm --filter @tomokichi/yohaku build
@@ -191,7 +191,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/quiet-solitaire check
       - run: pnpm --filter @tomokichi/quiet-solitaire build
@@ -205,7 +205,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:review
 
@@ -217,7 +217,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Set up toolchain (mise)
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@v5
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tomokichi/api check
       - run: pnpm --filter @tomokichi/api test
