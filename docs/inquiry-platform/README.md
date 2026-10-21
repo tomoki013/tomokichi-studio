@@ -1,8 +1,13 @@
 # inquiry-platform の Tomokichi 環境
 
-最終更新: 2026-10-18。
+最終更新: 2026-10-21。
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
+
+## v0.11.1: 依存の脆弱性修正
+
+- hono 4.13.13（`serveStatic` のパス二重デコード）と vite 7.3.7（launch-editor）など、依存を各メジャー内の最新に上げただけの版。Worker の挙動・bindings・SDK の型は v0.11.0 と同じ。
+- migration の追加は無い。v0.11.0 の `0021` が未適用なら、`migrate` で一緒に入る。デプロイは `migrate` → `deploy all`。
 
 ## v0.11.0: 受付メールを Project ごとに設定
 
