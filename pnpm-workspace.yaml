@@ -32,6 +32,9 @@ overrides:
   "sharp": "0.35.5"
   "source-map-js": "1.2.2"
   "http-cache-semantics": "4.3.0"
+  # vite 8.3.0–8.3.2 bundles a launch-editor with published advisories
+  # (dev server only). astro and vitest 4 still resolve into that range.
+  "vite@>=8.3.0 <8.3.3": "^8.3.3"
   # apps/admin takes inquiry-platform's core from its release tag. Core's
   # `workspace:*` dependency on the SDK only resolves inside that repository,
   # and a git-hosted subdependency is blocked here, so it is dropped and
