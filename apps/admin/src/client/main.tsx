@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { Layout } from "./components/Layout";
+import { shouldRetryQuery } from "./lib/api";
 import { registerServiceWorker } from "./lib/pwa";
 import { AppDetail } from "./pages/AppDetail";
 import { Apps } from "./pages/Apps";
@@ -19,9 +20,7 @@ const client = new QueryClient({
     queries: {
       // A moderation queue is read, acted on, and read again. Refetching on
       // focus is right here; retrying a 403 is not.
-      retry: (failureCount, error) =>
-        failureCount < 2 &&
-        !(error instanceof Error && /UNAUTHORIZED|FORBIDDEN|NOT_FOUND/.test(error.message)),
+      retry: shouldRetryQuery,
       staleTime: 15_000,
     },
   },

@@ -24,22 +24,52 @@ interface Envelope<T> {
   requestId?: string;
 }
 
+const authenticationError = (requestId?: string) =>
+  new ApiError(
+    "UNAUTHORIZED",
+    "ログインの有効期限が切れています。再ログインしてください。",
+    requestId,
+  );
+
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...init?.headers,
-    },
-    // Access's cookie rides along; nothing else does.
-    credentials: "same-origin",
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers: {
+        ...(init?.body ? { "Content-Type": "application/json" } : {}),
+        ...init?.headers,
+      },
+      // Access's cookie rides along; nothing else does.
+      credentials: "same-origin",
+      // An expired Access session redirects to a different origin. Following
+      // that redirect fails CORS and hides the reason behind "Failed to fetch".
+      redirect: "manual",
+    });
+  } catch {
+    throw new ApiError(
+      "NETWORK_ERROR",
+      "通信できませんでした。ネットワーク接続を確認して、再読み込みしてください。",
+      undefined,
+    );
+  }
+
+  if (response.type === "opaqueredirect") {
+    throw authenticationError();
+  }
 
   let envelope: Envelope<T>;
   try {
     envelope = (await response.json()) as Envelope<T>;
   } catch {
+    if (response.status === 401) {
+      throw authenticationError(response.headers.get("X-Request-Id") ?? undefined);
+    }
     throw new ApiError("INTERNAL_ERROR", "応答を読み取れませんでした。", undefined);
+  }
+
+  if (response.status === 401) {
+    throw authenticationError(envelope.requestId);
   }
 
   if (!response.ok || !envelope.ok) {
@@ -51,6 +81,13 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
   return envelope.data as T;
+}
+
+export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
+  return (
+    failureCount < 2 &&
+    !(error instanceof ApiError && ["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND"].includes(error.code))
+  );
 }
 
 export const api = {

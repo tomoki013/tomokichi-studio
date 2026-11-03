@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ApiError } from "../lib/api";
 import { statusLabel } from "../lib/labels";
 
 /**
@@ -146,6 +147,16 @@ export function DataState({
       >
         <p className="text-danger">{message}</p>
         {requestId ? <p className="mt-1 text-xs text-ink-faint">requestId: {requestId}</p> : null}
+        {error instanceof ApiError && error.code === "UNAUTHORIZED" ? (
+          <a className="mt-3 inline-block underline" href={window.location.href}>
+            再ログイン
+          </a>
+        ) : null}
+        {error instanceof ApiError && error.code === "NETWORK_ERROR" ? (
+          <div className="mt-3">
+            <Button onClick={() => window.location.reload()}>再読み込み</Button>
+          </div>
+        ) : null}
       </div>
     );
   }
