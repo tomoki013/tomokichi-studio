@@ -72,6 +72,8 @@
         // selected per reply in the diary admin, so the shared line is empty.
         "apiKeyBinding": "MAIL_API_KEY_TOMOKICHI_DIARY",
         "signatureAccentColor": "#c9927d",
+        "supportEmail": "contact@tomokichidiary.com",
+        "requireVerifiedReplyParent": true,
         "inquiryReceiptQuoteBody": true,
         "inquiryReceiptCopyToNotification": false,
         "defaultSignature": "ともきちの旅行日記\nともきち\nhttps://tomokichidiary.com\ncontact@tomokichidiary.com",
