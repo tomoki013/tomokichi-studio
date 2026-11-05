@@ -45,9 +45,9 @@ export default {
       // here), so the platform's "new ticket" mail would be a second one.
       // Push still goes. inquiry-platform v0.3.3+.
       notifyByEmail: false,
-      // The diary handles any contact form notice itself; do not send a second
-      // automatic receipt from the platform. inquiry-platform v0.11.0+.
-      inquiryReceipt: false,
+      // A customer receipt starts the email conversation; the project route
+      // quotes its body and copies the private operator recipient.
+      inquiryReceipt: true,
       // Managed from the blog's own admin, not from the platform's gateway.
       ticketUrlTemplate: "https://admin.tomokichidiary.com/#/inquiries/{ticketNumber}",
     },

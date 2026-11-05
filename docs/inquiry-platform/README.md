@@ -126,3 +126,11 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 - [独立化の棚卸し](extraction.md)、[Cutover](cutover.md)（ADR-022）
 - [通報対応とメール返信（Remeet）](report-workflow.md)
 - [Ticket モデル移行の結果](tickets-migration-2026-09-18.md)
+
+### Diary のメール返信運用（2026-11-05）
+
+Core の互換パッチ v0.11.3（SDK v0.11.2 のまま）を使用する。Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用し、private notification recipient を CC に入れる。運営用Gmailから全員に返信すると、問い合わせ者と contact 宛てに届き、同じチケットへ追記される。問い合わせ者には CC の運営用メールアドレスも表示される。通常の返信は Gmail アドレスが差出人になる。contact の受信原本は mail-ingress から運営用Gmailへ転送する（Cloudflare 検証済み）。管理画面から返信した場合の差出人は contact。
+
+返信ヘッダーを優先し、失われた場合は受付番号と問い合わせ者／送信済みメールの宛先で照合する。件名が同じだけの新規メールを自動統合しない。一次受付は1チケット1回、自動メール・既存会話への返信に再送しない。
+
+private 保存済み DB では seed 全体を実行すると暗号化済み notification_email の平文上書きが拒否される。今回の運用切替は公開設定列 inquiry_receipt のみを対象に更新し、暗号化済み宛先を維持する。
