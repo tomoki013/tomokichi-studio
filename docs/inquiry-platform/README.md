@@ -129,10 +129,12 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ### Diary のメール返信運用（2026-11-05）
 
-Core の互換パッチ v0.11.3（SDK v0.11.2 のまま）を使用する。Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用する。差出人と返信先は contact@tomokichidiary.com、宛先は問い合わせ者のみ。inquiryReceiptCopyToNotification は false で、Gmail へ CC しない。
+Core の互換パッチ v0.11.4（SDK v0.11.2 のまま）を使用する。Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用する。差出人と返信先は contact@tomokichidiary.com、宛先は問い合わせ者のみ。inquiryReceiptCopyToNotification は false で、Gmail へ CC しない。
 
 運営は管理画面から contact@tomokichidiary.com 名義で回答する。問い合わせ者の返信は contact 宛てに届き、mail-ingress が同じチケットへ追記する。Diary の APP_MAIL_ROUTES には forwardEmail を設定せず、受信メールの Gmail 転送は行わない。Gmail には Diary API が noreply@tomokichidiary.com からフォーム新着通知（受付番号と管理画面リンク）を送る。基盤の notifyByEmail は false のままで二重の新着通知を防ぐ。
 
 返信ヘッダーを優先し、失われた場合は受付番号と問い合わせ者／送信済みメールの宛先で照合する。件名が同じだけの新規メールを自動統合しない。一次受付は1チケット1回、自動メール・既存会話への返信に再送しない。
 
 private 保存済み DB では seed 全体を実行すると暗号化済み notification_email の平文上書きが拒否される。今回の運用切替は公開設定列 inquiry_receipt のみを対象に更新し、暗号化済み宛先を維持する。
+
+Diary の署名のメールアドレスは contact@tomokichidiary.com。左罫線はサイトの --accent-line と同じ #c9927d（signatureAccentColor）を使う。既存の署名本文はメールアドレスだけを置き換え、名前やサイト URL は保持する。
