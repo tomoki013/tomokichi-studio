@@ -35,19 +35,18 @@ export default {
       inquiryReceiptTemplate: "zakkary_auto_ack",
     },
     {
-      // The travel blog. Its own name on replies and its own inbox for
-      // notifications; the addresses stay on tmkch.io, whose sending domain
-      // and inbound route already work, until tomokichidiary.com has both.
+      // The travel blog replies from its own verified contact address. Incoming
+      // replies are filed on its project through the mail-ingress route.
       appSlug: "tomokichi-diary",
+      supportEmail: "contact@tomokichidiary.com",
       fromName: "ともきちの旅行日記",
       notificationEmail: "tomokichidiary@gmail.com",
       // The blog mails every contact to that inbox itself (and files a copy
       // here), so the platform's "new ticket" mail would be a second one.
       // Push still goes. inquiry-platform v0.3.3+.
       notifyByEmail: false,
-      // Readers are answered from that inbox, not from the platform, so no
-      // automatic receipt either: a reply to one would land here instead of
-      // in the inbox. inquiry-platform v0.11.0+.
+      // The diary handles any contact form notice itself; do not send a second
+      // automatic receipt from the platform. inquiry-platform v0.11.0+.
       inquiryReceipt: false,
       // Managed from the blog's own admin, not from the platform's gateway.
       ticketUrlTemplate: "https://admin.tomokichidiary.com/#/inquiries/{ticketNumber}",

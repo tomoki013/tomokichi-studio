@@ -41,14 +41,16 @@
 | パス | 何か |
 |---|---|
 | `apps/api/package.json` の `@inquiry-platform/sdk` | 使う release tag（例 `#v0.2.0`）。SDK とデプロイする Worker の版をこの 1 行で決める |
-| `deploy/inquiry-platform/api.jsonc` | Core（`tomokichi-admin-core`）。D1 `tomokichi-admin`、R2 `tomokichi-admin-files`、アドレス、`BRANDING`、`SIGNED_MODERATION`（Remeet → `tomokichi-api#RemeetModeration`） |
+| `deploy/inquiry-platform/api.jsonc` | Core（`tomokichi-admin-core`）。D1 `tomokichi-admin`、R2 `tomokichi-admin-files`、アドレス、`BRANDING`、`SIGNED_MODERATION`、Project ごとのメール配信設定（Diary のロゴ・結び・Resend key を含む） |
 | `deploy/inquiry-platform/admin.jsonc` | API Gateway（`tomokichi-admin-web`、Access の JWT 検証）。route を持たず、`apps/admin` から Service Binding で呼ばれる。UI の assets は設定しない |
 | `apps/admin` | Studio の運営画面（Worker `tomokichi-admin`、`admin.tmkch.io`）。React SPA を配信し、`/api/*` をそのまま Gateway へ渡す |
-| `deploy/inquiry-platform/mail-ingress.jsonc` | 受信メール（`tomokichi-mail-ingress`） |
+| `deploy/inquiry-platform/mail-ingress.jsonc` | 受信メール（`tomokichi-mail-ingress`）。`contact@tomokichidiary.com` は `tomokichi-diary` のチケットに保存 |
 | `deploy/inquiry-platform/seed.ts`, `seed/` | アプリ・定型文・署名、`studio` service と既定値 |
 | `deploy/inquiry-platform/run.mjs` | 指定 tag を `.cache/inquiry-platform/<tag>` に取得し、基盤の `scripts/deploy.mjs` を実行 |
 
-Secret（`HASH_PEPPER`、`MAIL_API_KEY`、`NOTIFICATION_EMAIL`、`VAPID_PRIVATE_KEY`、`SUPPORT_FORWARD_EMAIL`）は各 Worker に設定済みで、Repository には無い。
+Secret（`HASH_PEPPER`、`MAIL_API_KEY`、`MAIL_API_KEY_ZAKKARY`、`MAIL_API_KEY_TOMOKICHI_DIARY`、`NOTIFICATION_EMAIL`、`VAPID_PRIVATE_KEY`、`SUPPORT_FORWARD_EMAIL`）は各 Worker に設定し、Repository には置かない。
+
+Diary の管理画面返信は `contact@tomokichidiary.com` から送り、Web のお問い合わせ通知は Diary API から `noreply@tomokichidiary.com` で送る。どちらも Resend のドメイン送信キーを使い、Core と Diary API の各 Worker に `MAIL_API_KEY_TOMOKICHI_DIARY` を Secret として設定する。`contact@` 宛ての受信メールは Cloudflare Email Routing から `tomokichi-mail-ingress` へ渡し、このファイルの `APP_MAIL_ROUTES` が Diary の Project に割り当てる。`noreply@` は送信専用。通常のフォーム通知はチケット番号と管理画面リンクだけで、基盤に登録できなかった場合だけお問い合わせ本文を固定受信箱へ送る。
 
 ## コマンド
 

@@ -66,6 +66,14 @@
         },
         // Zakkary's own report receipt (edited in Zakkary's admin). v0.6.0+.
         "reportReceiptTemplate": "zakkary_report_receipt"
+      },
+      "894c3155-a5ef-42c9-a356-ad97186cf8e4": {
+        // Diary replies use their own Resend key and address. The closing is
+        // selected per reply in the diary admin, so the shared line is empty.
+        "apiKeyBinding": "MAIL_API_KEY_TOMOKICHI_DIARY",
+        "defaultSignature": "ともきちの旅行日記\nともきち\nhttps://tomokichidiary.com",
+        "supportUrl": "https://tomokichidiary.com/contact",
+        "replyClosing": ""
       }
     }
   },
