@@ -21,7 +21,7 @@
     "SUPPORT_EMAIL": "support@tmkch.io",
     // Inbound addresses are project-scoped. The legacy address remains the
     // fallback for Studio mail that has no route entry.
-    "APP_MAIL_ROUTES": "[{\"address\":\"support@zakkary.app\",\"projectSlug\":\"zakkary\",\"forwardEmail\":\"zakkary001@gmail.com\"},{\"address\":\"contact@tomokichidiary.com\",\"projectSlug\":\"tomokichi-diary\",\"forwardEmail\":\"tomokichidiary@gmail.com\"}]",
+    "APP_MAIL_ROUTES": "[{\"address\":\"support@zakkary.app\",\"projectSlug\":\"zakkary\",\"forwardEmail\":\"zakkary001@gmail.com\"},{\"address\":\"contact@tomokichidiary.com\",\"projectSlug\":\"tomokichi-diary\"}]",
     // Bytes above this are forwarded but not stored: a 25MB mail parsed into a
     // Worker's memory is a way to make ingestion fail for everybody.
     "MAX_STORED_BYTES": "5242880"

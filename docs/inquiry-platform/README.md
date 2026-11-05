@@ -18,7 +18,7 @@
 
 - 自動受付メールを送るかどうかと文面のテンプレートを、seed の `mailSettings[]` の `inquiryReceipt` / `inquiryReceiptTemplate` で Project ごとに決める（D1 の `app_mail_settings`）。メールルート（`PROJECT_MAIL_PROVIDERS`）の同名項目より優先される。
 - Zakkary は `zakkary_auto_ack`（Zakkary の管理画面で編集する全文）で基盤が送る。Zakkary の Worker はもう送らない（zakkaya-discovery #37）。
-- Diary は送らない。読者には Gmail から返信するので、基盤の受付メールへの返信が Gmail に届かなくなるのを避けるため。
+- Diary も一次受付を送る。最新の運用は下記「Diary のメール返信運用」を参照。
 - 受付メールのテンプレートでは `{{receiptId}}` と件名が使え、`{{userName|お客様}}` のように値が無いときの語を書ける。
 - migration `0021_inquiry_receipt_settings.sql` を追加（`app_mail_settings` に列を追加）。デプロイは `migrate` → `seed` → `deploy api` の順。
 
@@ -129,7 +129,9 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ### Diary のメール返信運用（2026-11-05）
 
-Core の互換パッチ v0.11.3（SDK v0.11.2 のまま）を使用する。Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用し、private notification recipient を CC に入れる。運営用Gmailから全員に返信すると、問い合わせ者と contact 宛てに届き、同じチケットへ追記される。問い合わせ者には CC の運営用メールアドレスも表示される。通常の返信は Gmail アドレスが差出人になる。contact の受信原本は mail-ingress から運営用Gmailへ転送する（Cloudflare 検証済み）。管理画面から返信した場合の差出人は contact。
+Core の互換パッチ v0.11.3（SDK v0.11.2 のまま）を使用する。Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用する。差出人と返信先は contact@tomokichidiary.com、宛先は問い合わせ者のみ。inquiryReceiptCopyToNotification は false で、Gmail へ CC しない。
+
+運営は管理画面から contact@tomokichidiary.com 名義で回答する。問い合わせ者の返信は contact 宛てに届き、mail-ingress が同じチケットへ追記する。Diary の APP_MAIL_ROUTES には forwardEmail を設定せず、受信メールの Gmail 転送は行わない。Gmail には Diary API が noreply@tomokichidiary.com からフォーム新着通知（受付番号と管理画面リンク）を送る。基盤の notifyByEmail は false のままで二重の新着通知を防ぐ。
 
 返信ヘッダーを優先し、失われた場合は受付番号と問い合わせ者／送信済みメールの宛先で照合する。件名が同じだけの新規メールを自動統合しない。一次受付は1チケット1回、自動メール・既存会話への返信に再送しない。
 
