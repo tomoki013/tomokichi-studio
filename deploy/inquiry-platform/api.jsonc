@@ -71,9 +71,10 @@
         // Diary replies use their own Resend key and address. The closing is
         // selected per reply in the diary admin, so the shared line is empty.
         "apiKeyBinding": "MAIL_API_KEY_TOMOKICHI_DIARY",
+        "signatureAccentColor": "#c9927d",
         "inquiryReceiptQuoteBody": true,
         "inquiryReceiptCopyToNotification": false,
-        "defaultSignature": "ともきちの旅行日記\nともきち\nhttps://tomokichidiary.com",
+        "defaultSignature": "ともきちの旅行日記\nともきち\nhttps://tomokichidiary.com\ncontact@tomokichidiary.com",
         "supportUrl": "https://tomokichidiary.com/contact",
         "replyClosing": ""
       }
