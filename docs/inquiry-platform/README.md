@@ -4,6 +4,12 @@
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
 
+## v0.12.0: Project ごとの機能選択
+
+- `deploy/inquiry-platform/api.jsonc` の `PROJECT_FEATURES` で、一次受付メール・手動返信・署名・添付・通知などを受付種別ごとに選ぶ。既存の差出人・文面・署名・配送先は引き継ぐ。
+- 本番 D1 に migration `0022_intake_verifications.sql` を適用してから 3 Worker を更新する。既存フォームで検証している Turnstile は引き続きフォーム側で検証する。
+- Studio の `/mcp` は同じ Cloudflare Access と Project スコープを通る読み取り専用の入口。
+
 ## v0.11.2: テスト基盤のメジャー更新
 
 - テスト基盤を `@cloudflare/vitest-plugin`・vitest 5・vite 8・TypeScript 7 に上げ、受信メールの解析に使う postal-mime を 4 にした版。Worker の bindings・SDK の型は v0.11.1 と同じ。
@@ -129,7 +135,7 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ### Diary のメール返信運用（2026-11-05）
 
-Core の互換パッチ v0.11.5（SDK v0.11.2 のまま）を使用する。Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用する。差出人と返信先は contact@tomokichidiary.com、宛先は問い合わせ者のみ。inquiryReceiptCopyToNotification は false で、Gmail へ CC しない。
+Diary の一次受付は有効で、受付のお礼・確認後に返答する旨・受付番号の後に最初の問い合わせ本文だけを引用する。差出人と返信先は contact@tomokichidiary.com、宛先は問い合わせ者のみ。inquiryReceiptCopyToNotification は false で、Gmail へ CC しない。
 
 運営は管理画面から contact@tomokichidiary.com 名義で回答する。問い合わせ者の返信は contact 宛てに届き、mail-ingress が同じチケットへ追記する。Diary の APP_MAIL_ROUTES には forwardEmail を設定せず、受信メールの Gmail 転送は行わない。Gmail には Diary API が noreply@tomokichidiary.com からフォーム新着通知（受付番号と管理画面リンク）を送る。基盤の notifyByEmail は false のままで二重の新着通知を防ぐ。
 
