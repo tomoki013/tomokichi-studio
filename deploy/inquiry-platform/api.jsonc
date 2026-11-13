@@ -55,6 +55,93 @@
     // Projects whose reported content is acted on by a signed decision through
     // their own adapter: project slug → Service Binding name (below).
     "SIGNED_MODERATION": { "remeet": "REMEET_MODERATION" },
+    "PROJECT_FEATURES": {
+      // Studio's general contact form and signed moderation use separate domains.
+      "studio": {
+        "inquiry": {
+          "reply": true,
+          "receipt": true,
+          "inbound": true,
+          "newFromEmail": true,
+          "drafts": true,
+          "templates": true,
+          "signature": true,
+          "attachments": true,
+          "notifyEmail": true,
+          "notifyPush": true,
+          "sla": true,
+          "assignment": true,
+          "classification": true,
+          "relations": true
+        }
+      },
+      "b39dd1ed-0efa-4db1-b2a1-5f41e99dbc0f": {
+        "report": {
+          "reply": true,
+          "receipt": true,
+          "inbound": true,
+          "attachments": true,
+          "drafts": true,
+          "templates": true,
+          "signature": true,
+          "notifyEmail": true,
+          "notifyPush": true,
+          "assignment": true,
+          "classification": true,
+          "relations": true
+        }
+      },
+      "894c3155-a5ef-42c9-a356-ad97186cf8e4": {
+        "inquiry": {
+          "reply": true,
+          "receipt": true,
+          "inbound": true,
+          "newFromEmail": true,
+          "drafts": true,
+          "templates": true,
+          "signature": true,
+          "attachments": true,
+          "notifyPush": true,
+          "sla": true,
+          "assignment": true,
+          "classification": true,
+          "relations": true
+        },
+        "report": { "enabled": false }
+      },
+      "d33ca505-5b51-43ac-98d6-f58a5ce71f6b": {
+        "inquiry": {
+          "reply": true,
+          "receipt": true,
+          "inbound": true,
+          "newFromEmail": true,
+          "drafts": true,
+          "templates": true,
+          "signature": true,
+          "attachments": true,
+          "notifyEmail": true,
+          "notifyPush": true,
+          "sla": true,
+          "assignment": true,
+          "classification": true,
+          "relations": true
+        },
+        "report": {
+          "reply": true,
+          "receipt": true,
+          "inbound": true,
+          "attachments": true,
+          "drafts": true,
+          "templates": true,
+          "signature": true,
+          "notifyEmail": true,
+          "notifyPush": true,
+          "assignment": true,
+          "classification": true,
+          "relations": true
+        }
+      }
+    },
     "PROJECT_MAIL_PROVIDERS": {
       "d33ca505-5b51-43ac-98d6-f58a5ce71f6b": {
         "apiKeyBinding": "MAIL_API_KEY_ZAKKARY",

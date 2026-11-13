@@ -184,7 +184,10 @@ export function ReplyComposer({
     mutationFn: async (reopenIfResolved: boolean) => {
       await draftWrite.current;
       await saveRef.current.mutateAsync(body);
-      return api.post<SupportThreadDetail>(`/api/support/threads/${thread.id}/reply`, {
+      const path = thread.reportId
+        ? `/api/reports/${thread.reportId}/reply`
+        : `/api/support/threads/${thread.id}/reply`;
+      return api.post<SupportThreadDetail>(path, {
         bodyText: body,
         idempotencyKey: idempotencyKey.current,
         reopenIfResolved,
