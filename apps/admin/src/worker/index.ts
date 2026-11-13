@@ -51,7 +51,8 @@ export function withSecurityHeaders(response: Response, pathname: string): Respo
 
 export async function handle(request: Request, env: Env): Promise<Response> {
   const { pathname } = new URL(request.url);
-  if (isApiPath(pathname) || pathname === "/mcp") return env.GATEWAY.fetch(request);
+  if (isApiPath(pathname) || pathname === "/mcp" || pathname === "/inquiry-mcp")
+    return env.GATEWAY.fetch(request);
   return withSecurityHeaders(await env.ASSETS.fetch(request), pathname);
 }
 

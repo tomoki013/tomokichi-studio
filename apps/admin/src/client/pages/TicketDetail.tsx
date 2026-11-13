@@ -19,6 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { Dialog } from "../components/Dialog";
+import { InquiryShare } from "../components/InquiryShare";
 import { Button, DataState, Field, inputClass, Timestamp } from "../components/primitives";
 import { ReplyComposer } from "../components/ReplyComposer";
 import { ReportAuthorHistory } from "../components/ReportAuthorHistory";
@@ -291,7 +292,12 @@ export function TicketDetail() {
   const session = useQuery({
     queryKey: ["session"],
     queryFn: () =>
-      api.get<{ mailConfigured: boolean; role?: string; permissions?: string[] }>("/api/session"),
+      api.get<{
+        mailConfigured: boolean;
+        role?: string;
+        permissions?: string[];
+        inquiryMcp?: boolean;
+      }>("/api/session"),
   });
   const report = useQuery({
     queryKey: ["tickets", "report", t?.report_id],
@@ -332,6 +338,13 @@ export function TicketDetail() {
               </div>
             </header>
             {!t.merged_into && <StatusBar ticket={t} onChanged={refresh} />}
+            {session.data?.inquiryMcp &&
+              !t.report_id &&
+              !t.merged_into &&
+              context.data &&
+              !context.data.reportId && (
+                <InquiryShare key={context.data.id} thread={context.data} />
+              )}
             {t.merged_into && (
               <p className="ops-panel mb-5">
                 このTicketは統合済みです。履歴は保持しています。{" "}

@@ -4,6 +4,11 @@
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
 
+## v0.12.2: 確認済みの問い合わせだけを共有する MCP
+
+- チケット詳細の「AIへの共有を準備」で、1件分のやり取りから共有する文章を確認し、専用 MCP `/inquiry-mcp` 用のコードを発行する。コードは同じ Access アカウントで10分以内に一度使える。
+- 返信案は MCP クライアント側で作り、宛名などは管理画面に戻って差し替える。本番は D1 migration `0023` → Core → Gateway → 管理画面の順。SDK は v0.12.0 を継続する。
+
 ## v0.12.1: MCP の返信下書き
 
 - 管理 MCP は停止。問い合わせ・通報の本文や会話履歴には、利用者が書いた個人情報が含まれる場合がある。MCP を再開する場合は専用の入口と、共有できる内容に絞ったデータ契約を用意する。
