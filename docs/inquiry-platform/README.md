@@ -6,14 +6,13 @@
 
 ## v0.12.1: MCP の返信下書き
 
-- Cloudflare Access を通る管理 MCP で、許可された Project の問い合わせ・通報から返信案を作り、確認した本文を管理画面の下書きに保存できる。既存の下書きがある場合は競合を返す。送信は管理画面で行う。
+- 管理 MCP は停止。問い合わせ・通報の本文や会話履歴には、利用者が書いた個人情報が含まれる場合がある。MCP を再開する場合は専用の入口と、共有できる内容に絞ったデータ契約を用意する。
 - SDK は v0.12.0 のまま。Core → Gateway の順で更新する。
 
 ## v0.12.0: Project ごとの機能選択
 
 - `deploy/inquiry-platform/api.jsonc` の `PROJECT_FEATURES` で、一次受付メール・手動返信・署名・添付・通知などを受付種別ごとに選ぶ。既存の差出人・文面・署名・配送先は引き継ぐ。
 - 本番 D1 に migration `0022_intake_verifications.sql` を適用してから 3 Worker を更新する。既存フォームで検証している Turnstile は引き続きフォーム側で検証する。
-- Studio の `/mcp` は同じ Cloudflare Access と Project スコープを通る読み取り専用の入口。
 
 ## v0.11.2: テスト基盤のメジャー更新
 
