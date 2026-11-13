@@ -4,6 +4,11 @@
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
 
+## v0.12.1: MCP の返信下書き
+
+- Cloudflare Access を通る管理 MCP で、許可された Project の問い合わせ・通報から返信案を作り、確認した本文を管理画面の下書きに保存できる。既存の下書きがある場合は競合を返す。送信は管理画面で行う。
+- SDK は v0.12.0 のまま。Core → Gateway の順で更新する。
+
 ## v0.12.0: Project ごとの機能選択
 
 - `deploy/inquiry-platform/api.jsonc` の `PROJECT_FEATURES` で、一次受付メール・手動返信・署名・添付・通知などを受付種別ごとに選ぶ。既存の差出人・文面・署名・配送先は引き継ぐ。
