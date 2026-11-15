@@ -56,8 +56,11 @@
     // their own adapter: project slug → Service Binding name (below).
     "SIGNED_MODERATION": { "remeet": "REMEET_MODERATION" },
     "PROJECT_FEATURES": {
+      "6318d8fb-fbb8-4238-a900-37104bf36bfe": { "inquiryShare": true },
+      "a2f8b694-f378-44fc-bdf8-0180382e1420": { "inquiryShare": true },
       // Studio's general contact form and signed moderation use separate domains.
       "studio": {
+        "inquiryShare": true,
         "inquiry": {
           "reply": true,
           "receipt": true,
@@ -76,6 +79,7 @@
         }
       },
       "b39dd1ed-0efa-4db1-b2a1-5f41e99dbc0f": {
+        "inquiryShare": true,
         "report": {
           "reply": true,
           "receipt": true,
@@ -92,6 +96,7 @@
         }
       },
       "894c3155-a5ef-42c9-a356-ad97186cf8e4": {
+        "inquiryShare": true,
         "inquiry": {
           "reply": true,
           "receipt": true,
@@ -110,6 +115,7 @@
         "report": { "enabled": false }
       },
       "d33ca505-5b51-43ac-98d6-f58a5ce71f6b": {
+        "inquiryShare": true,
         "inquiry": {
           "reply": true,
           "receipt": true,

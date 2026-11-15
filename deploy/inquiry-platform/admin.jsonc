@@ -28,6 +28,10 @@
     "ADMIN_ORIGIN": "https://admin.tmkch.io",
     "ENVIRONMENT": "production",
     "ENABLE_INQUIRY_MCP": "true",
+    "INQUIRY_SHARE_PROJECTS": {
+      "tomokichi-diary": "INQUIRY_SHARE_DIARY",
+      "zakkary": "INQUIRY_SHARE_ZAKKARY"
+    },
     // Everybody the Access policy admits. One operator today, who administers
     // everything; name others by Access subject id in ADMIN_ROLES.
     "DEFAULT_ADMIN_ROLE": "admin"
@@ -35,7 +39,7 @@
 
   "services": [
     {
-      // The only binding this Worker has. No D1 and no R2: the internet-facing
+      // No D1 and no R2: the internet-facing
       // half of Admin cannot reach the database even if a route handler is
       // wrong. Least privilege, and the reason Admin Core exists at all.
       "binding": "ADMIN_CORE",
@@ -46,6 +50,28 @@
       // contacts naming no app go). Zakkary and ともきちの旅行日記 have their own
       // consoles and are invisible here. inquiry-platform v0.4.0+.
       "props": { "scope": { "services": ["remeet", "colorvia", "yohaku", "tmkch-io"] } }
+    },
+    {
+      "binding": "INQUIRY_SHARE_DIARY",
+      "service": "tomokichi-admin-core",
+      "entrypoint": "AdminCore",
+      "props": { "scope": { "services": ["tomokichi-diary"] } }
+    },
+    {
+      "binding": "INQUIRY_SHARE_ZAKKARY",
+      "service": "tomokichi-admin-core",
+      "entrypoint": "AdminCore",
+      "props": { "scope": { "services": ["zakkary"] } }
+    },
+    {
+      "binding": "INQUIRY_SHARE_REDEEM",
+      "service": "tomokichi-admin-core",
+      "entrypoint": "AdminCore",
+      "props": {
+        "scope": {
+          "services": ["remeet", "colorvia", "yohaku", "tmkch-io", "tomokichi-diary", "zakkary"]
+        }
+      }
     }
   ]
 }

@@ -8,6 +8,7 @@ import { registerServiceWorker } from "./lib/pwa";
 import { AppDetail } from "./pages/AppDetail";
 import { Apps } from "./pages/Apps";
 import { Deliveries } from "./pages/Deliveries";
+import { InquirySharing } from "./pages/InquirySharing";
 import { NotificationSettings } from "./pages/NotificationSettings";
 import { ReplyTemplates } from "./pages/ReplyTemplates";
 import { TicketDetail } from "./pages/TicketDetail";
@@ -38,6 +39,7 @@ createRoot(document.getElementById("root") as HTMLElement).render(
             <Route path="tickets/settings" element={<TicketSettings />} />
             <Route path="settings/notifications" element={<NotificationSettings />} />
             <Route path="tickets/:id" element={<TicketDetail />} />
+            <Route path="inquiry-sharing/:project" element={<InquirySharing />} />
             <Route path="incidents" element={<Tickets type="INCIDENT" />} />
             <Route path="reports" element={<Tickets type="REPORT" />} />
             <Route path="reports/:id" element={<LegacyTicketRedirect kind="report" />} />

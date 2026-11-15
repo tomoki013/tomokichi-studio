@@ -1,9 +1,14 @@
-import type { SupportThreadDetail } from "@inquiry-platform/core";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { Button, inputClass } from "./primitives";
 
-export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
+export interface ShareMessage {
+  id: string;
+  speaker: "customer" | "support";
+  text: string;
+}
+
+export function InquiryShare({ source, endpoint }: { source: ShareMessage[]; endpoint: string }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<
     { id: string; speaker: "customer" | "support"; text: string }[]
@@ -15,7 +20,6 @@ export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
   const selected = messages.flatMap(({ speaker, text }) =>
     text.trim() ? [{ speaker, text }] : [],
   );
-  const source = thread.messages.filter((m) => m.direction !== "internal_note").slice(-12);
 
   async function run(action: "create" | "revoke") {
     setError("");
@@ -23,7 +27,7 @@ export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
     try {
       if (action === "create") {
         setShare(
-          await api.post(`/api/support/threads/${encodeURIComponent(thread.id)}/inquiry-share`, {
+          await api.post(endpoint, {
             reviewed: true,
             messages: selected,
           }),
@@ -39,6 +43,11 @@ export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
     }
   }
 
+  function update(id: string, text: string) {
+    setMessages((items) => items.map((item) => (item.id === id ? { ...item, text } : item)));
+    setReviewed(false);
+  }
+
   if (!open) return <Button onClick={() => setOpen(true)}>AIへの共有を準備</Button>;
 
   return (
@@ -50,16 +59,13 @@ export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
       {source.map((m) => (
         <details key={m.id}>
           <summary className="cursor-pointer text-sm">
-            {m.direction === "inbound" ? "問い合わせ者" : "運営"}の原文を確認
+            {m.speaker === "customer" ? "問い合わせ者" : "運営"}の原文を確認
           </summary>
-          <p className="whitespace-pre-wrap text-sm">{m.bodyText}</p>
+          <p className="whitespace-pre-wrap text-sm">{m.text}</p>
           <Button
             disabled={pending || Boolean(share) || messages.some(({ id }) => id === m.id)}
             onClick={() => {
-              setMessages([
-                ...messages,
-                { id: m.id, speaker: m.direction === "inbound" ? "customer" : "support", text: "" },
-              ]);
+              setMessages([...messages, { id: m.id, speaker: m.speaker, text: "" }]);
               setReviewed(false);
             }}
           >
@@ -68,25 +74,48 @@ export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
         </details>
       ))}
       {messages.map((m, i) => (
-        <label className="block" key={m.id}>
-          <span className="text-sm">
-            {i + 1}. {m.speaker === "customer" ? "問い合わせ者" : "運営"}の共有文
-          </span>
-          <textarea
-            className={inputClass}
-            value={m.text}
-            maxLength={6000}
-            disabled={pending || Boolean(share)}
-            onChange={(e) => {
-              setMessages(
-                messages.map((item, index) =>
-                  index === i ? { ...item, text: e.target.value } : item,
+        <div className="space-y-2" key={m.id}>
+          <label className="block">
+            <span className="text-sm">
+              {i + 1}. {m.speaker === "customer" ? "問い合わせ者" : "運営"}の共有文
+            </span>
+            <textarea
+              className={inputClass}
+              value={m.text}
+              maxLength={6000}
+              disabled={pending || Boolean(share)}
+              id={`share-text-${m.id}`}
+              onChange={(e) => update(m.id, e.target.value)}
+            />
+          </label>
+          <Button
+            disabled={pending || Boolean(share) || !m.text}
+            onClick={() => {
+              const field = document.getElementById(`share-text-${m.id}`);
+              if (!(field instanceof HTMLTextAreaElement)) return;
+              const { selectionStart: start, selectionEnd: end } = field;
+              if (start === end) return;
+              update(m.id, `${m.text.slice(0, start)}[非公開]${m.text.slice(end)}`);
+              field.focus();
+            }}
+          >
+            選択範囲をマスク
+          </Button>
+          <Button
+            disabled={pending || Boolean(share) || Boolean(m.text)}
+            onClick={() => {
+              update(
+                m.id,
+                maskContactDetails(source.find((item) => item.id === m.id)?.text ?? "").slice(
+                  0,
+                  6000,
                 ),
               );
-              setReviewed(false);
             }}
-          />
-        </label>
+          >
+            原文から連絡先をマスクして取り込む
+          </Button>
+        </div>
       ))}
       {share ? (
         <div className="space-y-2">
@@ -129,4 +158,16 @@ export function InquiryShare({ thread }: { thread: SupportThreadDetail }) {
       {error ? <p role="alert">{error}</p> : null}
     </section>
   );
+}
+
+export function maskContactDetails(text: string) {
+  return text
+    .replace(
+      /[\p{L}\p{N}_.+%-]+[ \t]*[@＠][ \t]*[\p{L}\p{N}.-]+[.．][\p{L}]{2,}/giu,
+      "[メールアドレス]",
+    )
+    .replace(
+      /(?<![0-9０-９])[+＋]?[0-9０-９](?:[ \t().（）.ー–-]*[0-9０-９]){8,}(?![0-9０-９])/gu,
+      "[電話番号・識別番号]",
+    );
 }

@@ -297,6 +297,7 @@ export function TicketDetail() {
         role?: string;
         permissions?: string[];
         inquiryMcp?: boolean;
+        inquiryShareServices?: string[];
       }>("/api/session"),
   });
   const report = useQuery({
@@ -339,11 +340,23 @@ export function TicketDetail() {
             </header>
             {!t.merged_into && <StatusBar ticket={t} onChanged={refresh} />}
             {session.data?.inquiryMcp &&
+              session.data.inquiryShareServices?.includes(t.service_id) &&
               !t.report_id &&
               !t.merged_into &&
               context.data &&
               !context.data.reportId && (
-                <InquiryShare key={context.data.id} thread={context.data} />
+                <InquiryShare
+                  key={context.data.id}
+                  endpoint={`/api/support/threads/${encodeURIComponent(context.data.id)}/inquiry-share`}
+                  source={context.data.messages
+                    .filter((m) => m.direction !== "internal_note")
+                    .slice(-12)
+                    .map((m) => ({
+                      id: m.id,
+                      speaker: m.direction === "inbound" ? "customer" : "support",
+                      text: m.bodyText,
+                    }))}
+                />
               )}
             {t.merged_into && (
               <p className="ops-panel mb-5">
