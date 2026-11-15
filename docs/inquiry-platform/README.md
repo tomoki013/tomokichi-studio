@@ -135,6 +135,7 @@ v0.1.0 は migration `0010_default_service_setting.sql` を含む。既存 trigg
 
 ## 記録
 
+- 2026-11-15 v0.14.0（migration なし、Core のみ）: `ProjectOperator` に返信プレビュー `previewReply`（From・To・reply-all の CC・`ccSelf` で入るアドレス・件名）と、返信ごとの To・CC・件名の上書き（バインディング props の `allowReplyOverrides: true` があるときだけ）を追加。Diary のメールルートに `inquiryReceiptNumberAt: "end"` を設定し、フォームの一次受付の件名を `お問い合わせを受け付けました: 件名 [TK-…]` にした。SDK 0.10.0、Worker は SDK v0.12.0 の呼び出し側と互換なので `release.json` で固定。`deploy api`: core `bc17a003`（直前 `84012271`）。gateway・mail-ingress は変更なしのため据え置き。
 - 2026-11-15 v0.13.0（migration なし、Core のみ）: 返信の In-Reply-To をスレッドの最新メッセージ（送信も含む）にし、続けて送る返信がこちらの直前のメールにぶら下がるようにした。`ProjectOperator` の返信に `ccSelf`（運営者の非公開アドレスを CC に入れる。Project の通知先、無ければ `NOTIFICATION_EMAIL`）を追加。SDK 0.9.0 だが Worker は SDK v0.12.0 の呼び出し側と互換なので `release.json` で固定。`deploy api`: core `84012271`（直前 `718d0455`）。gateway・mail-ingress は変更なしのため据え置き。
 - 2026-10-11 v0.7.0（migration なし）: Project 管理画面向けに担当者（受付済みにした操作者）と各操作の操作者を返す。`deploy all`: core `2beb19c7`、gateway `40aa7381`、mail-ingress `ca339127`。ロールバック: `v0.6.0` に戻して `deploy all`（Zakkary API も前版 `c725450d` へ）。
 - 2026-10-11 v0.6.0（migration なし）: Project ごとの通報受付メール文面（`reportReceiptTemplate`、Zakkary は `zakkary_report_receipt`）と、お客様向けの不透明な受付ID。`deploy all`: core `89484c12`、gateway `99ddaff1`、mail-ingress `ac6bb6d1`。Studio アプリの受付メールは従来どおり。ロールバック: `v0.5.1` に戻して `deploy all`（Zakkary API も前版 `0afb0aa5` へ）。
