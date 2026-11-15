@@ -4,6 +4,11 @@
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
 
+## v0.12.3: Project ごとの AI 共有とマスク
+
+- Studio・Diary・Zakkary の問い合わせ詳細から共有を準備する。Diary と Zakkary は Studio の Access で保護された共通レビュー画面を開く。サイト別の共有可否は Core の `PROJECT_FEATURES` の `inquiryShare` で設定する。
+- メールアドレスと電話番号らしき箇所はブラウザ内でマスクして取り込める。選択範囲のマスクと直接編集も使える。作業後の全文を確認した時点で共有コードを発行する。
+
 ## v0.12.2: 確認済みの問い合わせだけを共有する MCP
 
 - チケット詳細の「AIへの共有を準備」で、1件分のやり取りから共有する文章を確認し、専用 MCP `/inquiry-mcp` 用のコードを発行する。コードは同じ Access アカウントで10分以内に一度使える。
