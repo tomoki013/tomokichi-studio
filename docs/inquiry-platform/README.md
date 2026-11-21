@@ -1,8 +1,15 @@
 # inquiry-platform の Tomokichi 環境
 
-最終更新: 2026-10-22。
+最終更新: 2026-11-21。
 
 お問い合わせ・通報・運営 API（`admin.tmkch.io`）は、公開 OSS の [tomoki013/inquiry-platform](https://github.com/tomoki013/inquiry-platform) を Tomokichi の設定でデプロイしたものです。基盤は API とセキュリティの共通部分だけを提供し、Studio の管理画面 UI はこの Repository の `apps/admin` にあります。基盤には Tomokichi 固有の値は無く、それらはすべてこの Repository に置いています（ADR-023）。
+
+## v0.16.0: 返信を自分の受付アドレスにも CC
+
+- メール配信設定（`api.jsonc` の Project ごとの route）の `replyCcSupport: true` で、管理画面からの返信と自動の受付メールすべての CC に、その Project の `supportEmail` を入れる。Diary は `contact@tomokichidiary.com`。
+- 自分のアドレス（`SUPPORT_EMAIL`・`NOREPLY_EMAIL`・`REPORT_EMAIL`・各 route の `supportEmail`・Project のメール設定の `supportEmail`）から届いたメールは取り込まない。CC の控えが mail-ingress に戻っても、新しい問い合わせにも既存のやり取りにもならない（mail-ingress の転送は今までどおり取り込みの前に行う）。
+- Diary の mail-ingress route に転送先 `tomokichidiary@gmail.com`（Email Routing で確認済み）を足した。contact@ に届くメールは、読者からのものも CC の控えも Gmail に届く。CC に出るアドレスは contact@ のまま。
+- migration・SDK の変更は無い。デプロイは `deploy all`（Core のコードと mail-ingress の設定が変わる）。
 
 ## v0.12.3: Project ごとの AI 共有とマスク
 
