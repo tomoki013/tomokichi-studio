@@ -169,7 +169,7 @@
         "requireVerifiedReplyParent": true,
         "inquiryReceiptQuoteBody": true,
         "inquiryReceiptCopyToNotification": false,
-        // Every reply Cc's contact@tomokichidiary.com. The copy comes back
+        // Every reply and receipt Cc's contact@tomokichidiary.com. The copy comes back
         // through mail-ingress and is never filed (no new inquiry).
         // inquiry-platform v0.16.0+ (older releases ignore it: no Cc).
         "replyCcSupport": true,
